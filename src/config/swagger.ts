@@ -27,13 +27,18 @@ const swaggerDefinition = {
       description: envConfig.NODE_ENV === 'production' ? 'Production server' : 'Development server',
     },
   ],
+  security: [
+    {
+      bearerAuth: []
+    }
+  ],
   components: {
     securitySchemes: {
       bearerAuth: {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        description: 'Enter JWT token without "Bearer" prefix',
+        description: 'Enter your JWT access token (without "Bearer" prefix)',
       },
     },
     schemas: {

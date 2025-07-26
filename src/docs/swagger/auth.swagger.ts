@@ -10,7 +10,9 @@
  * /api/auth/register:
  *   post:
  *     summary: Register a new user
+ *     description: Create a new user account. No authentication required.
  *     tags: [Authentication]
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:
@@ -91,7 +93,9 @@
  * /api/auth/login:
  *   post:
  *     summary: Authenticate user
+ *     description: Login with email/username and password. No authentication required.
  *     tags: [Authentication]
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:
@@ -161,6 +165,7 @@
  * /api/auth/logout:
  *   post:
  *     summary: Logout user
+ *     description: Logout the authenticated user. Requires Bearer token in Authorization header.
  *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
@@ -171,11 +176,10 @@
  *           schema:
  *             type: object
  *             properties:
- *               everywhere:
- *                 type: boolean
- *                 default: false
- *                 description: If true, logout from all devices
- *                 example: false
+ *               refreshToken:
+ *                 type: string
+ *                 description: Optional refresh token to invalidate
+ *                 example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     responses:
  *       200:
  *         description: Logout successful
@@ -208,6 +212,7 @@
  * /api/auth/profile:
  *   get:
  *     summary: Get user profile
+ *     description: Retrieve the authenticated user's profile information. Requires Bearer token.
  *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
@@ -249,6 +254,7 @@
  *               $ref: '#/components/schemas/ErrorResponse'
  *   put:
  *     summary: Update user profile
+ *     description: Update the authenticated user's profile information. Requires Bearer token.
  *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
@@ -318,6 +324,7 @@
  * /api/auth/change-password:
  *   put:
  *     summary: Change user password
+ *     description: Change the authenticated user's password. Requires Bearer token and current password.
  *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
@@ -380,6 +387,7 @@
  * /api/auth/validate:
  *   get:
  *     summary: Validate authentication token
+ *     description: Validate the provided JWT token and return user information. Requires Bearer token.
  *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
@@ -422,7 +430,9 @@
  * /api/auth/health:
  *   get:
  *     summary: Auth service health check
+ *     description: Check if the authentication service is running. No authentication required.
  *     tags: [Authentication]
+ *     security: []
  *     responses:
  *       200:
  *         description: Auth service is healthy
