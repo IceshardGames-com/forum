@@ -1,0 +1,270 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_background"
+    android:gravity="center">
+
+    <ImageView
+        android:id="@+id/background_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.7"
+        android:scaleType="centerCrop"
+        android:src="@drawable/dashboardbg" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#E9000000" />
+
+    <include
+        android:id="@+id/header"
+        layout="@layout/header" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/header"
+        android:layout_marginHorizontal="@dimen/_15sdp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_blur_border"
+            android:orientation="vertical"
+            android:paddingVertical="@dimen/_20sdp">
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/noto_bold"
+                android:gravity="center_horizontal"
+                android:text="Search the Matrix"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_20sdp"
+                android:textStyle="bold" />
+
+            <!-- Subtext -->
+            <TextView
+                android:id="@+id/subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:fontFamily="@font/noto_medium"
+                android:gravity="center_horizontal"
+                android:text="Find games, posts, users, and more"
+                android:textColor="@color/lightpuple"
+                android:textSize="12dp" />
+
+        </LinearLayout>
+
+        <!-- Search Bar -->
+        <EditText
+            android:id="@+id/searchBar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_gradient_discussion"
+            android:drawableStart="@drawable/searchi"
+            android:drawablePadding="@dimen/_10sdp"
+            android:drawableTint="@color/gradient_end"
+            android:hint="Search anything..."
+            android:padding="12dp"
+            android:paddingStart="@dimen/_10sdp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#888888" />
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <!-- Horizontal scroll container -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <!-- Filter Buttons -->
+                    <LinearLayout
+                        android:id="@+id/filterButtons"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/_30sdp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnAll"
+                            style="@style/FilterButtonStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/noto_medium"
+                            android:paddingLeft="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingRight="8dp"
+                            android:paddingBottom="2dp"
+                            android:text="All"
+                            android:textSize="10dp" />
+
+                        <Button
+                            android:id="@+id/btnGames"
+                            style="@style/FilterButtonStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/noto_medium"
+                            android:paddingLeft="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingRight="8dp"
+                            android:paddingBottom="2dp"
+                            android:text="Games"
+                            android:textSize="10dp" />
+
+                        <Button
+                            android:id="@+id/btnPosts"
+                            style="@style/FilterButtonStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/noto_medium"
+                            android:paddingLeft="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingRight="8dp"
+                            android:paddingBottom="2dp"
+                            android:text="Posts"
+                            android:textSize="10dp" />
+
+                        <Button
+                            android:id="@+id/btnUsers"
+                            style="@style/FilterButtonStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/noto_medium"
+                            android:paddingLeft="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingRight="8dp"
+                            android:paddingBottom="2dp"
+                            android:text="Users"
+                            android:textSize="10dp" />
+
+                        <Button
+                            android:id="@+id/btnCompanies"
+                            style="@style/FilterButtonStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/noto_medium"
+                            android:paddingLeft="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingRight="8dp"
+                            android:paddingBottom="2dp"
+                            android:text="Companies"
+                            android:textSize="10dp" />
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+                <!-- Recent Searches -->
+
+                <LinearLayout
+                    android:id="@+id/recentSearchBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="@dimen/_15sdp"
+                        android:layout_height="@dimen/_15sdp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/time"
+                        android:tint="@color/gradient_end" />
+
+                    <TextView
+                        android:id="@+id/recentSearchesTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:fontFamily="@font/title_bold"
+                        android:gravity="center_vertical"
+                        android:text="Recent Searches"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_13sdp" />
+
+                    <TextView
+                        android:id="@+id/clearTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="end|center_vertical"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:fontFamily="@font/noto_raguler"
+                        android:gravity="end|center_vertical"
+                        android:text="Clear"
+                        android:textColor="@color/gradient_end"
+                        android:textSize="10dp" />
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/recentSearchesList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical" />
+
+                <!-- Trending Topics -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="@dimen/_15sdp"
+                        android:layout_height="@dimen/_15sdp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/trending"
+                        android:tint="#FFAA00" />
+
+                    <TextView
+                        android:id="@+id/trendingTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:fontFamily="@font/title_bold"
+                        android:gravity="center_vertical"
+                        android:text="Trending Topics"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_13sdp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/trendingRecycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="8dp" />
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+    </LinearLayout>
+
+
+</RelativeLayout>

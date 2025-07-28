@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- REQUIRED PERMISSION FOR INTERNET VIDEO STREAMING -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:largeHeap="true"
+        android:requestLegacyExternalStorage="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.GamerCommunity">
+        <activity
+            android:name=".Activity.MainScreen.SearchScreenActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activity.MainScreen.NotificationScreenActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activity.ProfileScreen.IntrestScreenActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.MainScreen.DashboardScreenActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.ProfileScreen.IdentifyScreenActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.ProfileScreen.GenderScreenActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.ProfileScreen.ProfileScreenActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.OtpScreen.ResetPasswordScreenActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.OtpScreen.OtpVerificationScreenActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.OtpScreen.ForgetScreenActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.StartScreen.StartScreenActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.RegisterScreen.RegisterScreenActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.LoginScreen.LoginScreenActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.SplashScreen.SplashScreenActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:exported="true"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="true"
+            android:windowSoftInputMode="adjustPan">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
+    </application>
+
+</manifest>

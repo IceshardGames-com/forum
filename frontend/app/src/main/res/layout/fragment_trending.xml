@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/trans"
+    android:orientation="vertical">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom_navigation"
+        android:layout_below="@+id/top_nav_bar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_80sdp"
+                android:visibility="gone"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="@dimen/_5sdp"
+                    android:layout_weight="1"
+                    android:background="@drawable/onlineplayersbg"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/OnlinePlayerstatNumber"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/header"
+                        android:gravity="center"
+                        android:text="24.8K"
+                        android:textColor="#3EB96D"
+                        android:textSize="25dp" />
+
+                    <TextView
+                        android:id="@+id/OnlinePlayerstatLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:fontFamily="@font/noto_semibold"
+                        android:gravity="center"
+                        android:text="Online \nPlayers"
+                        android:textColor="#468361"
+                        android:textSize="12dp" />
+
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="@dimen/_5sdp"
+                    android:layout_weight="1"
+                    android:background="@drawable/activegamesbg"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/ActiveGamesstatNumber"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/header"
+                        android:gravity="center"
+                        android:text="156"
+                        android:textColor="#CA6771"
+                        android:textSize="25dp" />
+
+                    <TextView
+                        android:id="@+id/ActiveGamesstatLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:fontFamily="@font/noto_semibold"
+                        android:gravity="center"
+                        android:text="Active \nGames"
+                        android:textColor="#7E414B"
+                        android:textSize="12dp" />
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="@dimen/_5sdp"
+                    android:layout_weight="1"
+                    android:background="@drawable/livestrembg"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/LiveStreamstatNumber"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/header"
+                        android:gravity="center"
+                        android:text="89"
+                        android:textColor="#B87EF0"
+                        android:textSize="25dp" />
+
+                    <TextView
+                        android:id="@+id/LiveStreamstatLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:fontFamily="@font/noto_semibold"
+                        android:gravity="center"
+                        android:text="Live \nStreams"
+                        android:textColor="#7F6597"
+                        android:textSize="12dp" />
+
+
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+            <!--Trending Now-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/_18sdp"
+                    android:layout_height="@dimen/_18sdp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="@dimen/_5sdp"
+                    android:src="@drawable/trending"
+                    android:tint="#F28D3B" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:fontFamily="@font/title_bold"
+                    android:gravity="center_vertical"
+                    android:text="Trending Now"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="@dimen/_5sdp"
+                    android:alpha="0.8"
+                    android:fontFamily="@font/noto_raguler"
+                    android:gravity="end|center_vertical"
+                    android:text="View All"
+                    android:textColor="@color/gradient_end"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerTrending"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:orientation="vertical"
+                android:overScrollMode="never"
+                android:scrollbars="none" />
+
+            <!--Company News-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/_18sdp"
+                    android:layout_height="@dimen/_18sdp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="@dimen/_5sdp"
+                    android:src="@drawable/unfill_comp"
+                    android:tint="#5B9DEE" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:fontFamily="@font/title_bold"
+                    android:gravity="center_vertical"
+                    android:text="Company News"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="@dimen/_5sdp"
+                    android:alpha="0.8"
+                    android:fontFamily="@font/noto_raguler"
+                    android:gravity="end|center_vertical"
+                    android:text="View All"
+                    android:textColor="#5B9DEE"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerNews"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:orientation="vertical"
+                android:overScrollMode="never"
+                android:scrollbars="none" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

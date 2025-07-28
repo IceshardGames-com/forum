@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="dark_card_background">#151526</color>
+    <color name="gradient_start_purple">#6A1B9A</color>
+    <color name="gradient_end_cyan">#00BCD4</color>
+    <color name="hint_gray">#B3B3B3</color>
+    <color name="social_button_bg">#2C2C4B</color>
+    <color name="lightgreen">#116B7A</color>
+    <color name="lightpuple">#604380</color>
+    <color name="lightpink">#9E666C</color>
+    <color name="lightred">#693237</color>
+    <color name="lightblue">#4865CB</color>
+    <color name="lightluv">#818CF8</color>
+    <color name="lightorg">#6E411C</color>
+    <color name="darkgreen">#22D3EE</color>
+    <color name="darkgpurple">#C084FC</color>
+    <color name="darkgpink">#D76D77</color>
+    <color name="darkgred">#F87171</color>
+    <color name="darkblue">#57A0FA</color>
+    <color name="darkluv">#4865CB</color>
+    <color name="darkorg">#FB923C</color>
+
+    <!-- Primary Dark Background -->
+    <color name="dark_background">#000000</color>
+    <color name="dark_background_light">#EB000000</color>
+
+    <!-- Text Colors -->
+    <color name="neon_green">#00E676</color>
+    <color name="neon_blue">#00B0FF</color>
+    <color name="light_gray">#B0B0B0</color>
+    <color name="light_green">#124458</color>
+
+    <!-- Gradient Colors for Buttons -->
+    <color name="gradient_start">#3A1C71</color> <!-- Blue -->
+    <color name="gradient_end">#D76D77</color>   <!-- Purple -->
+
+    <!-- Input Field Colors -->
+    <color name="input_background">#2A1F45</color>
+    <color name="input_border">#4A3B6B</color>
+    <color name="input_text_color">#FFFFFF</color>
+    <color name="input_hint_color">#B0B0B0</color>
+
+    <!-- Social Button Backgrounds (for icons, if not using actual logos) -->
+    <color name="social_google">#EA4335</color>
+    <color name="social_facebook">#1877F2</color>
+    <color name="social_discord">#5865F2</color>
+    <color name="social_steam">#171A21</color>
+
+    <!-- Neon effect colors -->
+    <color name="neon_blue_light">#00F0FF</color> <!-- Bright cyan/blue -->
+    <color name="neon_blue_dark">#0099FF</color>  <!-- Slightly darker blue for gradient -->
+    <color name="neon_pink_light">#FF00FF</color> <!-- Bright magenta/pink -->
+    <color name="neon_pink_dark">#CC00CC</color>
+    <color name="trans">#00FFFFFF</color>  <!-- Slightly darker pink for gradient -->
+
+    <color name="accent">#FF4D00</color>
+    <color name="orange">#FFA500</color>
+    <color name="primary">#6E48EB</color>
+    <color name="middle">#B95D76</color>
+    <color name="blacktrans">#E5000000</color>
+
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The negative value will shift the item upwards -->
+    <dimen name="stagger_offset">-50dp</dimen>
+</resources>

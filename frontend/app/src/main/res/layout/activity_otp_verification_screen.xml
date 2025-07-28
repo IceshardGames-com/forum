@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_background"
+    tools:context=".Activity.OtpScreen.ForgetScreenActivity">
+
+    <ImageView
+        android:id="@+id/background_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.7"
+        android:scaleType="centerCrop"
+        android:src="@drawable/background_vr_nexus" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blacktrans" />
+    <include
+        android:id="@+id/header_start"
+        layout="@layout/header_start"/>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/mainbg"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="@dimen/_30sdp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header_start">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="20dp">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardprofile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:outlineSpotShadowColor="@color/darkblue"
+                app:cardCornerRadius="@dimen/_100sdp"
+                app:cardUseCompatPadding="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/circle_gradient"
+                        android:layout_width="150dp"
+                        android:layout_height="150dp"
+                        android:contentDescription="Decorative Circle"
+                        android:src="@drawable/profile_start"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/circle_gradient_image"
+                        android:layout_width="140dp"
+                        android:layout_height="140dp"
+                        android:layout_alignParentBottom="true"
+                        android:layout_centerHorizontal="true"
+                        android:contentDescription="Decorative Circle"
+                        android:src="@drawable/profilepic"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+
+                </RelativeLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/tv_verify"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Verify Your Account"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_20sdp"
+                android:fontFamily="@font/header"
+                android:textAllCaps="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cardprofile" />
+
+            <!-- READY PLAYER ONE? Subtitle -->
+            <TextView
+                android:id="@+id/tv_recover_account"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:alpha="0.8"
+                android:fontFamily="@font/noto_raguler"
+                android:text="Enter the 6-digit code sent to your email address."
+                android:textColor="@color/darkgpink"
+                android:textAllCaps="true"
+                android:textSize="10dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_verify" />
+
+
+            <LinearLayout
+                android:id="@+id/input_fields_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="15dp"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/button_blur_border"
+                android:orientation="vertical"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_recover_account">
+
+                <com.chaos.view.PinView
+                    android:id="@+id/pinView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/emailText"
+                    android:layout_marginTop="15dp"
+                    android:text="123456"
+                    android:cursorVisible="true"
+                    android:itemBackground="@drawable/button_blur_border"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/noto_bold"
+                    app:cursorColor="@color/neon_green"
+                    app:hideLineWhenFilled="true"
+                    app:itemCount="6"
+                    app:itemHeight="48dp"
+                    app:itemRadius="4dp"
+                    app:itemSpacing="2dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/emailText"
+                    app:lineColor="@color/darkgpurple"
+                    app:lineWidth="2dp" />
+
+                <LinearLayout
+                    android:id="@+id/btn_verifyOtp"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="15dp"
+                    android:background="@drawable/button_gradient_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/pinView">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:visibility="gone"
+                        android:src="@drawable/reset_password"
+                        android:tint="@android:color/white" />
+
+                    <TextView
+                        android:id="@+id/text_spawn_in"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:letterSpacing="0.08"
+                        android:text="Verify OTP"
+                        android:fontFamily="@font/header"
+                        android:textAllCaps="true"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/_15sdp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/resendOtpTextlayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:layout_gravity="end"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="15dp"
+                    app:layout_constraintTop_toBottomOf="@+id/btn_verifyOtp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:text="Didn't receive OTP?"
+                        android:textColor="@color/darkgpurple"
+                        android:textSize="10dp" />
+
+                    <TextView
+                        android:id="@+id/resendOtpText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" Resend"
+                        android:textColor="@color/darkgpurple"
+                        android:textStyle="bold"
+                        android:textSize="10dp"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+            <TextView
+                android:id="@+id/timerText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="15dp"
+                android:text="02:00"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:visibility="gone"
+                android:fontFamily="@font/noto_italic"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/input_fields_section" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </androidx.core.widget.NestedScrollView>
+
+    <TextView
+        android:id="@+id/emailText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:text="OTP sent to user@email.com"
+        android:textColor="@color/middle"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:fontFamily="@font/noto_italic"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mainbg" />
+</androidx.constraintlayout.widget.ConstraintLayout>

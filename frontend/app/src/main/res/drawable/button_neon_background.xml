@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer glow effect (simulated by a slightly larger, blurred shape) -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="26dp" />
+            <gradient
+                android:startColor="@color/gradient_end_cyan"
+                android:endColor="@color/gradient_start_purple"
+                android:angle="0" />
+            <padding
+                android:left="0.5dp"
+                android:top="0.5dp"
+                android:right="0.5dp"
+                android:bottom="0.5dp" />
+        </shape>
+    </item>
+
+    <!-- Inner button shape -->
+    <item android:bottom="0.2dp" android:left="0.2dp" android:right="0.2dp" android:top="0.2dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="24dp" />
+            <gradient
+                android:startColor="#0C0818"
+                android:endColor="#0C0818"
+                android:angle="270"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>

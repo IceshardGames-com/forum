@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_background"
+    tools:context=".Activity.LoginScreen.LoginScreenActivity">
+
+    <ImageView
+        android:id="@+id/background_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.7"
+        android:scaleType="centerCrop"
+        android:src="@drawable/background_vr_nexus" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blacktrans" />
+
+    <!-- Top Navigation Bar (Simplified) -->
+    <include
+        android:id="@+id/header_start"
+        layout="@layout/header_start"/>
+
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header_start">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="32dp">
+
+            <!-- Circular Gradient Image -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardprofile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:outlineSpotShadowColor="@color/darkblue"
+                app:cardCornerRadius="@dimen/_100sdp"
+                app:cardUseCompatPadding="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/circle_gradient"
+                        android:layout_width="150dp"
+                        android:layout_height="150dp"
+                        android:contentDescription="Decorative Circle"
+                        android:src="@drawable/profile_start"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/circle_gradient_image"
+                        android:layout_width="140dp"
+                        android:layout_height="140dp"
+                        android:layout_alignParentBottom="true"
+                        android:layout_centerHorizontal="true"
+                        android:contentDescription="Decorative Circle"
+                        android:src="@drawable/profilepic"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+
+                </RelativeLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- VR NEXUS Title -->
+            <TextView
+                android:id="@+id/tv_vr_nexus"
+                android:textSize="@dimen/_30sdp"
+                android:textColor="@color/white"
+                android:letterSpacing="0.1"
+                android:fontFamily="@font/header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="VR NEXUS"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cardprofile" />
+
+            <!-- READY PLAYER ONE? Subtitle -->
+            <TextView
+                android:id="@+id/tv_create_your_avatar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:alpha="0.8"
+                android:textAllCaps="true"
+                android:fontFamily="@font/noto_raguler"
+                android:text="CREATE YOUR AVATAR"
+                android:textColor="@color/darkgpink"
+                android:textSize="10dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_vr_nexus" />
+
+            <!-- Email Input Field -->
+            <LinearLayout
+                android:id="@+id/input_fields_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="15dp"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/button_blur_border"
+                android:orientation="vertical"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_create_your_avatar">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_55sdp"
+                    android:layout_marginVertical="15dp"
+                    android:background="@drawable/input_field_background_green"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginStart="15dp"
+                        android:src="@drawable/ic_email"
+                        android:tint="@color/darkgreen" />
+
+                    <EditText
+                        android:id="@+id/et_email"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="15dp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/noto_semibold"
+                        android:paddingEnd="@dimen/_10sdp"
+                        android:background="@android:color/transparent"
+                        android:hint="Enter your email"
+                        android:inputType="textEmailAddress"
+                        android:textColor="@android:color/white"
+                        android:textColorHint="@color/hint_gray"
+                        android:textSize="14dp" />
+                </LinearLayout>
+
+                <!-- GAMERTAG FIELD -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_55sdp"
+                    android:layout_marginBottom="15dp"
+                    android:background="@drawable/input_field_background_purple"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginStart="15dp"
+                        android:src="@drawable/ic_person"
+                        android:tint="@color/darkgpurple" />
+
+                    <EditText
+                        android:id="@+id/et_gamertag"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="15dp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/noto_semibold"
+                        android:background="@android:color/transparent"
+                        android:paddingEnd="@dimen/_10sdp"
+                        android:hint="Choose your gamertag"
+                        android:inputType="textPersonName"
+                        android:textColor="@android:color/white"
+                        android:textColorHint="@color/hint_gray"
+                        android:textSize="14dp" />
+                </LinearLayout>
+
+                <!-- PASSWORD FIELD -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_55sdp"
+                    android:layout_marginBottom="24dp"
+                    android:background="@drawable/input_field_background_pink"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginStart="15dp"
+                        android:src="@drawable/ic_lock"
+                        android:tint="@color/darkgpink" />
+
+                    <EditText
+                        android:id="@+id/et_password"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="15dp"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:hint="Enter your password"
+                        android:paddingEnd="@dimen/_10sdp"
+                        android:fontFamily="@font/noto_semibold"
+                        android:inputType="textPassword"
+                        android:textColor="@android:color/white"
+                        android:textColorHint="@color/hint_gray"
+                        android:textSize="14dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btn_spawn_in"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:background="@drawable/button_gradient_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:visibility="gone"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_spawn_jack_in"
+                        android:tint="@android:color/white" />
+
+                    <TextView
+                        android:id="@+id/text_spawn_in"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:letterSpacing="0.08"
+                        android:text="JOIN IN"
+                        android:textAllCaps="true"
+                        android:fontFamily="@font/header"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/_15sdp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tv_sign_inlayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:layout_gravity="end"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="15dp"
+                    app:layout_constraintTop_toBottomOf="@+id/btn_verifyOtp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:text="Already in the game?"
+                        android:textColor="@color/darkgpurple"
+                        android:textSize="10dp" />
+
+                    <TextView
+                        android:id="@+id/tv_sign_in"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" Sign In"
+                        android:textColor="@color/darkgpurple"
+                        android:textStyle="bold"
+                        android:textSize="10dp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- CONNECT VIA Text -->
+            <TextView
+                android:id="@+id/tv_connect_via"
+                style="@style/ConnectViaTextStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CONNECT VIA"
+                android:alpha="0.8"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:fontFamily="@font/noto_medium"
+                app:layout_constraintTop_toBottomOf="@+id/input_fields_section" />
+
+            <!-- Social Media Buttons -->
+            <LinearLayout
+                android:id="@+id/social_buttons_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_connect_via">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:outlineSpotShadowColor="@color/darkgred"
+                    app:cardCornerRadius="@dimen/_10sdp"
+                    app:cardElevation="@dimen/_10sdp"
+                    app:cardUseCompatPadding="true">
+
+                    <ImageButton
+                        android:id="@+id/btn_google"
+                        style="@style/SocialButtonStyle"
+                        android:background="@drawable/input_field_background_red"
+                        android:contentDescription="Google Login"
+                        android:src="@drawable/ic_google"
+                        android:tint="@color/darkgred" />
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:outlineSpotShadowColor="@color/darkblue"
+                    app:cardCornerRadius="@dimen/_10sdp"
+                    app:cardElevation="@dimen/_10sdp"
+                    app:cardUseCompatPadding="true">
+
+                    <ImageButton
+                        android:id="@+id/btn_facebook"
+                        style="@style/SocialButtonStyle"
+                        android:background="@drawable/input_field_background_blue"
+                        android:contentDescription="Facebook Login"
+                        android:src="@drawable/ic_facebook"
+                        android:tint="@color/darkblue" />
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:outlineSpotShadowColor="@color/darkluv"
+                    app:cardCornerRadius="@dimen/_10sdp"
+                    app:cardElevation="@dimen/_10sdp"
+                    app:cardUseCompatPadding="true">
+
+                    <ImageButton
+                        android:id="@+id/btn_discord"
+                        style="@style/SocialButtonStyle"
+                        android:background="@drawable/input_field_background_luv"
+                        android:contentDescription="Discord Login"
+                        android:src="@drawable/ic_discord"
+                        android:tint="@color/darkluv" />
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:outlineSpotShadowColor="@color/darkorg"
+                    app:cardCornerRadius="@dimen/_10sdp"
+                    app:cardElevation="@dimen/_10sdp"
+                    app:cardUseCompatPadding="true">
+
+                    <ImageButton
+                        android:id="@+id/btn_steam"
+                        style="@style/SocialButtonStyle"
+                        android:background="@drawable/input_field_background_org"
+                        android:contentDescription="Steam Login"
+                        android:src="@drawable/ic_steam"
+                        android:tint="@color/darkorg" />
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
+
+            <!-- Quote Text -->
+            <TextView
+                android:id="@+id/tv_quote"
+                style="@style/QuoteTextStyle"
+                android:layout_width="0dp"
+                android:fontFamily="@font/noto_italic"
+                android:layout_height="wrap_content"
+                android:text="@string/the_only_way_to_make_sense_out_of_change_is_to_plunge_into_it_move_with_it_and_join_the_dance"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/social_buttons_layout" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_background"
+    tools:context=".Activity.ProfileScreen.IdentifyScreenActivity">
+
+    <ImageView
+        android:id="@+id/background_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.7"
+        android:scaleType="centerCrop"
+        android:src="@drawable/background_vr_nexus" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blacktrans" />
+
+    <include
+        android:id="@+id/header_start"
+        layout="@layout/header_start"/>
+
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header_start">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="32dp">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardprofile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:outlineSpotShadowColor="@color/darkblue"
+                app:cardCornerRadius="@dimen/_100sdp"
+                app:cardUseCompatPadding="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/circle_gradient"
+                        android:layout_width="150dp"
+                        android:layout_height="150dp"
+                        android:contentDescription="Decorative Circle"
+                        android:src="@drawable/profile_start"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/circle_gradient_image"
+                        android:layout_width="140dp"
+                        android:layout_height="140dp"
+                        android:layout_alignParentBottom="true"
+                        android:layout_centerHorizontal="true"
+                        android:contentDescription="Decorative Circle"
+                        android:src="@drawable/profilepic"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+
+                </RelativeLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/tv_identify"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAllCaps="true"
+                android:text="How Do You Identify?"
+                android:fontFamily="@font/header"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_20sdp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cardprofile" />
+
+            <TextView
+                android:id="@+id/tv_recover_account"
+                android:textSize="10dp"
+                android:textColor="@color/darkgpink"
+                android:letterSpacing="0.1"
+                android:layout_marginHorizontal="@dimen/_25sdp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginTop="5dp"
+                android:textAllCaps="true"
+                android:text="Tell us about yourself to improve your recommendations and ads."
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_identify" />
+
+
+            <LinearLayout
+                android:id="@+id/input_fields_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="15dp"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/button_blur_border"
+                android:orientation="vertical"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_recover_account">
+
+                <TextView
+                    android:id="@+id/tv_usage_reason"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Why do you use this app?"
+                    android:textColor="@color/darkgpurple"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/noto_semibold"
+                    android:textAllCaps="true"
+                    android:layout_marginTop="15dp"
+                    app:layout_constraintTop_toBottomOf="@id/btn_prefer_not"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <Spinner
+                    android:id="@+id/spinner_usage"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/button_blur_border"
+                    android:layout_marginStart="15dp"
+                    android:popupBackground="#2A2A2A" />
+
+                <!-- Industry Field -->
+                <TextView
+                    android:id="@+id/tv_industry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Which industry are you from?"
+                    android:textColor="@color/darkgpurple"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/noto_semibold"
+                    android:layout_marginTop="15dp"
+                    android:textAllCaps="true"
+                    app:layout_constraintTop_toBottomOf="@id/spinner_usage"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <Spinner
+                    android:id="@+id/spinner_industry"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginStart="15dp"
+                    android:background="@drawable/button_blur_border"
+                    android:popupBackground="#2A2A2A" />
+                <LinearLayout
+                    android:id="@+id/btn_continue"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginVertical="15dp"
+                    android:background="@drawable/button_gradient_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:visibility="gone"
+                        android:src="@drawable/continues"
+                        android:tint="@android:color/white" />
+
+                    <TextView
+                        android:id="@+id/text_continue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:letterSpacing="0.08"
+                        android:text="Continue"
+                        android:fontFamily="@font/header"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/_15sdp"
+                        android:textAllCaps="true"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/umfill_home"
+        android:title="Home" />
+
+    <item
+        android:id="@+id/nav_forums"
+        android:icon="@drawable/unfill_forums"
+        android:title="Forums" />
+
+    <item
+        android:id="@+id/nav_esports"
+        android:icon="@drawable/unfill_esports"
+        android:title="Esports" />
+
+    <item
+        android:id="@+id/nav_companies"
+        android:icon="@drawable/unfill_comp"
+        android:title="Companies" />
+
+    <item
+        android:id="@+id/nav_search"
+        android:icon="@drawable/unfill_search"
+        android:title="Search" />
+</menu>

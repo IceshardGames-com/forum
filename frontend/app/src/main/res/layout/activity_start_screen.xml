@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_background"
+    tools:context=".Activity.StartScreen.StartScreenActivity">
+
+
+    <!-- <TextView
+         android:id="@+id/screenTitle"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="24dp"
+         android:fontFamily="@font/akronim"
+         android:gravity="center_horizontal"
+         android:text="VR Gaming Universe"
+         android:textColor="@color/white"
+         android:textSize="@dimen/_35sdp"
+         android:textStyle="bold" /> -->
+
+    <!-- RecyclerView for the video grid -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/videoGridRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:nestedScrollingEnabled="false"
+        android:background="@color/trans"
+        android:padding="8dp"
+        android:rotation="-5"
+        android:clickable="false"
+        android:focusable="false"
+        android:scrollbars="none" />
+
+    <!-- Main action button at the bottom -->
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/bottomstart" />
+
+    <LinearLayout
+        android:id="@+id/actionButton"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginHorizontal="@dimen/_30sdp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/button_gradient_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:text="Dive into VR Worlds">
+
+
+        <TextView
+            android:id="@+id/text_spawn_in"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/header"
+            android:letterSpacing="0.06"
+            android:text="Time to Explore More!"
+            android:textAllCaps="true"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/_15sdp" />
+    </LinearLayout>
+
+</RelativeLayout>
