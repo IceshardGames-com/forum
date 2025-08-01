@@ -5,7 +5,6 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_background"
     tools:context=".Activity.ProfileScreen.IntrestScreenActivity">
 
     <ImageView
@@ -14,7 +13,7 @@
         android:layout_height="match_parent"
         android:alpha="0.7"
         android:scaleType="centerCrop"
-        android:src="@drawable/background_vr_nexus" />
+        android:src="@drawable/bg2" />
 
     <View
         android:layout_width="match_parent"
@@ -99,7 +98,7 @@
                 android:layout_height="wrap_content"
                 android:alpha="0.8"
                 android:textAllCaps="true"
-                android:fontFamily="@font/noto_raguler"
+                android:fontFamily="@font/titilliumweb_raguler"
                 android:gravity="center_horizontal"
                 android:text="Please choose all your intrests.!"
                 android:textColor="@color/darkgpink"
@@ -154,7 +153,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
-                        android:fontFamily="@font/header"
+                        android:fontFamily="@font/titilliumweb_bold"
                         android:letterSpacing="0.08"
                         android:text="Continue"
                         android:textAllCaps="true"

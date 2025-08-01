@@ -44,7 +44,7 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:text="Username"
-        android:fontFamily="@font/noto_raguler"
+        android:fontFamily="@font/titilliumweb_raguler"
         android:textColor="#FFFFFF"
         android:textSize="10sp" />
 </LinearLayout>

@@ -35,7 +35,7 @@ public class IdentifyScreenActivity extends AppCompatActivity {
         binding = ActivityIdentifyScreenBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        customFont = ResourcesCompat.getFont(this, R.font.noto_italic);
+        customFont = ResourcesCompat.getFont(this, R.font.titilliumweb_italic);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -43,7 +43,7 @@ public class IdentifyScreenActivity extends AppCompatActivity {
             return insets;
         });
         Utills.GradientText(binding.headerStart.screenTitleNav);
-        binding.headerStart.screenTitleNav.setText("Identify \\nYourself");
+        binding.headerStart.screenTitleNav.setText("Identify \nYourself");
         Utills.GradientText(binding.tvIdentify);
         Clicks();
 

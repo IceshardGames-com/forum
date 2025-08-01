@@ -2,7 +2,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_background"
     android:gravity="center">
 
     <ImageView
@@ -11,22 +10,18 @@
         android:layout_height="match_parent"
         android:alpha="0.7"
         android:scaleType="centerCrop"
-        android:src="@drawable/dashboardbg" />
+        android:src="@drawable/bg2" />
 
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#E9000000" />
-
-    <include
-        android:id="@+id/header"
-        layout="@layout/header" />
+        android:background="@color/dark_background_light" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/header"
-        android:layout_marginHorizontal="@dimen/_15sdp"
+        android:layout_margin="@dimen/_10sdp"
         android:orientation="vertical">
 
         <LinearLayout
@@ -41,7 +36,7 @@
                 android:id="@+id/title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/noto_bold"
+                android:fontFamily="@font/titilliumweb_bold"
                 android:gravity="center_horizontal"
                 android:text="Search the Matrix"
                 android:textColor="@color/white"
@@ -54,7 +49,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:fontFamily="@font/noto_medium"
+                android:fontFamily="@font/titilliumweb_semibold"
                 android:gravity="center_horizontal"
                 android:text="Find games, posts, users, and more"
                 android:textColor="@color/lightpuple"
@@ -74,6 +69,8 @@
             android:drawableTint="@color/gradient_end"
             android:hint="Search anything..."
             android:padding="12dp"
+            android:fontFamily="@font/titilliumweb_semibold"
+            android:textSize="@dimen/_12sdp"
             android:paddingStart="@dimen/_10sdp"
             android:textColor="#FFFFFF"
             android:textColorHint="#888888" />
@@ -106,7 +103,7 @@
                             style="@style/FilterButtonStyle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/noto_medium"
+                            android:fontFamily="@font/titilliumweb_bold"
                             android:paddingLeft="8dp"
                             android:paddingTop="2dp"
                             android:paddingRight="8dp"
@@ -119,7 +116,7 @@
                             style="@style/FilterButtonStyle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/noto_medium"
+                            android:fontFamily="@font/titilliumweb_bold"
                             android:paddingLeft="8dp"
                             android:paddingTop="2dp"
                             android:paddingRight="8dp"
@@ -132,7 +129,7 @@
                             style="@style/FilterButtonStyle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/noto_medium"
+                            android:fontFamily="@font/titilliumweb_bold"
                             android:paddingLeft="8dp"
                             android:paddingTop="2dp"
                             android:paddingRight="8dp"
@@ -145,7 +142,7 @@
                             style="@style/FilterButtonStyle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/noto_medium"
+                            android:fontFamily="@font/titilliumweb_bold"
                             android:paddingLeft="8dp"
                             android:paddingTop="2dp"
                             android:paddingRight="8dp"
@@ -158,7 +155,7 @@
                             style="@style/FilterButtonStyle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/noto_medium"
+                            android:fontFamily="@font/titilliumweb_bold"
                             android:paddingLeft="8dp"
                             android:paddingTop="2dp"
                             android:paddingRight="8dp"
@@ -192,7 +189,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
                         android:layout_marginStart="@dimen/_10sdp"
-                        android:fontFamily="@font/title_bold"
+                        android:fontFamily="@font/titilliumweb_bold"
                         android:gravity="center_vertical"
                         android:text="Recent Searches"
                         android:textColor="#FFFFFF"
@@ -204,7 +201,7 @@
                         android:layout_height="match_parent"
                         android:layout_gravity="end|center_vertical"
                         android:layout_marginStart="@dimen/_10sdp"
-                        android:fontFamily="@font/noto_raguler"
+                        android:fontFamily="@font/titilliumweb_raguler"
                         android:gravity="end|center_vertical"
                         android:text="Clear"
                         android:textColor="@color/gradient_end"
@@ -243,7 +240,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
                         android:layout_marginStart="@dimen/_10sdp"
-                        android:fontFamily="@font/title_bold"
+                        android:fontFamily="@font/titilliumweb_bold"
                         android:gravity="center_vertical"
                         android:text="Trending Topics"
                         android:textColor="#FFFFFF"

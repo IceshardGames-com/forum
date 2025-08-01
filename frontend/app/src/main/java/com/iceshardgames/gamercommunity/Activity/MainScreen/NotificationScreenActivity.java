@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.iceshardgames.gamercommunity.Activity.LoginScreen.LoginScreenActivity;
+import com.iceshardgames.gamercommunity.Activity.ProfileScreen.SettingScreenActivity;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 import com.iceshardgames.gamercommunity.databinding.ActivityNotificationScreenBinding;
@@ -37,12 +38,8 @@ public class NotificationScreenActivity extends AppCompatActivity {
 
         Utills.GradientText(binding.header.screenTitleNav);
         binding.header.notification.setVisibility(GONE);
-        binding.header.profile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(NotificationScreenActivity.this, LoginScreenActivity.class));
-            }
-        });
+        binding.header.setting.setVisibility(GONE);
+        binding.header.profile.setVisibility(GONE);
 
         InboxPagerAdapter adapter = new InboxPagerAdapter(this);
         binding.viewPager.setAdapter(adapter);

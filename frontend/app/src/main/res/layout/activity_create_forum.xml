@@ -1,0 +1,164 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/_10sdp"
+    android:background="#000000"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:background="@drawable/border"
+        android:layout_width="match_parent"
+        android:padding="@dimen/_10sdp"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_30sdp"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/close"
+                android:layout_width="@dimen/_12sdp"
+                android:layout_height="@dimen/_12sdp"
+                android:layout_centerVertical="true"
+                android:src="@drawable/cancel"
+                android:layout_alignParentEnd="true"
+                android:tint="@color/middle"/>
+
+            <TextView
+                android:id="@+id/header"
+                android:text="Create New Forum"
+                android:textSize="25dp"
+                android:textColor="@color/white"
+                android:layout_gravity="center"
+                android:layout_centerVertical="true"
+                android:fontFamily="@font/header"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+
+
+        </RelativeLayout>
+
+
+        <TextView
+            android:text="Forum Title"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="@font/titilliumweb_bold"
+            android:textColor="@color/middle"
+            android:textSize="@dimen/_12sdp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/editForumTitle"
+            android:hint="Enter forum title"
+            android:background="@drawable/input_field_background_purple"
+            android:textColorHint="#AAAAAA"
+            android:textColor="#FFFFFF"
+            android:padding="12dp"
+            android:textSize="10dp"
+            android:fontFamily="@font/titilliumweb_semibold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:text="Description"
+            android:fontFamily="@font/titilliumweb_bold"
+            android:textColor="@color/middle"
+            android:textSize="@dimen/_12sdp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/editForumDescription"
+            android:hint="Describe your forum..."
+            android:background="@drawable/input_field_background_purple"
+            android:textColorHint="@color/texthint"
+            android:textColor="#FFFFFF"
+            android:padding="12dp"
+            android:textSize="10dp"
+            android:fontFamily="@font/titilliumweb_semibold"
+            android:minLines="4"
+            android:maxLines="8"
+            android:gravity="top"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/charCountText"
+            android:layout_marginTop="8dp"
+            android:text="0/500 characters"
+            android:textColor="#999999"
+            android:textSize="12sp"
+            android:fontFamily="@font/titilliumweb_raguler"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:text="Category"
+            android:fontFamily="@font/titilliumweb_bold"
+            android:textColor="@color/middle"
+            android:textSize="@dimen/_12sdp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Spinner
+            android:id="@+id/spinnerCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/input_field_background_purple"
+            android:popupBackground="#222222"
+            android:paddingVertical="@dimen/_5sdp" />
+
+        <CheckBox
+            android:id="@+id/checkboxPrivateForum"
+            android:text="Private Forum"
+            android:textSize="10dp"
+            android:textColor="@color/darkgpurple"
+            android:paddingVertical="@dimen/_15sdp"
+            android:layout_width="wrap_content"
+            android:fontFamily="@font/titilliumweb_raguler"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:layout_marginTop="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end">
+
+            <TextView
+                android:id="@+id/btnCancel"
+                android:text="Cancel"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#444444"
+                android:background="@drawable/category_button_selected"
+                android:layout_marginEnd="16dp"
+                android:paddingHorizontal="@dimen/_10sdp"
+                android:fontFamily="@font/titilliumweb_bold"
+                android:paddingVertical="@dimen/_5sdp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/btnCreateForum"
+                android:text="Create Forum"
+                android:paddingHorizontal="@dimen/_10sdp"
+                android:paddingVertical="@dimen/_5sdp"
+                android:textColor="#FFFFFF"
+                android:fontFamily="@font/titilliumweb_bold"
+                android:background="@drawable/category_button_selected"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

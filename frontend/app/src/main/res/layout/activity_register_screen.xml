@@ -5,7 +5,6 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_background"
     tools:context=".Activity.LoginScreen.LoginScreenActivity">
 
     <ImageView
@@ -14,7 +13,7 @@
         android:layout_height="match_parent"
         android:alpha="0.7"
         android:scaleType="centerCrop"
-        android:src="@drawable/background_vr_nexus" />
+        android:src="@drawable/bg2" />
 
     <View
         android:layout_width="match_parent"
@@ -103,7 +102,7 @@
                 android:layout_height="wrap_content"
                 android:alpha="0.8"
                 android:textAllCaps="true"
-                android:fontFamily="@font/noto_raguler"
+                android:fontFamily="@font/titilliumweb_raguler"
                 android:text="CREATE YOUR AVATAR"
                 android:textColor="@color/darkgpink"
                 android:textSize="10dp"
@@ -147,7 +146,7 @@
                         android:layout_height="match_parent"
                         android:layout_marginStart="15dp"
                         android:layout_weight="1"
-                        android:fontFamily="@font/noto_semibold"
+                        android:fontFamily="@font/titilliumweb_semibold"
                         android:paddingEnd="@dimen/_10sdp"
                         android:background="@android:color/transparent"
                         android:hint="Enter your email"
@@ -179,7 +178,7 @@
                         android:layout_height="match_parent"
                         android:layout_marginStart="15dp"
                         android:layout_weight="1"
-                        android:fontFamily="@font/noto_semibold"
+                        android:fontFamily="@font/titilliumweb_semibold"
                         android:background="@android:color/transparent"
                         android:paddingEnd="@dimen/_10sdp"
                         android:hint="Choose your gamertag"
@@ -214,7 +213,7 @@
                         android:background="@android:color/transparent"
                         android:hint="Enter your password"
                         android:paddingEnd="@dimen/_10sdp"
-                        android:fontFamily="@font/noto_semibold"
+                        android:fontFamily="@font/titilliumweb_semibold"
                         android:inputType="textPassword"
                         android:textColor="@android:color/white"
                         android:textColorHint="@color/hint_gray"
@@ -248,7 +247,7 @@
                         android:letterSpacing="0.08"
                         android:text="JOIN IN"
                         android:textAllCaps="true"
-                        android:fontFamily="@font/header"
+                        android:fontFamily="@font/titilliumweb_bold"
                         android:textColor="@android:color/white"
                         android:textSize="@dimen/_15sdp"
                         android:textStyle="bold" />
@@ -272,6 +271,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerHorizontal="true"
                         android:text="Already in the game?"
+                        android:fontFamily="@font/titilliumweb_extralight"
                         android:textColor="@color/darkgpurple"
                         android:textSize="10dp" />
 
@@ -279,6 +279,7 @@
                         android:id="@+id/tv_sign_in"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:fontFamily="@font/titilliumweb_raguler"
                         android:text=" Sign In"
                         android:textColor="@color/darkgpurple"
                         android:textStyle="bold"
@@ -296,7 +297,7 @@
                 android:alpha="0.8"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                android:fontFamily="@font/noto_medium"
+                android:fontFamily="@font/titilliumweb_semibold"
                 app:layout_constraintTop_toBottomOf="@+id/input_fields_section" />
 
             <!-- Social Media Buttons -->
@@ -383,7 +384,7 @@
                 android:id="@+id/tv_quote"
                 style="@style/QuoteTextStyle"
                 android:layout_width="0dp"
-                android:fontFamily="@font/noto_italic"
+                android:fontFamily="@font/titilliumweb_italic"
                 android:layout_height="wrap_content"
                 android:text="@string/the_only_way_to_make_sense_out_of_change_is_to_plunge_into_it_move_with_it_and_join_the_dance"
                 app:layout_constraintEnd_toEndOf="parent"

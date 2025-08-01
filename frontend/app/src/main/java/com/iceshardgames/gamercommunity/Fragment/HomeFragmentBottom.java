@@ -18,6 +18,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.iceshardgames.gamercommunity.Activity.LoginScreen.LoginScreenActivity;
 import com.iceshardgames.gamercommunity.Activity.MainScreen.NotificationScreenActivity;
+import com.iceshardgames.gamercommunity.Activity.ProfileScreen.SettingScreenActivity;
 import com.iceshardgames.gamercommunity.Adapter.ImageSliderAdapter;
 import com.iceshardgames.gamercommunity.Adapter.TabsPagerAdapter;
 import com.iceshardgames.gamercommunity.R;
@@ -36,7 +37,7 @@ public class HomeFragmentBottom extends Fragment {
     private final Runnable sliderRunnable = new Runnable() {
         @Override
         public void run() {
-            if (binding.imageSlider.getAdapter() != null) {
+            if (binding != null && binding.imageSlider.getAdapter() != null) {
                 int itemCount = binding.imageSlider.getAdapter().getItemCount();
                 currentPosition = (currentPosition + 1) % itemCount;
                 binding.imageSlider.setCurrentItem(currentPosition, true);
@@ -58,21 +59,7 @@ public class HomeFragmentBottom extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Utills.GradientText(view.findViewById(R.id.header).findViewById(R.id.screen_title_nav));
 
-        view.findViewById(R.id.header).findViewById(R.id.notification).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getActivity(), NotificationScreenActivity.class));
-            }
-        });
-
-        view.findViewById(R.id.header).findViewById(R.id.profile).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getActivity(), LoginScreenActivity.class));
-            }
-        });
 
         List<Integer> imageList = new ArrayList<>();
         imageList.add(R.drawable.img_slider1);
@@ -155,6 +142,8 @@ public class HomeFragmentBottom extends Fragment {
             tabText.setTextColor(ContextCompat.getColor(requireContext(), R.color.white));
             binding.tabLayout.selectTab(defaultTab);
         }
+
+        sliderHandler.postDelayed(sliderRunnable, SLIDE_DELAY);
     }
 
     @Override
@@ -172,6 +161,7 @@ public class HomeFragmentBottom extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        sliderHandler.removeCallbacks(sliderRunnable);
         binding = null;
     }
 }

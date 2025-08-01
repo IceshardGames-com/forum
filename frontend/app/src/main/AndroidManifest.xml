@@ -16,8 +16,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GamerCommunity">
         <activity
-            android:name=".Activity.MainScreen.SearchScreenActivity"
+            android:name=".Activity.ProfileScreen.SettingScreenActivity"
             android:exported="false" />
+
         <activity
             android:name=".Activity.MainScreen.NotificationScreenActivity"
             android:exported="false" />
@@ -27,7 +28,7 @@
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".Activity.MainScreen.DashboardScreenActivity"
+            android:name=".Activity.SplashScreen.SplashScreenActivity"
             android:exported="false"
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
@@ -77,7 +78,7 @@
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".Activity.SplashScreen.SplashScreenActivity"
+            android:name=".Activity.MainScreen.DashboardScreenActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:exported="true"
             android:resizeableActivity="true"
@@ -89,10 +90,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <meta-data
-            android:name="preloaded_fonts"
-            android:resource="@array/preloaded_fonts" />
     </application>
 
 </manifest>

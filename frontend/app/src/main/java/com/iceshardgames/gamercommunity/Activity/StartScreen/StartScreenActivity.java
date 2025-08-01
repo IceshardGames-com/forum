@@ -1,6 +1,7 @@
 package com.iceshardgames.gamercommunity.Activity.StartScreen;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -14,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.iceshardgames.gamercommunity.Activity.LoginScreen.LoginScreenActivity;
+import com.iceshardgames.gamercommunity.Activity.MainScreen.DashboardScreenActivity;
 import com.iceshardgames.gamercommunity.Adapter.VideoAdapter;
 import com.iceshardgames.gamercommunity.Model.VideoModel;
 import com.iceshardgames.gamercommunity.R;
@@ -78,17 +80,26 @@ public class StartScreenActivity extends AppCompatActivity {
         binding.actionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(StartScreenActivity.this, LoginScreenActivity.class));
+                SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false);
+
+                if (isLoggedIn) {
+                    // Already logged in → go to Dashboard
+                    Intent intent = new Intent(StartScreenActivity.this, DashboardScreenActivity.class);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    // Not logged in → go to Login screen
+                    Intent intent = new Intent(StartScreenActivity.this, LoginScreenActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
             }
         });
-
-
     }
 
     private List<VideoModel> generateDummyVideoData() {
         List<VideoModel> videos = new ArrayList<>();
-        // Using a public sample video URL for demonstration.
-        // Find small, short VR gaming video clips for better performance.
 //        String sampleVideoUrl = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4";
         String sampleVideoUrl = "android.resource://" + getPackageName() + "/" + R.raw.my_vr_game_clip;
 
@@ -111,40 +122,11 @@ public class StartScreenActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        // Pause all videos when the activity goes into the background
-//        if (binding.videoGridRecyclerView != null && videoAdapter != null) {
-//            for (int i = 0; i < binding.videoGridRecyclerView.getChildCount(); i++) {
-//                View child = binding.videoGridRecyclerView.getChildAt(i);
-//                RecyclerView.ViewHolder holder = binding.videoGridRecyclerView.getChildViewHolder(child);
-//                if (holder instanceof VideoAdapter.VideoViewHolder) {
-//                    VideoAdapter.VideoViewHolder videoHolder = (VideoAdapter.VideoViewHolder) holder;
-//                    if (videoHolder.exoPlayer != null) {
-//                        videoHolder.exoPlayer.pause();
-//                        videoHolder.exoPlayer.release(); // Release on pause to save resources
-//                        videoHolder.exoPlayer = null;
-//                    }
-//                }
-//            }
-//        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-       /* // Resume videos when the activity comes to the foreground
-        if (binding != null && binding.videoGridRecyclerView != null) {
-            for (int i = 0; i < binding.videoGridRecyclerView.getChildCount(); i++) {
-                View child = binding.videoGridRecyclerView.getChildAt(i);
-                RecyclerView.ViewHolder holder = binding.videoGridRecyclerView.getChildViewHolder(child);
-                if (holder instanceof VideoAdapter.VideoViewHolder) {
-                    VideoAdapter.VideoViewHolder videoHolder = (VideoAdapter.VideoViewHolder) holder;
-                    // You might want to add logic here to only resume videos that were playing before pause
-                    if (!videoHolder.videoPlayer.isPlaying()) {
-                        videoHolder.videoPlayer.start();
-                    }
-                }
-            }
-        }*/
         if (binding != null && binding.videoGridRecyclerView != null && videoAdapter != null) {
             videoAdapter.notifyDataSetChanged(); // Force re-binding of visible items
         }
@@ -153,21 +135,7 @@ public class StartScreenActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Release video resources when the activity is destroyed
-       /* if (binding != null && binding.videoGridRecyclerView != null) {
-            for (int i = 0; i < binding.videoGridRecyclerView.getChildCount(); i++) {
-                View child = binding.videoGridRecyclerView.getChildAt(i);
-                RecyclerView.ViewHolder holder = binding.videoGridRecyclerView.getChildViewHolder(child);
-                if (holder instanceof VideoAdapter.VideoViewHolder) {
-                    VideoAdapter.VideoViewHolder videoHolder = (VideoAdapter.VideoViewHolder) holder;
-                    if (videoHolder.exoPlayer != null) {
-                        videoHolder.exoPlayer.release();
-                        videoHolder.exoPlayer = null;
-                    }
-                }
-            }
-        }*/
-        binding = null; // Clear the binding when the activity is destroyed
+        binding = null;
     }
 
 }

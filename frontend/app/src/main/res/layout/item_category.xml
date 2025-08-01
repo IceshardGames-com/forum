@@ -12,7 +12,7 @@
         android:text="Category Title"
         android:textSize="18sp"
         android:textColor="@android:color/white"
-        android:fontFamily="@font/noto_bold"
+        android:fontFamily="@font/titilliumweb_bold"
         android:paddingBottom="8dp"/>
 
     <com.google.android.material.chip.ChipGroup

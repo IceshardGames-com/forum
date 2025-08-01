@@ -6,7 +6,6 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_background"
     tools:context=".Activity.ProfileScreen.IdentifyScreenActivity">
 
     <ImageView
@@ -15,7 +14,7 @@
         android:layout_height="match_parent"
         android:alpha="0.7"
         android:scaleType="centerCrop"
-        android:src="@drawable/background_vr_nexus" />
+        android:src="@drawable/bg2" />
 
     <View
         android:layout_width="match_parent"
@@ -103,6 +102,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
+                android:fontFamily="@font/titilliumweb_raguler"
                 android:layout_marginTop="5dp"
                 android:textAllCaps="true"
                 android:text="Tell us about yourself to improve your recommendations and ads."
@@ -132,7 +132,7 @@
                     android:text="Why do you use this app?"
                     android:textColor="@color/darkgpurple"
                     android:textSize="13sp"
-                    android:fontFamily="@font/noto_semibold"
+                    android:fontFamily="@font/titilliumweb_semibold"
                     android:textAllCaps="true"
                     android:layout_marginTop="15dp"
                     app:layout_constraintTop_toBottomOf="@id/btn_prefer_not"
@@ -156,7 +156,7 @@
                     android:text="Which industry are you from?"
                     android:textColor="@color/darkgpurple"
                     android:textSize="13sp"
-                    android:fontFamily="@font/noto_semibold"
+                    android:fontFamily="@font/titilliumweb_semibold"
                     android:layout_marginTop="15dp"
                     android:textAllCaps="true"
                     app:layout_constraintTop_toBottomOf="@id/spinner_usage"
@@ -198,7 +198,7 @@
                         android:layout_marginStart="12dp"
                         android:letterSpacing="0.08"
                         android:text="Continue"
-                        android:fontFamily="@font/header"
+                        android:fontFamily="@font/titilliumweb_bold"
                         android:textColor="@android:color/white"
                         android:textSize="@dimen/_15sdp"
                         android:textAllCaps="true"

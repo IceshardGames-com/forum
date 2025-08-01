@@ -19,6 +19,6 @@
         android:text="Wow, such empty"
         android:textColor="#888888"
         android:textSize="10dp"
-        android:fontFamily="@font/noto_raguler"
+        android:fontFamily="@font/titilliumweb_bold"
         android:layout_marginTop="8dp"/>
 </LinearLayout>

@@ -1,6 +1,7 @@
 package com.iceshardgames.gamercommunity.Activity.LoginScreen;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,6 +17,7 @@ import com.iceshardgames.gamercommunity.Activity.OtpScreen.ForgetScreenActivity;
 import com.iceshardgames.gamercommunity.Activity.ProfileScreen.ProfileScreenActivity;
 import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterScreenActivity;
 import com.iceshardgames.gamercommunity.R;
+import com.iceshardgames.gamercommunity.Utills.SharedPrefManager;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 import com.iceshardgames.gamercommunity.databinding.ActivityLoginScreenBinding;
 
@@ -57,10 +59,16 @@ LoginScreenActivity extends AppCompatActivity {
                 } else {
                     // Perform login logic here
                     Log.d("==login", "Login attempt with Email: " + email + ", Password: " + password);
+                    SharedPrefManager.saveEmail(LoginScreenActivity.this, email);
                     Toast.makeText(LoginScreenActivity.this, "Logging in...", Toast.LENGTH_SHORT).show();
-                    // Example: Navigate to a main activity after successful login
-                     Intent intent = new Intent(LoginScreenActivity.this, ProfileScreenActivity.class);
-                     startActivity(intent);
+
+                    SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putBoolean("isLoggedIn", true);
+                    editor.apply();
+
+                    Intent intent = new Intent(LoginScreenActivity.this, ProfileScreenActivity.class);
+                    startActivity(intent);
                     // finish();
 
                 }

@@ -19,10 +19,6 @@
         android:layout_height="match_parent"
         android:background="#E9000000" />
 
-    <include
-        android:id="@+id/header"
-        layout="@layout/header"/>
-
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/imageSlider"
         android:layout_width="match_parent"
@@ -30,7 +26,6 @@
         android:layout_marginHorizontal="20dp"
         android:layout_marginBottom="@dimen/_10sdp"
         android:alpha="0.5"
-        android:layout_below="@+id/header"
         android:background="@drawable/button_blur_border"
         android:clipToPadding="false"
         android:overScrollMode="never" />

@@ -44,7 +44,7 @@ public class IntrestScreenActivity extends AppCompatActivity {
             return insets;
         });
         Utills.GradientText(binding.headerStart.screenTitleNav);
-        binding.headerStart.screenTitleNav.setText("Forget \\nPassword");
+        binding.headerStart.screenTitleNav.setText("Forget \nPassword");
         Utills.GradientText(binding.tvIntrest);
         Clicks();
 

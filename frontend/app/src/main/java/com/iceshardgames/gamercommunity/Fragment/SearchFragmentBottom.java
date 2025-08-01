@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.iceshardgames.gamercommunity.Activity.LoginScreen.LoginScreenActivity;
 import com.iceshardgames.gamercommunity.Activity.MainScreen.NotificationScreenActivity;
+import com.iceshardgames.gamercommunity.Activity.ProfileScreen.SettingScreenActivity;
 import com.iceshardgames.gamercommunity.Adapter.TrendingAdapter;
 import com.iceshardgames.gamercommunity.Model.TrendingTopic;
 import com.iceshardgames.gamercommunity.R;
@@ -54,22 +55,7 @@ public class SearchFragmentBottom extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
-        Utills.GradientText(view.findViewById(R.id.header).findViewById(R.id.screen_title_nav));
         Utills.GradientText(view.findViewById(R.id.title));
-
-        view.findViewById(R.id.header).findViewById(R.id.notification).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getActivity(), NotificationScreenActivity.class));
-            }
-        });
-
-        view.findViewById(R.id.header).findViewById(R.id.profile).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getActivity(), LoginScreenActivity.class));
-            }
-        });
 
 
         // Initialize views

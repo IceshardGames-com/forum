@@ -41,7 +41,7 @@ public class ResetPasswordScreenActivity extends AppCompatActivity {
             return insets;
         });
         Utills.GradientText(binding.headerStart.screenTitleNav);
-        binding.headerStart.screenTitleNav.setText("Reset \\nPassword");
+        binding.headerStart.screenTitleNav.setText("Reset \nPassword");
         Utills.GradientText(binding.tvChoosePassword);
         clicks();
     }

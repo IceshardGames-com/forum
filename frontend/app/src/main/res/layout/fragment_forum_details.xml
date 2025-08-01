@@ -1,0 +1,158 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/forumDetailRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/background_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.7"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg2" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/dark_background_light" />
+
+    <include
+        android:id="@+id/header"
+        layout="@layout/header" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/header"
+        android:layout_margin="@dimen/_10sdp"
+        android:orientation="vertical">
+    <LinearLayout
+        android:id="@+id/forumDetailHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/header"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/img_member"
+            android:layout_width="@dimen/_50sdp"
+            android:layout_height="@dimen/_50sdp"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/category_button_selected" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/forumTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/titilliumweb_bold"
+                android:text="Half-Life: Alyx"
+                android:textColor="@color/white"
+                android:textSize="15dp" />
+
+            <TextView
+                android:id="@+id/forumMembers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="8,934 members"
+                android:textColor="#999999"
+                android:fontFamily="@font/titilliumweb_semibold"
+                android:textSize="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_5sdp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="@dimen/_10sdp"
+                        android:layout_height="@dimen/_10sdp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/pluss"
+                        android:tint="@color/gradient_end" />
+
+                    <TextView
+                        android:id="@+id/join"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:text="Join"
+                        android:fontFamily="@font/titilliumweb_raguler"
+                        android:textColor="@color/gradient_end"
+                        android:textSize="10dp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="@dimen/_10sdp"
+                        android:layout_height="@dimen/_10sdp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/ic_notifications"
+                        android:tint="@color/gradient_end" />
+
+                    <TextView
+                        android:id="@+id/follow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:text="Follow"
+                        android:fontFamily="@font/titilliumweb_raguler"
+                        android:textColor="@color/gradient_end"
+                        android:textSize="10dp" />
+
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/forumTabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_35sdp"
+        android:layout_below="@+id/forumDetailHeader"
+        android:layout_gravity="center_vertical"
+        android:layout_marginHorizontal="@dimen/_10sdp"
+        android:background="@drawable/button_round_border"
+        app:tabIndicatorHeight="0dp"
+        app:tabRippleColor="@color/trans" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/forumPostRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/fabAddPost"
+        android:layout_below="@id/forumTabLayout"
+        android:padding="12dp" />
+</LinearLayout>
+    <ImageView
+        android:id="@+id/fabAddPost"
+        android:layout_width="@dimen/_40sdp"
+        android:layout_height="@dimen/_40sdp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:src="@drawable/plus"
+        android:tint="@color/white"
+        android:layout_margin="24dp"
+        android:padding="@dimen/_15sdp"
+        android:background="@drawable/button_round_background" />
+</RelativeLayout>

@@ -9,6 +9,7 @@
         android:layout_height="wrap_content"
         android:textColor="#FFFFFF"
         android:padding="16dp"
+        android:fontFamily="@font/titilliumweb_semibold"
         android:background="@drawable/button_blur_border_curve"
         android:textSize="14sp" />
 </FrameLayout>

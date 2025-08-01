@@ -39,7 +39,7 @@ public class OtpVerificationScreenActivity extends AppCompatActivity {
             return insets;
         });
         Utills.GradientText(binding.headerStart.screenTitleNav);
-        binding.headerStart.screenTitleNav.setText("OTP \\nVerification");
+        binding.headerStart.screenTitleNav.setText("OTP \nVerification");
         Utills.GradientText(binding.tvVerify);
         Clicks();
     }

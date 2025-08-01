@@ -3,7 +3,7 @@
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_200">#C084FC</color>
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
@@ -29,7 +29,7 @@
 
     <!-- Primary Dark Background -->
     <color name="dark_background">#000000</color>
-    <color name="dark_background_light">#EB000000</color>
+    <color name="dark_background_light">#020105</color>
 
     <!-- Text Colors -->
     <color name="neon_green">#00E676</color>
@@ -64,6 +64,7 @@
     <color name="orange">#FFA500</color>
     <color name="primary">#6E48EB</color>
     <color name="middle">#B95D76</color>
-    <color name="blacktrans">#E5000000</color>
+    <color name="blacktrans">#8C000000</color>
+    <color name="texthint">#AAAAAA</color>
 
 </resources>

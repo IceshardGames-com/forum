@@ -109,14 +109,19 @@
     <style name="CustomTabText" parent="TextAppearance.Design.Tab">
         <item name="android:textSize">18sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:fontFamily">@font/noto_bold</item> <!-- futuristic font -->
+        <item name="android:fontFamily">@font/titilliumweb_bold</item> <!-- futuristic font -->
     </style>
 
     <style name="FilterButtonStyle">
         <item name="android:layout_margin">4dp</item>
-        <item name="android:background">@drawable/button_blur_border</item>
+        <item name="android:background">@drawable/category_button_bg</item>
         <item name="android:textColor">#FFFFFF</item>
     </style>
 
-
+    <style name="CustomDialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowMinWidthMajor">90%</item>
+        <item name="android:windowMinWidthMinor">90%</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
 </resources>

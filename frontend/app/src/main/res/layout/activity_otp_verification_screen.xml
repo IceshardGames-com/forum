@@ -5,7 +5,6 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_background"
     tools:context=".Activity.OtpScreen.ForgetScreenActivity">
 
     <ImageView
@@ -14,7 +13,7 @@
         android:layout_height="match_parent"
         android:alpha="0.7"
         android:scaleType="centerCrop"
-        android:src="@drawable/background_vr_nexus" />
+        android:src="@drawable/bg2" />
 
     <View
         android:layout_width="match_parent"
@@ -99,7 +98,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:alpha="0.8"
-                android:fontFamily="@font/noto_raguler"
+                android:fontFamily="@font/titilliumweb_raguler"
                 android:text="Enter the 6-digit code sent to your email address."
                 android:textColor="@color/darkgpink"
                 android:textAllCaps="true"
@@ -134,7 +133,7 @@
                     android:itemBackground="@drawable/button_blur_border"
                     android:textColor="@color/white"
                     android:textSize="18sp"
-                    android:fontFamily="@font/noto_bold"
+                    android:fontFamily="@font/titilliumweb_bold"
                     app:cursorColor="@color/neon_green"
                     app:hideLineWhenFilled="true"
                     app:itemCount="6"
@@ -177,7 +176,7 @@
                         android:layout_marginStart="12dp"
                         android:letterSpacing="0.08"
                         android:text="Verify OTP"
-                        android:fontFamily="@font/header"
+                        android:fontFamily="@font/titilliumweb_bold"
                         android:textAllCaps="true"
                         android:textColor="@android:color/white"
                         android:textSize="@dimen/_15sdp"
@@ -204,6 +203,7 @@
                         android:layout_centerHorizontal="true"
                         android:text="Didn't receive OTP?"
                         android:textColor="@color/darkgpurple"
+                        android:fontFamily="@font/titilliumweb_extralight"
                         android:textSize="10dp" />
 
                     <TextView
@@ -212,6 +212,7 @@
                         android:layout_height="wrap_content"
                         android:text=" Resend"
                         android:textColor="@color/darkgpurple"
+                        android:fontFamily="@font/titilliumweb_raguler"
                         android:textStyle="bold"
                         android:textSize="10dp"/>
                 </LinearLayout>
@@ -229,7 +230,7 @@
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 android:visibility="gone"
-                android:fontFamily="@font/noto_italic"
+                android:fontFamily="@font/titilliumweb_italic"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/input_fields_section" />
@@ -249,7 +250,7 @@
         android:textColor="@color/middle"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
-        android:fontFamily="@font/noto_italic"
+        android:fontFamily="@font/titilliumweb_italic"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/mainbg" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,10 +6,11 @@
     android:background="@color/black">
 
     <TextView
-        android:text="🏠 Esports Screen"
+        android:text="Esports Screen"
         android:textColor="@color/darkgpurple"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:textSize="15sp"
+        android:fontFamily="@font/titilliumweb_bold"
         android:textStyle="bold"/>
 </LinearLayout>

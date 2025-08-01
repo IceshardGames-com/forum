@@ -15,5 +15,5 @@
         android:textSize="12sp"
         android:textStyle="bold"
         android:textAllCaps="true"
-        android:fontFamily="@font/noto_bold" />
+        android:fontFamily="@font/titilliumweb_bold" />
 </LinearLayout>

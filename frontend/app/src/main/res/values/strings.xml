@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">GΔMΞR HUB</string>
     <string name="the_only_way_to_make_sense_out_of_change_is_to_plunge_into_it_move_with_it_and_join_the_dance">\"The only way to make sense out of change is to plunge into it, move with it, and join the dance.\"</string>
+    <string-array name="profile_menu_items">
+        <item>Logout</item>
+    </string-array>
 </resources>

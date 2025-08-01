@@ -1,10 +1,12 @@
 package com.iceshardgames.gamercommunity.Activity.ProfileScreen;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,6 +63,10 @@ public class ProfileScreenActivity extends AppCompatActivity {
         binding.btnContinue.setOnClickListener(v -> {
             if (validateUsername(binding.etUsername.getText().toString())) {
                 showToast("Username is valid!");
+                String username = binding.etUsername.getText().toString().trim();
+                Log.d("==", "Clicks: "+username);
+                SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                prefs.edit().putString("username", username).apply();
                 startActivity(new Intent(ProfileScreenActivity.this, GenderScreenActivity.class));
 
                 // Proceed with form submission

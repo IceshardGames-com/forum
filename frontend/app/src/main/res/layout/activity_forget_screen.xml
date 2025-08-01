@@ -5,7 +5,6 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_background"
     tools:context=".Activity.OtpScreen.ForgetScreenActivity">
 
     <ImageView
@@ -14,7 +13,7 @@
         android:layout_height="match_parent"
         android:alpha="0.7"
         android:scaleType="centerCrop"
-        android:src="@drawable/background_vr_nexus" />
+        android:src="@drawable/bg2" />
 
     <View
         android:layout_width="match_parent"
@@ -102,7 +101,7 @@
                 android:textColor="@color/darkgpink"
                 android:textSize="10dp"
                 android:textAllCaps="true"
-                android:fontFamily="@font/noto_raguler"
+                android:fontFamily="@font/titilliumweb_raguler"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tv_forget_password" />
@@ -145,7 +144,7 @@
                         android:layout_weight="1"
                         android:background="@android:color/transparent"
                         android:paddingEnd="@dimen/_10sdp"
-                        android:fontFamily="@font/noto_medium"
+                        android:fontFamily="@font/titilliumweb_semibold"
                         android:hint="Enter your email"
                         android:inputType="textEmailAddress"
                         android:textColor="@android:color/white"
@@ -190,7 +189,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:letterSpacing="0.08"
-                        android:fontFamily="@font/header"
+                        android:fontFamily="@font/titilliumweb_bold"
                         android:text="Send OTP"
                         android:textAllCaps="true"
                         android:textColor="@android:color/white"
@@ -216,6 +215,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerHorizontal="true"
                         android:text="Remember password?"
+                        android:fontFamily="@font/titilliumweb_extralight"
                         android:textColor="@color/darkgpurple"
                         android:textSize="10dp" />
 
@@ -224,6 +224,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text=" Login"
+                        android:fontFamily="@font/titilliumweb_raguler"
                         android:textColor="@color/darkgpurple"
                         android:textStyle="bold"
                         android:textSize="10dp"/>

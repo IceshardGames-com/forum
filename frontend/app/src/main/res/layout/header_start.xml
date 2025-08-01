@@ -34,7 +34,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
-            android:fontFamily="@font/noto_semibold"
+            android:fontFamily="@font/titilliumweb_bold"
             android:text="Enter the\nmatrix"
             android:textColor="@color/white"
             android:textSize="18sp"
