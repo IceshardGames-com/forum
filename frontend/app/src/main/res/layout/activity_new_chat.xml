@@ -1,0 +1,58 @@
+<!-- res/layout/activity_new_chat.xml -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center">
+
+    <ImageView
+        android:id="@+id/background_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.7"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg2" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blacktrans" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"
+        android:orientation="vertical">
+
+        <!-- Search Bar -->
+        <EditText
+            android:id="@+id/search_users"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_gradient_discussion"
+            android:drawableStart="@drawable/searchi"
+            android:drawablePadding="@dimen/_10sdp"
+            android:drawableTint="@color/gradient_end"
+            android:hint="Search users..."
+            android:padding="12dp"
+            android:fontFamily="@font/titilliumweb_semibold"
+            android:textSize="@dimen/_12sdp"
+            android:paddingStart="@dimen/_10sdp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#888888" />
+
+
+        <!-- RecyclerView for users -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/user_list_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:itemCount="1"
+            tools:listitem="@layout/user_item"
+            android:layout_marginTop="12dp"
+            android:padding="8dp" />
+    </LinearLayout>
+</RelativeLayout>

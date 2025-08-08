@@ -20,6 +20,7 @@ import com.iceshardgames.gamercommunity.databinding.ActivityGenderScreenBinding;
 public class GenderScreenActivity extends AppCompatActivity {
 
     ActivityGenderScreenBinding binding;
+    private Button selectedGenderButton = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,14 +47,6 @@ public class GenderScreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 setSelectedButton(binding.btnMan);
-               /* if (binding.btnMan.getBackground().getConstantState().equals(
-                        ResourcesCompat.getDrawable(getResources(), R.drawable.button_neon_background, null).getConstantState())) {
-                    // Button is selected, so deselect it (set to default background)
-                    binding.btnMan.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.button_blur_border, null));
-                } else {
-                    // Button is not selected, so select it
-                    binding.btnMan.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.button_neon_background, null));
-                }*/
             }
         });
 
@@ -80,7 +73,11 @@ public class GenderScreenActivity extends AppCompatActivity {
         binding.btnContinue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(GenderScreenActivity.this, IdentifyScreenActivity.class));
+                if (selectedGenderButton == null) {
+                    Toast.makeText(GenderScreenActivity.this, "Please select a gender option", Toast.LENGTH_SHORT).show();
+                } else {
+                    startActivity(new Intent(GenderScreenActivity.this, IdentifyScreenActivity.class));
+                }
             }
         });
 
@@ -93,6 +90,8 @@ public class GenderScreenActivity extends AppCompatActivity {
     }
 
     private void setSelectedButton(Button selectedButton) {
+        selectedGenderButton = selectedButton;
+
         // List of all gender buttons
         Button[] genderButtons = {
                 binding.btnMan,

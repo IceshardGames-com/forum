@@ -27,6 +27,7 @@ import com.iceshardgames.gamercommunity.Activity.LoginScreen.LoginScreenActivity
 import com.iceshardgames.gamercommunity.Activity.ProfileScreen.SettingScreenActivity;
 import com.iceshardgames.gamercommunity.Adapter.ImageSliderAdapter;
 import com.iceshardgames.gamercommunity.Adapter.TabsPagerAdapter;
+import com.iceshardgames.gamercommunity.Fragment.ChatListFragment;
 import com.iceshardgames.gamercommunity.Fragment.CompaniesFragmentBottom;
 import com.iceshardgames.gamercommunity.Fragment.EsportsFragmentBottom;
 import com.iceshardgames.gamercommunity.Fragment.ForumsFragmentBottom;
@@ -54,8 +55,6 @@ public class DashboardScreenActivity extends AppCompatActivity {
         /*if (email != null) {
             emailTextView.setText("Logged in as: " + email);
         }*/
-
-
         ViewCompat.setOnApplyWindowInsetsListener(binding.dashboard.parent, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -78,7 +77,7 @@ public class DashboardScreenActivity extends AppCompatActivity {
                 selected = new CompaniesFragmentBottom();
             }*/ else if (itemId == R.id.nav_chat) {
                 binding.dashboard.header.screenTitleNav.setText("Chat here");
-                selected = new SearchFragmentBottom();
+                selected = new ChatListFragment();
             }else if (itemId == R.id.nav_search) {
                 binding.dashboard.header.screenTitleNav.setText("Search Nexus");
                 selected = new SearchFragmentBottom();

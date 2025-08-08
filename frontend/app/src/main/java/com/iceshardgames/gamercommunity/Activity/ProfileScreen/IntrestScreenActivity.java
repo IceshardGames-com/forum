@@ -78,8 +78,27 @@ public class IntrestScreenActivity extends AppCompatActivity {
         }
         binding.interestContainer.addView(binding.btnContinue);
         binding.btnContinue.setOnClickListener(v -> {
-            Toast.makeText(this, "Continue", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, DashboardScreenActivity.class));
+            int selectedCount = 0;
+
+            // Loop through all categories (children of interestContainer)
+            for (int i = 0; i < binding.interestContainer.getChildCount(); i++) {
+                View categoryView = binding.interestContainer.getChildAt(i);
+                ChipGroup chipGroup = categoryView.findViewById(R.id.chip_group);
+                if (chipGroup != null) {
+                    for (int j = 0; j < chipGroup.getChildCount(); j++) {
+                        View chipView = chipGroup.getChildAt(j);
+                        if (chipView instanceof Chip && ((Chip) chipView).isChecked()) {
+                            selectedCount++;
+                        }
+                    }
+                }
+            }
+
+            if (selectedCount >= 5) {
+                startActivity(new Intent(this, DashboardScreenActivity.class));
+            } else {
+                Toast.makeText(this, "Please select at least 5 interests", Toast.LENGTH_SHORT).show();
+            }
         });
 
         binding.headerStart.backButton.setOnClickListener(new View.OnClickListener() {

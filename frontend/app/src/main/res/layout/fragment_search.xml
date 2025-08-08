@@ -2,6 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:gravity="center">
 
     <ImageView
@@ -15,12 +16,11 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/dark_background_light" />
+        android:background="@color/blacktrans" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/header"
         android:layout_margin="@dimen/_10sdp"
         android:orientation="vertical">
 
@@ -256,6 +256,8 @@
                     android:layout_height="0dp"
                     android:layout_weight="1"
                     android:paddingTop="12dp"
+                    tools:itemCount="1"
+                    tools:listitem="@layout/trending_item"
                     android:paddingBottom="8dp" />
 
             </LinearLayout>

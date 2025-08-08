@@ -27,6 +27,8 @@
         android:layout_height="wrap_content"
         android:nestedScrollingEnabled="false"
         android:background="@color/trans"
+        tools:itemCount="1"
+        tools:listitem="@layout/video_grid_item"
         android:padding="8dp"
         android:rotation="-5"
         android:clickable="false"

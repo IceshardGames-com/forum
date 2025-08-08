@@ -56,7 +56,9 @@ LoginScreenActivity extends AppCompatActivity {
 
                 if (email.isEmpty() || password.isEmpty()) {
                     Toast.makeText(LoginScreenActivity.this, "Please enter email and password", Toast.LENGTH_SHORT).show();
-                } else {
+                } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    Toast.makeText(LoginScreenActivity.this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
+                }  else {
                     // Perform login logic here
                     Log.d("==login", "Login attempt with Email: " + email + ", Password: " + password);
                     SharedPrefManager.saveEmail(LoginScreenActivity.this, email);

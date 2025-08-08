@@ -18,12 +18,17 @@ public class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameViewHolder
 
     private Context context;
     private List<GameModel> gameList;
+    private static OnGameClickListener listener;
 
-    public GameAdapter(Context context, List<GameModel> gameList) {
+    public GameAdapter(Context context, List<GameModel> gameList, OnGameClickListener listener) {
         this.context = context;
         this.gameList = gameList;
+        this.listener = listener;
     }
 
+    public interface OnGameClickListener {
+        void onGameClick(GameModel game);
+    }
     @Override
     public GameViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_trending_game, parent, false);
@@ -33,11 +38,7 @@ public class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameViewHolder
     @Override
     public void onBindViewHolder(GameViewHolder holder, int position) {
         GameModel game = gameList.get(position);
-        holder.title.setText(game.getTitle());
-        holder.genre.setText(game.getGenre());
-        holder.image.setImageResource(game.getImageResId());
-        holder.rating.setText("" + game.getRating());
-        holder.percetage.setText("+" + game.getGamePercetage()+"%");
+        holder.bind(game);
     }
 
     @Override
@@ -56,6 +57,20 @@ public class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameViewHolder
             genre = itemView.findViewById(R.id.gameGenre);
             rating = itemView.findViewById(R.id.gameRating);
             percetage = itemView.findViewById(R.id.gamePercetage);
+        }
+
+        public void bind(GameModel game) {
+            title.setText(game.getTitle());
+            genre.setText(game.getGenre());
+            image.setImageResource(game.getImageResId());
+            rating.setText("" + game.getRating());
+            percetage.setText("+" + game.getGamePercetage()+"%");
+
+            itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onGameClick(game);
+                }
+            });
         }
     }
 }

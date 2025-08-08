@@ -59,8 +59,6 @@ public class HomeFragmentBottom extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-
-
         List<Integer> imageList = new ArrayList<>();
         imageList.add(R.drawable.img_slider1);
         imageList.add(R.drawable.img_slider3);

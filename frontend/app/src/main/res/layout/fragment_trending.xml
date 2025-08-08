@@ -178,6 +178,8 @@
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
                 android:orientation="vertical"
+                tools:listitem="@layout/item_trending_game"
+                tools:itemCount="1"
                 android:overScrollMode="never"
                 android:scrollbars="none" />
 
@@ -227,6 +229,8 @@
                 android:id="@+id/recyclerNews"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                tools:itemCount="1"
+                tools:listitem="@layout/item_news"
                 android:nestedScrollingEnabled="false"
                 android:orientation="vertical"
                 android:overScrollMode="never"

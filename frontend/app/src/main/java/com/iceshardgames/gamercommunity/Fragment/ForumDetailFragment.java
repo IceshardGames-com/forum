@@ -51,21 +51,6 @@ public class ForumDetailFragment extends Fragment {
         TextView forumMembers = view.findViewById(R.id.forumMembers);
 
         Utills.GradientText(view.findViewById(R.id.forumTitle));
-        Utills.GradientText(view.findViewById(R.id.header).findViewById(R.id.screen_title_nav));
-
-        view.findViewById(R.id.header).findViewById(R.id.notification).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getActivity(), NotificationScreenActivity.class));
-            }
-        });
-
-        view.findViewById(R.id.header).findViewById(R.id.profile).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getActivity(), LoginScreenActivity.class));
-            }
-        });
 
         if (getArguments() != null) {
             String title = getArguments().getString("forum_title", "Unknown Forum");

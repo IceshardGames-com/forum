@@ -34,6 +34,13 @@ android {
         targetCompatibility JavaVersion.VERSION_11
     }
 }
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == "com.intellij" && details.requested.name == "annotations") {
+            details.useTarget "org.jetbrains:annotations:23.0.0"
+        }
+    }
+}
 
 dependencies {
 
@@ -41,6 +48,7 @@ dependencies {
     implementation libs.material
     implementation libs.activity
     implementation libs.constraintlayout
+    implementation libs.room.compiler
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
@@ -56,15 +64,29 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer:2.19.1' // Core ExoPlayer library
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.19.1' // UI components (PlayerView)
 
+    //lottie
     implementation 'com.airbnb.android:lottie:6.1.0' // Use latest version
 
+    //pinview
     implementation 'io.github.chaosleung:pinview:1.4.4'
     implementation 'com.google.android.material:material:1.10.0'
 
     //viewpager
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
 
+    //gson
     implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.jetbrains:annotations:23.0.0'
 
+    //room
+    implementation "androidx.room:room-runtime:2.6.1"
+    annotationProcessor "androidx.room:room-compiler:2.6.1"
+
+    //glide
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+
+    //PhotoView
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
 
 }

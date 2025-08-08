@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/trans"
     android:orientation="vertical">
 
@@ -60,6 +61,8 @@
                 android:id="@+id/discussionRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                tools:listitem="@layout/item_discussion"
+                tools:itemCount="1"
                 android:layout_marginVertical="15dp"
                 android:nestedScrollingEnabled="false"
                 android:orientation="vertical"
@@ -113,6 +116,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_news"
+                tools:itemCount="1"
                 android:orientation="vertical"
                 android:overScrollMode="never"
                 android:scrollbars="none" />

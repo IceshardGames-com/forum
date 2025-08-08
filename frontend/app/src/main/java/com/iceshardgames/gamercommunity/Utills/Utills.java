@@ -1,5 +1,7 @@
 package com.iceshardgames.gamercommunity.Utills;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
@@ -23,5 +25,10 @@ public class Utills {
         );
         paint.setShader(shader);
         screenTitleNav.invalidate();
+    }
+
+    public static String getUsername(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+        return prefs.getString("username", "u/guest");
     }
 }

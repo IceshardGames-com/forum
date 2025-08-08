@@ -36,7 +36,7 @@ public class StartScreenActivity extends AppCompatActivity {
         binding = ActivityStartScreenBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // --- FIX: Updated Immersive Mode Logic for API 30+ ---
+//         --- FIX: Updated Immersive Mode Logic for API 30+ ---
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             getWindow().setDecorFitsSystemWindows(false);
             WindowInsetsController insetsController = getWindow().getInsetsController();
@@ -48,8 +48,7 @@ public class StartScreenActivity extends AppCompatActivity {
             // For older APIs (pre-API 30)
             View decorView = getWindow().getDecorView();
             int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN;
             decorView.setSystemUiVisibility(uiOptions);
         }
         // Apply window insets for padding (if not fully immersive or for system gestures)
@@ -67,7 +66,7 @@ public class StartScreenActivity extends AppCompatActivity {
         StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL);
         layoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS); // Helps prevent gaps
         binding.videoGridRecyclerView.setLayoutManager(layoutManager);
-        binding.videoGridRecyclerView.setOnTouchListener((v, event) -> true); // Blocks touch scrolling
+//        binding.videoGridRecyclerView.setOnTouchListener((v, event) -> true); // Blocks touch scrolling
 
         // Create dummy video data with placeholder URLs
         List<VideoModel> videoList = generateDummyVideoData();
@@ -103,7 +102,21 @@ public class StartScreenActivity extends AppCompatActivity {
 //        String sampleVideoUrl = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4";
         String sampleVideoUrl = "android.resource://" + getPackageName() + "/" + R.raw.my_vr_game_clip;
 
-        videos.add(new VideoModel("VR Space Odyssey", "android.resource://" + getPackageName() + "/" + R.raw.v1adventure));
+        videos.add(new VideoModel("VR Space Odyssey", getVideoPathFromAssets("v1adventure.mp4")));
+        videos.add(new VideoModel("Cyberpunk City Tour VR", getVideoPathFromAssets("v2pubg.mp4")));
+        videos.add(new VideoModel("Ancient Ruins Exploration", getVideoPathFromAssets("v3apex_legends.mp4")));
+        videos.add(new VideoModel("Futuristic Racing League", getVideoPathFromAssets("v4fortnite.mp4")));
+        videos.add(new VideoModel("Deep Sea VR Dive", getVideoPathFromAssets("v5farcry.mp4")));
+        videos.add(new VideoModel("Deep Sea VR Dive5", getVideoPathFromAssets("v10cyberpunk2.mp4")));
+        videos.add(new VideoModel("Deep Sea VR Dive3", getVideoPathFromAssets("v8justcase.mp4")));
+        videos.add(new VideoModel("Deep Sea VR Dive2", getVideoPathFromAssets("v7mafiya.mp4")));
+        videos.add(new VideoModel("Deep Sea VR Dive4", getVideoPathFromAssets("v9wd_legion.mp4")));
+        videos.add(new VideoModel("Deep Sea VR Dive1", getVideoPathFromAssets("v6saintsrow.mp4")));
+        videos.add(new VideoModel("Deep Sea VR Dive6", getVideoPathFromAssets("v11cyberpunk.mp4")));
+        videos.add(new VideoModel("Deep Sea VR Dive7", getVideoPathFromAssets("v12gta5.mp4")));
+
+
+      /*  videos.add(new VideoModel("VR Space Odyssey", "android.resource://" + getPackageName() + "/" + R.raw.v1adventure));
         videos.add(new VideoModel("Cyberpunk City Tour VR", "android.resource://" + getPackageName() + "/" + R.raw.v2pubg));
         videos.add(new VideoModel("Ancient Ruins Exploration", "android.resource://" + getPackageName() + "/" + R.raw.v3apex_legends));
         videos.add(new VideoModel("Futuristic Racing League", "android.resource://" + getPackageName() + "/" + R.raw.v4fortnite));
@@ -114,9 +127,13 @@ public class StartScreenActivity extends AppCompatActivity {
         videos.add(new VideoModel("Deep Sea VR Dive4", "android.resource://" + getPackageName() + "/" + R.raw.v9wd_legion));
         videos.add(new VideoModel("Deep Sea VR Dive1", "android.resource://" + getPackageName() + "/" + R.raw.v6saintsrow));
         videos.add(new VideoModel("Deep Sea VR Dive6", "android.resource://" + getPackageName() + "/" + R.raw.v11cyberpunk));
-        videos.add(new VideoModel("Deep Sea VR Dive7", "android.resource://" + getPackageName() + "/" + R.raw.v12gta5));
+        videos.add(new VideoModel("Deep Sea VR Dive7", "android.resource://" + getPackageName() + "/" + R.raw.v12gta5));*/
         // Add more as needed
         return videos;
+    }
+
+    private String getVideoPathFromAssets(String fileName) {
+        return "file:///android_asset/" + fileName;
     }
 
     @Override
@@ -135,7 +152,6 @@ public class StartScreenActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        binding = null;
     }
 
 }

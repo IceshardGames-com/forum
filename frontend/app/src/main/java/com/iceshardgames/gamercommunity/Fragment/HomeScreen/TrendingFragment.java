@@ -1,5 +1,6 @@
 package com.iceshardgames.gamercommunity.Fragment.HomeScreen;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.iceshardgames.gamercommunity.Activity.MainScreen.GameDetailActivity;
 import com.iceshardgames.gamercommunity.Adapter.GameAdapter;
 import com.iceshardgames.gamercommunity.Adapter.NewsAdapter;
 import com.iceshardgames.gamercommunity.Model.GameModel;
@@ -44,7 +46,15 @@ public class TrendingFragment extends Fragment {
         recyclerTrendingGames.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         gameList = new ArrayList<>();
         loadDummyGames();
-        gameAdapter = new GameAdapter(getContext(), gameList);
+        gameAdapter = new GameAdapter(getContext(), gameList, game -> {
+            Intent intent = new Intent(getContext(), GameDetailActivity.class);
+            intent.putExtra("title", game.getTitle());
+            intent.putExtra("genre", game.getGenre());
+            intent.putExtra("image", game.getImageResId());
+            intent.putExtra("rating", game.getRating());
+            intent.putExtra("downloads", game.getGamePercetage());
+            startActivity(intent);
+        });
         recyclerTrendingGames.setAdapter(gameAdapter);
 
         // Setup News RecyclerView

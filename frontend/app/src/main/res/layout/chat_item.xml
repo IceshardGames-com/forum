@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:layout_height="80dp"
+    android:layout_margin="8dp"
+    android:layout_width="match_parent"
+    android:padding="12dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+        android:background="@drawable/button_round_background"
+        android:id="@+id/chatAvatar"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:layout_height="48dp"
+        android:layout_width="48dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/profilepic" />
+
+    <TextView
+        android:fontFamily="@font/titilliumweb_bold"
+        android:id="@+id/chatName"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_toEndOf="@id/chatAvatar"
+        android:layout_width="wrap_content"
+        android:text="Username"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:fontFamily="@font/titilliumweb_raguler"
+        android:id="@+id/chatTime"
+        android:layout_alignParentEnd="true"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="2h ago"
+        android:textColor="#888888"
+        android:textSize="12sp" />
+
+    <TextView
+        android:fontFamily="@font/titilliumweb_semibold"
+        android:id="@+id/chatMessage"
+        android:layout_below="@id/chatName"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:layout_toEndOf="@id/chatAvatar"
+        android:maxLines="1"
+        android:layout_width="wrap_content"
+        android:layout_marginEnd="@dimen/_45sdp"
+        android:text="Last message preview..."
+        android:textColor="#888888"
+        android:textSize="12dp" />
+
+
+
+    <TextView
+        android:background="@drawable/button_round_background"
+        android:fontFamily="@font/titilliumweb_bold"
+        android:gravity="center"
+        android:id="@+id/unreadBadge"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/chatTime"
+        android:layout_height="20dp"
+        android:layout_marginTop="4dp"
+        android:layout_width="20dp"
+        android:text="2"
+        android:textColor="#fff"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_alignBottom="@id/chatAvatar"
+        android:layout_alignParentEnd="true"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/muteIcon"
+            android:layout_height="16dp"
+            android:layout_marginEnd="@dimen/_10sdp"
+            android:layout_width="16dp"
+            android:src="@drawable/mute"
+            android:tint="@color/gradient_end"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/pinIcon"
+            android:layout_height="16dp"
+            android:layout_width="16dp"
+            android:src="@drawable/pinned"
+            android:tint="@color/gradient_end"
+            android:visibility="gone" />
+    </LinearLayout>
+
+
+</RelativeLayout>
+

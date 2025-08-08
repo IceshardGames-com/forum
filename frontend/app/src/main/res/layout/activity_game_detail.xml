@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/background_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.7"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg2" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blacktrans" />
+
+    <include
+        android:id="@+id/header"
+        layout="@layout/header" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/header"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/headerImage"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/img1" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/_10sdp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:background="@drawable/bg_gradient_discussion"
+                android:orientation="vertical"
+                android:padding="@dimen/_10sdp">
+
+                <!-- Title and Info -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/gameTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/titilliumweb_bold"
+                        android:text="Beat Saber"
+                        android:textColor="#FFFFFF"
+                        android:textSize="25sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/developerName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/titilliumweb_semibold"
+                        android:text="Beat Games"
+                        android:textColor="#BBBBBB" />
+
+                    <TextView
+                        android:id="@+id/genreText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/titilliumweb_bold"
+                        android:text="Rhythm, Music, VR"
+                        android:textColor="#5B9DEE" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/ratingText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:drawableLeft="@drawable/stars"
+                            android:fontFamily="@font/titilliumweb_raguler"
+                            android:textColor="#FFD700"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/priceText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:fontFamily="@font/titilliumweb_raguler"
+                            android:text="$29.99"
+                            android:textColor="#4CAF50"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- About Section -->
+                <TextView
+                    android:id="@+id/abouttext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:text="About"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/aboutText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="@font/titilliumweb_raguler"
+                    android:textColor="#CCCCCC"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/relesetext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:text="Release Date"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/releaseDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="May 21, 2019"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:id="@+id/Downtext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:text="Downloads"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/Download"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="5.2K Players"
+                    android:textColor="@color/white" />
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/_10sdp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:background="@drawable/bg_gradient_discussion"
+                android:orientation="vertical"
+                android:padding="@dimen/_10sdp">
+
+                <!-- Features (static layout or dynamic if needed) -->
+                <TextView
+                    android:id="@+id/fettext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Features"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="@font/titilliumweb_italic"
+                    android:text="✔ Rhythm Gameplay  \n✔ Multiplayer  \n✔ Custom Songs  \n✔ Fitness Tracking"
+                    android:textColor="#CCCCCC"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/_10sdp"
+                android:orientation="vertical">
+                <!-- Screenshots -->
+                <TextView
+                    android:id="@+id/sstext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Screenshots"
+                    android:paddingHorizontal="@dimen/_10sdp"
+                    android:textColor="#FFFFFF"
+                    android:fontFamily="@font/titilliumweb_bold"
+                    android:textSize="18dp"
+                    android:layout_marginTop="8dp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerScreenshots"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:listitem="@layout/item_screenshot"
+                    android:layout_marginTop="8dp"
+                    tools:itemCount="1"
+                    android:orientation="horizontal"
+                    android:overScrollMode="never" />
+
+                <!-- User Reviews -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="User Reviews"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="@font/titilliumweb_bold"
+                    android:textSize="18dp"
+                    android:paddingHorizontal="@dimen/_10sdp"
+                    android:id="@+id/revtext" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerReviews"
+                    android:layout_width="match_parent"
+                    tools:itemCount="1"
+                    tools:listitem="@layout/item_review"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:nestedScrollingEnabled="false" />
+
+                <!-- Similar Games -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Similar Games"
+                    android:id="@+id/simgametext"
+                    android:paddingHorizontal="@dimen/_10sdp"
+                    android:fontFamily="@font/titilliumweb_bold"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18dp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerSimilarGames"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:listitem="@layout/item_similar_game"
+                    tools:itemCount="1"
+                    android:orientation="horizontal"
+                    android:overScrollMode="never" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>
