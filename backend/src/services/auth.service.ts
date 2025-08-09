@@ -1,4 +1,6 @@
 import { User, IUser, UserRole } from '../models/User';
+import GamingInterest from '../models/GamingInterest';
+import { Types } from 'mongoose';
 import { jwtService, TokenPair } from '../utils/jwt';
 import { createLogger } from '../utils/logger';
 import { AppError } from '../middlewares/errorHandler';
@@ -11,6 +13,7 @@ export interface RegisterUserData {
   email: string;
   password: string;
   role?: UserRole;
+  interests?: string[];
 }
 
 /**
@@ -41,6 +44,7 @@ export interface AuthResponse {
 export interface UpdateProfileData {
   username?: string;
   email?: string;
+  interests?: string[];
 }
 
 /**
@@ -65,7 +69,7 @@ export class AuthService {
     const logger = createLogger(requestId);
 
     try {
-      const { username, email, password, role = UserRole.GAMER } = userData;
+      const { username, email, password, role = UserRole.GAMER, interests = [] } = userData;
 
       // Check if user already exists
       const existingUser = await User.findOne({
@@ -91,12 +95,25 @@ export class AuthService {
         );
       }
 
+      // Validate interests if provided
+      if (interests && interests.length > 0) {
+        if (interests.length > 5) {
+          throw new AppError('You can select up to 5 interests', 400, 'MAX_INTERESTS_EXCEEDED');
+        }
+        const ids = interests.map((id) => new Types.ObjectId(id));
+        const count = await GamingInterest.countDocuments({ _id: { $in: ids } });
+        if (count !== interests.length) {
+          throw new AppError('Invalid interest IDs provided', 400, 'INVALID_INTERESTS');
+        }
+      }
+
       // Create new user
       const newUser = new User({
         username,
         email: email.toLowerCase(),
         password, // Will be hashed by pre-save middleware
         role,
+        interests,
       });
 
       // Save user to database
@@ -320,7 +337,7 @@ export class AuthService {
     const logger = createLogger(requestId);
 
     try {
-      const { username, email } = updateData;
+      const { username, email, interests } = updateData;
 
       // Find the user
       const user = await User.findById(userId);
@@ -372,6 +389,19 @@ export class AuthService {
       // Update user fields
       if (username) user.username = username;
       if (email) user.email = email.toLowerCase();
+
+      // Validate and update interests
+      if (Array.isArray(interests)) {
+        if (interests.length > 5) {
+          throw new AppError('You can select up to 5 interests', 400, 'MAX_INTERESTS_EXCEEDED');
+        }
+        const ids = interests.map((id) => new Types.ObjectId(id));
+        const count = await GamingInterest.countDocuments({ _id: { $in: ids } });
+        if (count !== interests.length) {
+          throw new AppError('Invalid interest IDs provided', 400, 'INVALID_INTERESTS');
+        }
+        (user as any).interests = interests;
+      }
 
       // Save updated user
       const updatedUser = await user.save();

@@ -7,6 +7,8 @@
 
 // Import all swagger documentation files
 import './auth.swagger';
+import './friendship.swagger';
+import './interests.swagger';
 
 /**
  * Future documentation files can be imported here:

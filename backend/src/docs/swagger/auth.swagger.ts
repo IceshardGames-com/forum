@@ -47,6 +47,13 @@
  *                 enum: [gamer, developer, admin]
  *                 default: gamer
  *                 example: "gamer"
+ *               interests:
+ *                 type: array
+ *                 description: Up to 5 GamingInterest IDs
+ *                 maxItems: 5
+ *                 items:
+ *                   type: string
+ *                   example: "64d2f1e9c7b2a1f0c9a1e2b3"
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -378,6 +385,13 @@
  *                 type: string
  *                 format: email
  *                 example: "newemail@example.com"
+ *               interests:
+ *                 type: array
+ *                 description: Up to 5 GamingInterest IDs
+ *                 maxItems: 5
+ *                 items:
+ *                   type: string
+ *                   example: "64d2f1e9c7b2a1f0c9a1e2b3"
  *     responses:
  *       200:
  *         description: Profile updated successfully

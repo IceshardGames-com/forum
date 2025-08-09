@@ -36,11 +36,11 @@ export class AuthController {
   public register = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
     const logger = createLogger(req.id);
 
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role, interests } = req.body;
 
     // Call auth service
     const result = await authService.register(
-      { username, email, password, role },
+      { username, email, password, role, interests },
       req.id
     );
 
@@ -145,12 +145,12 @@ export class AuthController {
   public updateProfile = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
     const logger = createLogger(req.id);
 
-    const { username, email } = req.body;
+    const { username, email, interests } = req.body;
 
     // Call auth service
     const user = await authService.updateProfile(
       req.user!._id,
-      { username, email },
+      { username, email, interests },
       req.id
     );
 

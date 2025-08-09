@@ -19,6 +19,7 @@ export interface IUser extends Document {
   isActive: boolean;
   isEmailVerified: boolean;
   lastLogin?: Date;
+  interests?: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 
@@ -80,6 +81,12 @@ const userSchema = new Schema<IUser>(
     lastLogin: {
       type: Date,
     },
+    interests: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'GamingInterest',
+      },
+    ],
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt

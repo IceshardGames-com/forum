@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import { envConfig } from '../config/env';
-import { createLogger } from '../utils/logger';
+import { envConfig } from '../../config/env';
+import { createLogger } from '../../utils/logger';
 import { sendOTPEmail } from './email.service';
 
 interface OtpRecord {

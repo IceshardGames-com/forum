@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncErrorHandler } from '../middlewares/errorHandler';
 import { createLogger } from '../utils/logger';
-import { sendOtp, verifyOtp } from '../services/otp.service';
+import { sendOtp, verifyOtp } from '../services/email/otp.service';
 import { User } from '../models/User';
 
 export const requestOtp = asyncErrorHandler(async (req: Request, res: Response) => {

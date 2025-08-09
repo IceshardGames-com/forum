@@ -62,6 +62,13 @@ export const registerValidation = Joi.object({
       'any.required': 'Password confirmation is required',
     }),
   role: roleSchema,
+  interests: Joi.array()
+    .items(Joi.string().length(24).hex())
+    .max(5)
+    .default([])
+    .messages({
+      'array.max': 'You can select up to 5 interests',
+    }),
 }).options({
   stripUnknown: true, // Remove unknown fields
   abortEarly: false, // Return all validation errors, not just the first one
@@ -190,6 +197,11 @@ export const resetPasswordValidation = Joi.object({
 export const updateProfileValidation = Joi.object({
   username: usernameSchema.optional(),
   email: emailSchema.optional(),
+  interests: Joi.array()
+    .items(Joi.string().length(24).hex())
+    .max(5)
+    .messages({ 'array.max': 'You can select up to 5 interests' })
+    .optional(),
   // Don't allow role updates through profile update
 }).min(1) // At least one field must be provided
   .options({

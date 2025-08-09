@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
-import { envConfig } from '../config/env';
-import { createLogger } from '../utils/logger';
+import { envConfig } from '../../config/env';
+import { createLogger } from '../../utils/logger';
 
 export interface SendMailOptions {
   to: string;
