@@ -22,7 +22,7 @@ const swaggerDefinition = {
   servers: [
     {
       url: envConfig.NODE_ENV === 'production' 
-        ? 'https://api.gamefeedback.com' 
+        ? 'https://forum-sjpj.onrender.com' 
         : `http://localhost:${envConfig.PORT}`,
       description: envConfig.NODE_ENV === 'production' ? 'Production server' : 'Development server',
     },
