@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { asyncErrorHandler } from '../middlewares/errorHandler';
-import { createLogger } from '../utils/logger';
-import { sendOtp, verifyOtp } from '../services/email/otp.service';
-import { User } from '../models/User';
+import { asyncErrorHandler } from '../../middlewares/errorHandler';
+import { createLogger } from '../../utils/logger';
+import { sendOtp, verifyOtp } from '../../services/email/otp.service';
+import { User } from '../../models/User';
 
 export const requestOtp = asyncErrorHandler(async (req: Request, res: Response) => {
   const logger = createLogger(req.id);

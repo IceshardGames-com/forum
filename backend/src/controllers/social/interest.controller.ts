@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import GamingInterest from '../models/GamingInterest';
-import { asyncErrorHandler } from '../middlewares/errorHandler';
-import { createLogger } from '../utils/logger';
+import GamingInterest from '../../models/GamingInterest';
+import { asyncErrorHandler } from '../../middlewares/errorHandler';
+import { createLogger } from '../../utils/logger';
 
 export const listInterests = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
   const logger = createLogger(req.id);

@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import Friendship, { IFriendship } from '../models/Friendship';
 import { createLogger } from '../utils/logger';
 import { AppError } from '../middlewares/errorHandler';
-import { notificationTriggers } from './notificationTriggers.service';
+import { notificationTriggers } from './notifications/notificationTriggers.service';
 import { User } from '../models/User';
 
 export interface PaginationOptions {
@@ -308,6 +308,20 @@ export class FriendshipService {
     if (!deleted) {
       throw new AppError('Friendship not found', 404, 'FRIENDSHIP_NOT_FOUND');
     }
+  }
+
+  public async areFriends(userId: string, otherUserId: string): Promise<boolean> {
+    const U = toObjectId(userId);
+    const O = toObjectId(otherUserId);
+    
+    const friendship = await Friendship.findOne({
+      $or: [
+        { requester: U, recipient: O, status: 'accepted' },
+        { requester: O, recipient: U, status: 'accepted' },
+      ],
+    });
+    
+    return !!friendship;
   }
 }
 

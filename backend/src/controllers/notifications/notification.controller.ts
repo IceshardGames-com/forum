@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { notificationService } from '../services/notification.service';
-import { asyncErrorHandler } from '../middlewares/errorHandler';
-import { createLogger } from '../utils/logger';
-import { NotificationType } from '../models/Notification';
+import { notificationService } from '../../services/notifications/notification.service';
+import { asyncErrorHandler } from '../../middlewares/errorHandler';
+import { createLogger } from '../../utils/logger';
+import { NotificationType } from '../../models/Notification';
 
 interface ApiResponse<T = any> {
   success: boolean;

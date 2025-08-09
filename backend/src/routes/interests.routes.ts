@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listInterests } from '../controllers/interest.controller';
+import { listInterests } from '../controllers/social/interest.controller';
 import { validateQuery } from '../middlewares/validate';
 import Joi from 'joi';
 

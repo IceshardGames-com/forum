@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { authService } from '../services/auth.service';
-import { createLogger } from '../utils/logger';
-import { asyncErrorHandler } from '../middlewares/errorHandler';
+import { authService } from '../../services/auth.service';
+import { createLogger } from '../../utils/logger';
+import { asyncErrorHandler } from '../../middlewares/errorHandler';
 
 /**
  * Interface for standardized API response

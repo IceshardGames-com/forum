@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { notificationPreferenceService } from '../services/notificationPreference.service';
-import { asyncErrorHandler } from '../middlewares/errorHandler';
-import { createLogger } from '../utils/logger';
+import { notificationPreferenceService } from '../../services/notifications/notificationPreference.service';
+import { asyncErrorHandler } from '../../middlewares/errorHandler';
+import { createLogger } from '../../utils/logger';
 
 interface ApiResponse<T = any> {
   success: boolean;

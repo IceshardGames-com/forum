@@ -8,7 +8,7 @@ import {
   markAsRead,
   markAllAsRead,
   deleteNotification,
-} from '../controllers/notification.controller';
+} from '../controllers/notifications/notification.controller';
 import Joi from 'joi';
 
 const router = Router();

@@ -1,8 +1,8 @@
-import NotificationPreference, { INotificationPreference } from '../models/NotificationPreference';
-import { createLogger } from '../utils/logger';
-import { AppError } from '../middlewares/errorHandler';
+import NotificationPreference, { INotificationPreference } from '../../models/NotificationPreference';
+import { createLogger } from '../../utils/logger';
+import { AppError } from '../../middlewares/errorHandler';
 import { Types } from 'mongoose';
-import { NotificationType } from '../models/Notification';
+import { NotificationType } from '../../models/Notification';
 
 const logger = createLogger();
 
@@ -254,7 +254,7 @@ export class NotificationPreferenceService {
       });
 
       const preferenceMap = new Map<string, INotificationPreference>();
-      preferences.forEach(pref => {
+      preferences.forEach((pref: INotificationPreference) => {
         preferenceMap.set(pref.user.toString(), pref);
       });
 

@@ -1,8 +1,8 @@
-import Notification, { INotification, NotificationType } from '../models/Notification';
-import { createLogger } from '../utils/logger';
-import { AppError } from '../middlewares/errorHandler';
+import Notification, { INotification, NotificationType } from '../../models/Notification';
+import { createLogger } from '../../utils/logger';
+import { AppError } from '../../middlewares/errorHandler';
 import { Types } from 'mongoose';
-import { SocketManager } from '../utils/socketManager';
+import { SocketManager } from '../../utils/socketManager';
 import { notificationPreferenceService } from './notificationPreference.service';
 
 export interface NotificationData {

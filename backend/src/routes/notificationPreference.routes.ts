@@ -5,7 +5,7 @@ import {
   getNotificationPreferences,
   updateNotificationPreferences,
   resetNotificationPreferences,
-} from '../controllers/notificationPreference.controller';
+} from '../controllers/notifications/notificationPreference.controller';
 import Joi from 'joi';
 
 const router = Router();

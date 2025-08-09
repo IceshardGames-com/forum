@@ -12,7 +12,7 @@ import {
   getMutualFriends,
   getSuggestions,
   removeFriend,
-} from '../controllers/friendship.controller';
+} from '../controllers/social/friendship.controller';
 import { blockUserValidation, sendRequestValidation } from '../validations/friendship.validation';
 
 const router = Router();

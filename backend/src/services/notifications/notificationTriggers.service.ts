@@ -1,7 +1,7 @@
 import { notificationService, NotificationData } from './notification.service';
-import { NotificationType } from '../models/Notification';
-import { createLogger } from '../utils/logger';
-import { SocketManager } from '../utils/socketManager';
+import { NotificationType } from '../../models/Notification';
+import { createLogger } from '../../utils/logger';
+import { SocketManager } from '../../utils/socketManager';
 
 const logger = createLogger();
 

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { asyncErrorHandler } from '../middlewares/errorHandler';
-import { createLogger } from '../utils/logger';
-import { friendshipService } from '../services/friendship.service';
+import { asyncErrorHandler } from '../../middlewares/errorHandler';
+import { createLogger } from '../../utils/logger';
+import { friendshipService } from '../../services/friendship.service';
 
 interface ApiResponse<T = any> {
   success: boolean;

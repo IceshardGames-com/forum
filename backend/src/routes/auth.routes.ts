@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { authController } from '../controllers/auth.controller';
-import { requestOtp, confirmOtp } from '../controllers/otp.controller';
+import { authController } from '../controllers/auth/auth.controller';
+import { requestOtp, confirmOtp } from '../controllers/auth/otp.controller';
 import { authenticate } from '../middlewares/auth';
 import { validateBody } from '../middlewares/validate';
 import {

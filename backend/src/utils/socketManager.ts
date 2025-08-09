@@ -216,4 +216,104 @@ export class SocketManager {
       return false;
     }
   }
+
+  /**
+   * Emit encrypted chat message to specific device
+   */
+  static emitChatMessage(deviceId: string, messageData: any): void {
+    const io = this.getIO();
+    if (!io) return;
+
+    try {
+      const deviceRoom = `device:${deviceId}`;
+      io.to(deviceRoom).emit('message:new', messageData);
+
+      logger.info('Socket.IO: Chat message emitted', {
+        deviceId,
+        messageId: messageData.messageId,
+        conversationId: messageData.conversationId,
+      });
+    } catch (error) {
+      logger.error('Socket.IO: Failed to emit chat message', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        deviceId,
+        messageId: messageData.messageId,
+      });
+    }
+  }
+
+  /**
+   * Emit message delivery confirmation
+   */
+  static emitMessageDelivery(userId: string, deliveryData: any): void {
+    const io = this.getIO();
+    if (!io) return;
+
+    try {
+      io.to(userId).emit('message:delivered', deliveryData);
+
+      logger.info('Socket.IO: Message delivery emitted', {
+        userId,
+        messageId: deliveryData.messageId,
+      });
+    } catch (error) {
+      logger.error('Socket.IO: Failed to emit message delivery', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        userId,
+        messageId: deliveryData.messageId,
+      });
+    }
+  }
+
+  /**
+   * Emit message read confirmation
+   */
+  static emitMessageRead(userId: string, readData: any): void {
+    const io = this.getIO();
+    if (!io) return;
+
+    try {
+      io.to(userId).emit('message:read', readData);
+
+      logger.info('Socket.IO: Message read emitted', {
+        userId,
+        messageId: readData.messageId,
+      });
+    } catch (error) {
+      logger.error('Socket.IO: Failed to emit message read', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        userId,
+        messageId: readData.messageId,
+      });
+    }
+  }
+
+  /**
+   * Emit typing indicator
+   */
+  static emitTyping(conversationId: string, userId: string, isTyping: boolean): void {
+    const io = this.getIO();
+    if (!io) return;
+
+    try {
+      const conversationRoom = `conversation:${conversationId}`;
+      io.to(conversationRoom).emit('typing', {
+        userId,
+        isTyping,
+        timestamp: new Date().toISOString(),
+      });
+
+      logger.debug('Socket.IO: Typing indicator emitted', {
+        conversationId,
+        userId,
+        isTyping,
+      });
+    } catch (error) {
+      logger.error('Socket.IO: Failed to emit typing indicator', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        conversationId,
+        userId,
+      });
+    }
+  }
 }
