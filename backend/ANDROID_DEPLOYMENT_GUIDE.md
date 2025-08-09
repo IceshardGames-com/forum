@@ -7,6 +7,7 @@
 When you deploy your Node.js backend to a server (like AWS, DigitalOcean, Heroku), it gets a public URL:
 
 **Examples:**
+- `https://forum-sjpj.onrender.com` (Your production URL)
 - `https://your-app.herokuapp.com`
 - `https://api.yourgame.com` 
 - `https://12.34.56.78:3000` (IP address)
@@ -20,7 +21,7 @@ Your Android app will connect to this deployed backend URL, NOT localhost.
 // ApiConfig.java - Configuration class
 public class ApiConfig {
     // 🔥 This points to your DEPLOYED backend
-    public static final String BASE_URL = "https://api.yourgame.com/";
+    public static final String BASE_URL = "https://forum-sjpj.onrender.com/";
     
     // For development testing
     // public static final String BASE_URL = "http://10.0.2.2:3000/"; // Android emulator
@@ -139,7 +140,7 @@ public class SocketManager {
     public void connect(String userId) {
         try {
             // 🔥 Connect to your DEPLOYED backend
-            socket = IO.socket(ApiConfig.BASE_URL);
+            socket = IO.socket("https://forum-sjpj.onrender.com");
             
             socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                 @Override
@@ -429,11 +430,11 @@ socket = IO.socket("http://10.0.2.2:3000");
 // ApiConfig.java - Production configuration
 public class ApiConfig {
     // Points to your deployed server
-    public static final String BASE_URL = "https://api.yourgame.com/";
+    public static final String BASE_URL = "https://forum-sjpj.onrender.com/";
 }
 
 // SocketManager.java - Production socket connection
-socket = IO.socket("https://api.yourgame.com");
+socket = IO.socket("https://forum-sjpj.onrender.com");
 ```
 
 ### 6. **Socket.IO CORS Configuration Explanation**
@@ -459,8 +460,8 @@ const io = new Server(httpServer, {
 #### **A. Test HTTP APIs**
 ```bash
 # Test if your deployed backend works
-curl https://api.yourgame.com/health
-curl https://api.yourgame.com/api/auth/register -X POST \
+curl https://forum-sjpj.onrender.com/health
+curl https://forum-sjpj.onrender.com/api/auth/register -X POST \
   -H "Content-Type: application/json" \
   -d '{"username":"test","email":"test@test.com","password":"password123"}'
 ```
@@ -468,7 +469,7 @@ curl https://api.yourgame.com/api/auth/register -X POST \
 #### **B. Test Socket.IO**
 ```javascript
 // Browser console test
-const socket = io('https://api.yourgame.com');
+const socket = io('https://forum-sjpj.onrender.com');
 socket.on('connect', () => {
   console.log('Connected:', socket.id);
   socket.emit('join', 'test-user-id');
@@ -740,7 +741,7 @@ public class SharedPrefsManager {
 
 ### 14. **Summary for Android Java Development**
 
-1. **Deploy Node.js backend** → Get public URL (e.g., `https://api.yourgame.com`)
+1. **Deploy Node.js backend** → Get public URL (e.g., `https://forum-sjpj.onrender.com`)
 2. **Setup Android project** → Add Retrofit, Socket.IO dependencies
 3. **Configure API calls** → Use Retrofit with JWT authentication
 4. **Implement Socket.IO** → Real-time notifications with SocketManager

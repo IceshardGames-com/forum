@@ -2,6 +2,10 @@
 
 A modular, clean, and secure TypeScript backend for a community-driven feedback platform where gamers submit feedback to game developers, who can view and analyze it in real time.
 
+## 🚀 **Live Production API**: [https://forum-sjpj.onrender.com/](https://forum-sjpj.onrender.com/)
+- **API Documentation**: [https://forum-sjpj.onrender.com/api/docs](https://forum-sjpj.onrender.com/api/docs)
+- **Health Check**: [https://forum-sjpj.onrender.com/health](https://forum-sjpj.onrender.com/health)
+
 ## Features
 
 ### Phase 1 - Authentication Module ✅

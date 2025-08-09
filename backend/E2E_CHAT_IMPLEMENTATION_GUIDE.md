@@ -532,15 +532,16 @@ public class ChatActivity extends AppCompatActivity implements ChatSocketManager
 
 ### 1. Backend Setup
 1. Deploy your Node.js backend with all E2E chat endpoints
+   - ✅ **Production URL**: https://forum-sjpj.onrender.com
 2. Set environment variables:
    ```bash
-   CLIENT_URL=*  # Allow Android app connections
+   CLIENT_URL=https://forum-sjpj.onrender.com  # Production CORS
    NODE_ENV=production
    ```
 
 ### 2. Android Setup
 1. Register device on app first launch
-2. Point to your deployed backend URL
+2. Point to your deployed backend URL: `https://forum-sjpj.onrender.com`
 3. Test encryption/decryption locally first
 
 ### 3. Testing Flow
