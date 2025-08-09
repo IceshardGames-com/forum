@@ -9,6 +9,8 @@
 import './auth.swagger';
 import './friendship.swagger';
 import './interests.swagger';
+import './notifications.swagger';
+import './notificationPreferences.swagger';
 
 /**
  * Future documentation files can be imported here:

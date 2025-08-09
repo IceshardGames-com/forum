@@ -41,6 +41,9 @@ export interface EnvConfig {
   OTP_EXPIRY_MINUTES: number;
   OTP_RESEND_COOLDOWN_MS: number;
   OTP_MAX_ATTEMPTS: number;
+
+  // Socket.IO Configuration
+  CLIENT_URL: string;
 }
 
 const getEnvValue = (key: string, defaultValue?: string): string => {
@@ -110,6 +113,9 @@ export const envConfig: EnvConfig = {
   OTP_EXPIRY_MINUTES: getEnvNumber('OTP_EXPIRY_MINUTES', 5),
   OTP_RESEND_COOLDOWN_MS: getEnvNumber('OTP_RESEND_COOLDOWN_MS', 60000),
   OTP_MAX_ATTEMPTS: getEnvNumber('OTP_MAX_ATTEMPTS', 5),
+
+  // Socket.IO Configuration  
+  CLIENT_URL: getEnvValue('CLIENT_URL', process.env.NODE_ENV === 'production' ? '*' : 'http://localhost:3000'),
 };
 
 // Validate critical environment variables on startup

@@ -32,7 +32,7 @@ export const sendFriendRequest = asyncErrorHandler(async (req: Request, res: Res
 
 export const acceptFriendRequest = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id as string;
-  await friendshipService.acceptRequest(id, req.user!._id);
+  await friendshipService.acceptRequest(id, req.user!._id, req.id);
   const response: ApiResponse = {
     success: true,
     message: 'Friend request accepted',
@@ -44,7 +44,7 @@ export const acceptFriendRequest = asyncErrorHandler(async (req: Request, res: R
 
 export const declineFriendRequest = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id as string;
-  await friendshipService.declineRequest(id, req.user!._id);
+  await friendshipService.declineRequest(id, req.user!._id, req.id);
   const response: ApiResponse = {
     success: true,
     message: 'Friend request declined',
@@ -72,7 +72,7 @@ export const blockUser = asyncErrorHandler(async (req: Request, res: Response): 
     res.status(400).json({ success: false, message: 'userId is required', requestId: req.id, timestamp: new Date().toISOString() });
     return;
   }
-  await friendshipService.blockUser(req.user!._id, userId);
+  await friendshipService.blockUser(req.user!._id, userId, req.id);
   const response: ApiResponse = {
     success: true,
     message: 'User blocked',

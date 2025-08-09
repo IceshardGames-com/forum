@@ -16,6 +16,8 @@ import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import authRoutes from './routes/auth.routes';
 import friendsRoutes from './routes/friends.routes';
 import interestsRoutes from './routes/interests.routes';
+import notificationsRoutes from './routes/notifications.routes';
+import notificationPreferenceRoutes from './routes/notificationPreference.routes';
 
 /**
  * Express application factory
@@ -112,6 +114,8 @@ export const createApp = (): Application => {
   app.use('/api/auth', authRoutes);
   app.use('/api/friends', friendsRoutes);
   app.use('/api/interests', interestsRoutes);
+  app.use('/api/notifications', notificationsRoutes);
+  app.use('/api/notifications/preferences', notificationPreferenceRoutes);
 
   // Root endpoint
   app.get('/', (req: Request, res: Response) => {

@@ -2,6 +2,8 @@ import { Types } from 'mongoose';
 import Friendship, { IFriendship } from '../models/Friendship';
 import { createLogger } from '../utils/logger';
 import { AppError } from '../middlewares/errorHandler';
+import { notificationTriggers } from './notificationTriggers.service';
+import { User } from '../models/User';
 
 export interface PaginationOptions {
   page?: number;
@@ -42,28 +44,82 @@ export class FriendshipService {
 
     const doc = await Friendship.create({ requester: R, recipient: T, status: 'pending' });
     logger.info('Friend request created', { requesterId, recipientId, friendshipId: doc._id });
+
+    // Trigger notification
+    try {
+      const requesterUser = await User.findById(requesterId, { username: 1 });
+      if (requesterUser) {
+        await notificationTriggers.onFriendRequestSent(
+          requesterId,
+          recipientId,
+          requesterUser.username,
+          requestId
+        );
+      }
+    } catch (notificationError) {
+      // Log but don't fail the friend request if notification fails
+      logger.warn('Failed to trigger friend request notification', {
+        error: notificationError instanceof Error ? notificationError.message : 'Unknown error',
+        friendshipId: doc._id,
+      });
+    }
+
     return doc;
   }
 
-  public async acceptRequest(requestIdParam: string, userId: string): Promise<void> {
+  public async acceptRequest(requestIdParam: string, userId: string, requestId?: string): Promise<void> {
     const updated = await Friendship.findOneAndUpdate(
       { _id: requestIdParam, recipient: toObjectId(userId), status: 'pending' },
       { status: 'accepted' },
       { new: true }
-    );
+    ).populate('requester', 'username');
+    
     if (!updated) {
       throw new AppError('Request not found or already handled', 404, 'REQUEST_NOT_FOUND');
     }
+
+    // Trigger notification
+    try {
+      const recipientUser = await User.findById(userId, { username: 1 });
+      if (recipientUser && updated.requester) {
+        await notificationTriggers.onFriendRequestAccepted(
+          userId,
+          (updated.requester as any)._id.toString(),
+          recipientUser.username,
+          requestId
+        );
+      }
+    } catch (notificationError) {
+      // Log but don't fail the acceptance if notification fails
+      console.warn('Failed to trigger friend acceptance notification:', notificationError);
+    }
   }
 
-  public async declineRequest(requestIdParam: string, userId: string): Promise<void> {
+  public async declineRequest(requestIdParam: string, userId: string, requestId?: string): Promise<void> {
     const updated = await Friendship.findOneAndUpdate(
       { _id: requestIdParam, recipient: toObjectId(userId), status: 'pending' },
       { status: 'declined' },
       { new: true }
-    );
+    ).populate('requester', 'username');
+    
     if (!updated) {
       throw new AppError('Request not found or already handled', 404, 'REQUEST_NOT_FOUND');
+    }
+
+    // Trigger notification/update
+    try {
+      const recipientUser = await User.findById(userId, { username: 1 });
+      if (recipientUser && updated.requester) {
+        await notificationTriggers.onFriendRequestDeclined(
+          userId,
+          (updated.requester as any)._id.toString(),
+          recipientUser.username,
+          requestId
+        );
+      }
+    } catch (notificationError) {
+      // Log but don't fail the decline if notification fails
+      console.warn('Failed to trigger friend decline notification:', notificationError);
     }
   }
 
@@ -74,7 +130,7 @@ export class FriendshipService {
     }
   }
 
-  public async blockUser(actorUserId: string, otherUserId: string): Promise<void> {
+  public async blockUser(actorUserId: string, otherUserId: string, requestId?: string): Promise<void> {
     if (actorUserId === otherUserId) {
       throw new AppError('Cannot block yourself', 400, 'INVALID_REQUEST');
     }
@@ -88,10 +144,20 @@ export class FriendshipService {
     });
     if (!existing) {
       await Friendship.create({ requester: A, recipient: B, status: 'blocked' });
-      return;
+    } else {
+      existing.status = 'blocked';
+      existing.requester = A;
+      existing.recipient = B;
+      await existing.save();
     }
-    existing.status = 'blocked';
-    await existing.save();
+
+    // Trigger notification/update
+    try {
+      await notificationTriggers.onUserBlocked(actorUserId, otherUserId, requestId);
+    } catch (notificationError) {
+      // Log but don't fail the block if notification fails
+      console.warn('Failed to trigger user blocked notification:', notificationError);
+    }
   }
 
   public async listFriends(userId: string, { page = 1, limit = 20 }: PaginationOptions) {

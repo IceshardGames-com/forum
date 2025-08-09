@@ -1,3 +1,5 @@
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import app from './app';
 import { envConfig, validateEnv } from './config/env';
 import { database } from './config/database';
@@ -23,19 +25,74 @@ const startServer = async (): Promise<void> => {
       logger.info('Logs directory created');
     }
 
-    // Start the Express server
-    const server = app.listen(envConfig.PORT, () => {
+    // Create HTTP server and setup Socket.IO
+    const httpServer = createServer(app);
+    
+    // Setup Socket.IO with CORS
+    const io = new Server(httpServer, {
+      cors: {
+        origin: envConfig.CLIENT_URL || "http://localhost:3000",
+        methods: ["GET", "POST"],
+        credentials: true
+      }
+    });
+
+    // Socket.IO connection handling
+    io.on('connection', (socket) => {
+      logger.info('Socket.IO: User connected', { socketId: socket.id });
+      
+      // Join user to their personal room for notifications
+      socket.on('join', (userId: string) => {
+        if (userId) {
+          socket.join(userId);
+          logger.info('Socket.IO: User joined personal room', { 
+            socketId: socket.id, 
+            userId 
+          });
+        }
+      });
+
+      // Handle user leaving their room
+      socket.on('leave', (userId: string) => {
+        if (userId) {
+          socket.leave(userId);
+          logger.info('Socket.IO: User left personal room', { 
+            socketId: socket.id, 
+            userId 
+          });
+        }
+      });
+
+      socket.on('disconnect', (reason) => {
+        logger.info('Socket.IO: User disconnected', { 
+          socketId: socket.id, 
+          reason 
+        });
+      });
+    });
+
+    // Make io available globally for services
+    (global as any).io = io;
+
+    // Start the server
+    const server = httpServer.listen(envConfig.PORT, () => {
       logger.info('Server started successfully', {
         port: envConfig.PORT,
         environment: envConfig.NODE_ENV,
         docs: `http://localhost:${envConfig.PORT}/api/docs`,
         health: `http://localhost:${envConfig.PORT}/health`,
+        socketio: 'Socket.IO enabled',
       });
     });
 
     // Graceful shutdown handling
     const gracefulShutdown = (signal: string) => {
       logger.info(`Received ${signal}. Starting graceful shutdown...`);
+      
+      // Close Socket.IO server
+      io.close(() => {
+        logger.info('Socket.IO server closed');
+      });
       
       server.close(async (err) => {
         if (err) {
