@@ -47,6 +47,11 @@
  *                     updatedAt:
  *                       type: string
  *                       format: date-time
+ */
+
+/**
+ * @swagger
+ * /api/notifications/preferences:
  *   put:
  *     summary: Update user notification preferences
  *     description: Updates the notification preferences for the authenticated user.
@@ -110,7 +115,7 @@
  *                     updatedAt:
  *                       type: string
  *                       format: date-time
-
+ */ 
 /**
  * @swagger
  * /api/notifications/preferences/reset:
