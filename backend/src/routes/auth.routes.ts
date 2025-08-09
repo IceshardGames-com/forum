@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authController } from '../controllers/auth.controller';
+import { requestOtp, confirmOtp } from '../controllers/otp.controller';
 import { authenticate } from '../middlewares/auth';
 import { validateBody } from '../middlewares/validate';
 import {
@@ -16,6 +17,10 @@ const router = Router();
 router.post('/register', validateBody(registerValidation), authController.register);
 router.post('/login', validateBody(loginValidation), authController.login);
 router.post('/logout', authenticate, validateBody(logoutValidation), authController.logout);
+
+// OTP routes
+router.post('/otp/request', requestOtp);
+router.post('/otp/verify', confirmOtp);
 
 // Profile routes
 router.get('/profile', authenticate, authController.getProfile);

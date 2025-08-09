@@ -229,3 +229,13 @@ export const authValidations = {
   updateProfile: updateProfileValidation,
   assignRole: assignRoleValidation,
 }; 
+
+// Optional: simple OTP request/verify body validators (kept minimal for now)
+export const requestOtpValidation = Joi.object({
+  email: emailSchema,
+}).options({ stripUnknown: true, abortEarly: false });
+
+export const verifyOtpValidation = Joi.object({
+  email: emailSchema,
+  otp: Joi.string().length(6).required(),
+}).options({ stripUnknown: true, abortEarly: false });

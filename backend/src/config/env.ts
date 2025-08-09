@@ -30,6 +30,17 @@ export interface EnvConfig {
   // Logging Configuration
   LOG_LEVEL: string;
   LOG_FORMAT: string;
+
+  // Email Configuration
+  EMAIL_USER: string;
+  EMAIL_PASS: string;
+  EMAIL_SERVICE: string;
+
+  // OTP Configuration
+  OTP_LENGTH: number;
+  OTP_EXPIRY_MINUTES: number;
+  OTP_RESEND_COOLDOWN_MS: number;
+  OTP_MAX_ATTEMPTS: number;
 }
 
 const getEnvValue = (key: string, defaultValue?: string): string => {
@@ -88,6 +99,17 @@ export const envConfig: EnvConfig = {
   // Logging Configuration
   LOG_LEVEL: getEnvValue('LOG_LEVEL', 'info'),
   LOG_FORMAT: getEnvValue('LOG_FORMAT', 'json'),
+
+  // Email Configuration
+  EMAIL_USER: getEnvValue('EMAIL_USER'),
+  EMAIL_PASS: getEnvValue('EMAIL_PASS'),
+  EMAIL_SERVICE: getEnvValue('EMAIL_SERVICE', 'gmail'),
+
+  // OTP Configuration
+  OTP_LENGTH: getEnvNumber('OTP_LENGTH', 6),
+  OTP_EXPIRY_MINUTES: getEnvNumber('OTP_EXPIRY_MINUTES', 5),
+  OTP_RESEND_COOLDOWN_MS: getEnvNumber('OTP_RESEND_COOLDOWN_MS', 60000),
+  OTP_MAX_ATTEMPTS: getEnvNumber('OTP_MAX_ATTEMPTS', 5),
 };
 
 // Validate critical environment variables on startup
@@ -102,5 +124,15 @@ export const validateEnv = (): void => {
 
   if (envConfig.NODE_ENV === 'production' && envConfig.JWT_SECRET === 'your-super-secret-jwt-key-please-change-in-production') {
     throw new Error('JWT_SECRET must be changed from default value in production');
+  }
+
+  // In production, require email credentials for OTP/email flows
+  if (envConfig.NODE_ENV === 'production') {
+    const emailVars = ['EMAIL_USER', 'EMAIL_PASS'];
+    for (const v of emailVars) {
+      if (!process.env[v]) {
+        throw new Error(`Required environment variable ${v} is not set for production`);
+      }
+    }
   }
 }; 

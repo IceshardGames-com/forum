@@ -133,6 +133,17 @@ backend/
    # Logging Configuration
    LOG_LEVEL=info
    LOG_FORMAT=json
+
+   # Email Configuration (for OTP/email)
+   EMAIL_USER=
+   EMAIL_PASS=
+   EMAIL_SERVICE=gmail
+
+   # OTP Configuration
+   OTP_LENGTH=6
+   OTP_EXPIRY_MINUTES=5
+   OTP_RESEND_COOLDOWN_MS=60000
+   OTP_MAX_ATTEMPTS=5
    ```
 
 3. **Start Development Server**

@@ -90,6 +90,109 @@
 
 /**
  * @swagger
+ * /api/auth/otp/request:
+ *   post:
+ *     summary: Request email verification OTP
+ *     description: Send a one-time password (OTP) to the provided email for verification. No authentication required.
+ *     tags: [Authentication]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "gamer@example.com"
+ *     responses:
+ *       200:
+ *         description: OTP sent to email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "OTP sent"
+ *                 requestId:
+ *                   type: string
+ *                   example: "550e8400-e29b-41d4-a716-446655440000"
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         description: Validation error or throttled request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
+ * /api/auth/otp/verify:
+ *   post:
+ *     summary: Verify email with OTP
+ *     description: Verify the OTP sent to the user's email. No authentication required.
+ *     tags: [Authentication]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "gamer@example.com"
+ *               otp:
+ *                 type: string
+ *                 description: 6-digit OTP code
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Verified successfully"
+ *                 requestId:
+ *                   type: string
+ *                   example: "550e8400-e29b-41d4-a716-446655440000"
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         description: Invalid or expired OTP
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
  * /api/auth/login:
  *   post:
  *     summary: Authenticate user
