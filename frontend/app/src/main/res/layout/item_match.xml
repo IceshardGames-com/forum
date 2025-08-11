@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/matchCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/_10sdp"
+    android:background="@drawable/bg_gradient_discussion"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/_5sdp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_100sdp">
+
+            <ImageView
+                android:id="@+id/matchImage"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_100sdp"
+                android:layout_margin="@dimen/_10sdp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/img1" />
+
+            <!-- LIVE Tag -->
+            <TextView
+                android:id="@+id/liveTag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_margin="@dimen/_15sdp"
+                android:background="@drawable/bg_tag_pink"
+                android:backgroundTint="#C4000000"
+                android:fontFamily="@font/titilliumweb_raguler"
+                android:paddingLeft="8dp"
+                android:paddingTop="2dp"
+                android:paddingRight="8dp"
+                android:paddingBottom="2dp"
+                android:text="LIVE"
+                android:textColor="#E6A96A"
+                android:textSize="@dimen/_10sdp" />
+
+            <!-- Views Count -->
+            <LinearLayout
+                android:id="@+id/viewsLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_margin="@dimen/_15sdp"
+                android:background="@drawable/bg_tag_pink"
+                android:backgroundTint="#C4000000"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingLeft="8dp"
+                android:paddingTop="2dp"
+                android:paddingRight="8dp"
+                android:paddingBottom="2dp">
+
+                <ImageView
+                    android:layout_width="@dimen/_10sdp"
+                    android:layout_height="@dimen/_10sdp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_eye"
+                    android:tint="#E6A96A" />
+
+                <TextView
+                    android:id="@+id/viewCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_5sdp"
+                    android:fontFamily="@font/titilliumweb_raguler"
+                    android:text="12.5K"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_10sdp" />
+            </LinearLayout>
+
+            <!-- Prize Badge -->
+            <TextView
+                android:id="@+id/prizeBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="@dimen/_15sdp"
+                android:layout_marginBottom="@dimen/_15sdp"
+                android:background="@drawable/bg_prize_badge"
+                android:fontFamily="@font/titilliumweb_raguler"
+                android:padding="6dp"
+                android:text="$50,000"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1.5"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/_10sdp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_weight="1"
+            android:gravity="center_vertical">
+
+            <!-- Game Type Badge -->
+            <TextView
+                android:id="@+id/gameTypeBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_tag_pink"
+                android:backgroundTint="#2E1747"
+                android:fontFamily="@font/titilliumweb_semibold"
+                android:padding="6dp"
+                android:text="Echo VR"
+                android:textColor="@color/gradient_end"
+                android:textSize="@dimen/_9sdp" />
+
+            <!-- Match Title -->
+            <TextView
+                android:id="@+id/matchTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/titilliumweb_bold"
+                android:gravity="center_vertical"
+                android:text="VR Masters Championship"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_14sdp" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_weight="1"
+            android:gravity="center_vertical">
+
+            <!-- Team Names -->
+            <TextView
+                android:id="@+id/teamsText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/titilliumweb_semibold"
+                android:gravity="center_vertical"
+                android:text="Cyber Dragons  vs  Neon Wolves"
+                android:textColor="@color/middle"
+                android:textSize="@dimen/_12sdp" />
+
+
+            <!-- Score -->
+            <TextView
+                android:id="@+id/matchScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="8dp"
+                android:fontFamily="@font/titilliumweb_bold"
+                android:gravity="center_vertical"
+                android:text="2-1"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/_14sdp" />
+
+        </RelativeLayout>
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_weight="1"
+            android:gravity="center_vertical">
+
+            <!-- Live Now -->
+            <RelativeLayout
+                android:id="@+id/liveNowLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/iconuser"
+                    android:layout_width="@dimen/_15sdp"
+                    android:layout_height="@dimen/_15sdp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/time"
+                    android:tint="@color/light_gray" />
+
+                <TextView
+                    android:id="@+id/matchTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:layout_toRightOf="@+id/iconuser"
+                    android:fontFamily="@font/titilliumweb_semibold"
+                    android:gravity="center_vertical"
+                    android:text="Live Now"
+                    android:textColor="@color/light_gray"
+                    android:textSize="@dimen/_10sdp" />
+            </RelativeLayout>
+
+            <!-- Watch Now Button -->
+            <TextView
+                android:id="@+id/btnWatchNow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/button_round_background"
+                android:padding="@dimen/_5sdp"
+                android:text="Watch Now"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+    </LinearLayout>
+</LinearLayout>

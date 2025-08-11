@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Header Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp"
+        android:paddingHorizontal="16dp">
+
+        <TextView
+            android:id="@+id/tvCompletedTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Completed Matches"
+            android:textSize="18sp"
+            android:textColor="@color/gradient_end"
+            android:fontFamily="@font/titilliumweb_bold"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/ivFilterCompleted"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/filter"
+            android:visibility="gone"
+            android:contentDescription="Filter"
+            android:tint="@color/gradient_end" />
+    </LinearLayout>
+
+    <!-- Match List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCompletedMatches"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        tools:listitem="@layout/item_completed_match" />
+
+</LinearLayout>

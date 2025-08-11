@@ -11,16 +11,16 @@
         android:icon="@drawable/unfill_forums"
         android:title="Forums" />
 
-  <!--  <item
+   <item
         android:id="@+id/nav_esports"
-        android:icon="@drawable/unfill_esports"
+        android:icon="@drawable/multiplayer"
         android:title="Esports" />
 
-    <item
-        android:id="@+id/nav_companies"
-        android:icon="@drawable/unfill_comp"
-        android:title="Companies" />
--->
+    <!--  <item
+         android:id="@+id/nav_companies"
+         android:icon="@drawable/unfill_comp"
+         android:title="Companies" />
+ -->
 
     <item
         android:id="@+id/nav_chat"

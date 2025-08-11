@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="200dp"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/bg_gradient_discussion"
     android:layout_marginBottom="@dimen/_10sdp"
     android:orientation="vertical">
@@ -16,20 +17,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/_120sdp"
-                card_view:cardCornerRadius="12dp">
-
                 <ImageView
                     android:id="@+id/gameImage"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="@dimen/_120sdp"
                     android:scaleType="centerCrop"
                     android:src="@drawable/img1" />
-            </androidx.cardview.widget.CardView>
-
-
 
             <TextView
                 android:id="@+id/gamePercetage"
