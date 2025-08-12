@@ -6,6 +6,8 @@ import { createLogger } from '../../utils/logger';
 import { AppError } from '../../middlewares/errorHandler';
 import { Types } from 'mongoose';
 import { SocketManager } from '../../utils/socketManager';
+import { notificationTriggers } from '../notifications/notificationTriggers.service';
+import User from '../../models/User';
 
 export interface SendMessageData {
   conversationId: string;
@@ -152,6 +154,31 @@ export class MessageService {
       } catch (socketError) {
         loggerWithId.warn('Failed to send real-time message notification', {
           error: socketError instanceof Error ? socketError.message : 'Unknown error',
+          messageId: message._id,
+        });
+      }
+
+      // Trigger persistent notification for recipient (message preview for text)
+      try {
+        let preview = '';
+        if (messageType === 'text') {
+          const textPayload = payloads.find(p => (p as any).plaintext);
+          preview = (textPayload && (textPayload as any).plaintext) || '';
+        }
+        // Resolve sender username
+        const senderUser = await User.findById(senderId).select('username');
+        const senderName = senderUser ? senderUser.username : 'Someone';
+        await notificationTriggers.onMessageReceived(
+          otherParticipantId.toString(),
+          senderId,
+          senderName,
+          preview,
+          conversationId,
+          requestId
+        );
+      } catch (notifyErr) {
+        loggerWithId.warn('Failed to trigger message notification', {
+          error: notifyErr instanceof Error ? notifyErr.message : 'Unknown error',
           messageId: message._id,
         });
       }

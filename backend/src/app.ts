@@ -21,6 +21,9 @@ import notificationPreferenceRoutes from './routes/notificationPreference.routes
 import devicesRoutes from './routes/devices.routes';
 import conversationsRoutes from './routes/conversations.routes';
 import messagesRoutes from './routes/messages.routes';
+import communitiesRoutes from './routes/communities.routes';
+import postsRoutes from './routes/posts.routes';
+import commentsRoutes from './routes/comments.routes';
 
 /**
  * Express application factory
@@ -122,6 +125,9 @@ export const createApp = (): Application => {
   app.use('/api/devices', devicesRoutes);
   app.use('/api/conversations', conversationsRoutes);
   app.use('/api/messages', messagesRoutes);
+  app.use('/api/communities', communitiesRoutes);
+  app.use('/api/posts', postsRoutes);
+  app.use('/api', commentsRoutes);
 
   // Root endpoint
   app.get('/', (req: Request, res: Response) => {
