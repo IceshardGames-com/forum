@@ -4,6 +4,8 @@ import app from './app';
 import { envConfig, validateEnv } from './config/env';
 import { database } from './config/database';
 import { logger } from './utils/logger';
+import { jwtService } from './utils/jwt';
+import { deviceService } from './services/chats/device.service';
 
 /**
  * Start the server
@@ -37,30 +39,68 @@ const startServer = async (): Promise<void> => {
       }
     });
 
+    // Socket.IO auth middleware (JWT)
+    io.use((socket, next) => {
+      try {
+        const authToken = (socket.handshake.auth && socket.handshake.auth.token)
+          || (socket.handshake.headers && typeof socket.handshake.headers.authorization === 'string'
+              ? socket.handshake.headers.authorization.replace(/^Bearer\s+/i, '')
+              : undefined);
+
+        if (!authToken) {
+          return next(new Error('Unauthorized'));
+        }
+
+        const payload = jwtService.verifyToken(authToken);
+        // Attach userId to socket
+        (socket as any).userId = payload.userId;
+        return next();
+      } catch (err) {
+        return next(new Error('Unauthorized'));
+      }
+    });
+
     // Socket.IO connection handling
     io.on('connection', (socket) => {
       logger.info('Socket.IO: User connected', { socketId: socket.id });
       
-      // Join user to their personal room for notifications
-      socket.on('join', (userId: string) => {
+      // Auto-join authenticated user's personal room
+      const userId = (socket as any).userId as string | undefined;
+      if (userId) {
+        socket.join(userId);
+        logger.info('Socket.IO: User auto-joined personal room', { socketId: socket.id, userId });
+      }
+
+      // Backwards-compat join event (ignores provided userId)
+      socket.on('join', () => {
         if (userId) {
           socket.join(userId);
-          logger.info('Socket.IO: User joined personal room', { 
-            socketId: socket.id, 
-            userId 
-          });
+          logger.info('Socket.IO: (Deprecation) join called - joined authenticated room', { socketId: socket.id, userId });
         }
       });
 
-      // Handle user leaving their room
-      socket.on('leave', (userId: string) => {
-        if (userId) {
-          socket.leave(userId);
-          logger.info('Socket.IO: User left personal room', { 
-            socketId: socket.id, 
-            userId 
-          });
+      // Secure device room join (verify ownership)
+      socket.on('join:device', async (deviceId: string) => {
+        try {
+          if (!userId || !deviceId) return;
+          const device = await deviceService.getDeviceById(deviceId);
+          if (device && device.user.toString() === userId) {
+            const room = `device:${deviceId}`;
+            socket.join(room);
+            logger.info('Socket.IO: Joined device room', { socketId: socket.id, userId, deviceId });
+          } else {
+            logger.warn('Socket.IO: Device join denied (ownership)', { socketId: socket.id, userId, deviceId });
+          }
+        } catch (e) {
+          logger.warn('Socket.IO: Device join error', { error: e instanceof Error ? e.message : 'Unknown', deviceId, userId });
         }
+      });
+
+      socket.on('leave:device', (deviceId: string) => {
+        if (!deviceId) return;
+        const room = `device:${deviceId}`;
+        socket.leave(room);
+        logger.info('Socket.IO: Left device room', { socketId: socket.id, userId, deviceId });
       });
 
       socket.on('disconnect', (reason) => {
