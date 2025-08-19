@@ -21,6 +21,7 @@ import notificationPreferenceRoutes from './routes/notificationPreference.routes
 import devicesRoutes from './routes/devices.routes';
 import conversationsRoutes from './routes/conversations.routes';
 import messagesRoutes from './routes/messages.routes';
+import usersRoutes from './routes/users.routes';
 
 /**
  * Express application factory
@@ -122,6 +123,7 @@ export const createApp = (): Application => {
   app.use('/api/devices', devicesRoutes);
   app.use('/api/conversations', conversationsRoutes);
   app.use('/api/messages', messagesRoutes);
+  app.use('/api/users', usersRoutes);
 
   // Root endpoint
   app.get('/', (req: Request, res: Response) => {

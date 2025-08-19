@@ -11,6 +11,7 @@ import './friendship.swagger';
 import './interests.swagger';
 import './notifications.swagger';
 import './notificationPreferences.swagger';
+import './userSearch.swagger';
 
 /**
  * Future documentation files can be imported here:
