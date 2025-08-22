@@ -169,20 +169,25 @@ export class DeviceService {
   /**
    * Update device last seen timestamp
    */
-  public async updateLastSeen(deviceId: string, requestId?: string): Promise<void> {
+  public async updateLastSeen(userId: string, deviceId: string, requestId?: string): Promise<void> {
     const loggerWithId = createLogger(requestId);
 
     try {
-      await Device.updateOne(
-        { deviceId, isActive: true },
+      const result = await Device.updateOne(
+        { user: new Types.ObjectId(userId), deviceId, isActive: true },
         { lastSeen: new Date() }
       );
 
-      loggerWithId.debug('Device last seen updated', { deviceId });
+      if (result.matchedCount === 0) {
+        throw new AppError('Device not found', 404, 'DEVICE_NOT_FOUND');
+      }
+
+      loggerWithId.debug('Device last seen updated', { deviceId, userId });
     } catch (error) {
       loggerWithId.error('Failed to update device last seen', {
         error: error instanceof Error ? error.message : 'Unknown error',
         deviceId,
+        userId,
       });
       // Don't throw error for this operation as it's not critical
     }

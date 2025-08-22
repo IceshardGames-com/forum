@@ -9,11 +9,21 @@ import {
   getUnreadCount,
 } from '../controllers/chat/conversation.controller';
 import Joi from 'joi';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
 // All conversation routes require authentication
 router.use(authenticate);
+
+// General limiter for conversations
+const conversationsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+router.use(conversationsLimiter);
 
 const createConversationSchema = Joi.object({
   otherUserId: Joi.string().pattern(/^[0-9a-fA-F]{24}$/).required(),
@@ -28,8 +38,16 @@ const paginationQuerySchema = Joi.object({
   limit: Joi.number().integer().min(1).max(50).default(20),
 }).options({ stripUnknown: true, abortEarly: false });
 
+// Stricter create limiter
+const createConversationLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Create or get existing conversation
-router.post('/', validateBody(createConversationSchema), createOrGetConversation);
+router.post('/', createConversationLimiter, validateBody(createConversationSchema), createOrGetConversation);
 
 // Get user's conversations
 router.get('/', validateQuery(paginationQuerySchema), getUserConversations);

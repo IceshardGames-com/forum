@@ -4,6 +4,10 @@ import app from './app';
 import { envConfig, validateEnv } from './config/env';
 import { database } from './config/database';
 import { logger } from './utils/logger';
+import { jwtService } from './utils/jwt';
+import { User } from './models/User';
+import { deviceService } from './services/chats/device.service';
+import { conversationService } from './services/chats/conversation.service';
 
 /**
  * Start the server
@@ -37,29 +41,106 @@ const startServer = async (): Promise<void> => {
       }
     });
 
+    // Authenticate socket connections using JWT
+    io.use(async (socket, next) => {
+      try {
+        const authHeader = socket.handshake.headers['authorization'] as string | undefined;
+        const tokenFromHeader = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+        const tokenFromAuth = (socket.handshake.auth && (socket.handshake.auth as any).token) || null;
+        const token = tokenFromHeader || tokenFromAuth;
+
+        if (!token) {
+          return next(new Error('Authentication error: token missing'));
+        }
+
+        const decoded = jwtService.verifyToken(token);
+        const user = await User.findById(decoded.userId);
+        if (!user || !user.isActive) {
+          return next(new Error('Authentication error: user not found or inactive'));
+        }
+
+        (socket as any).data = { userId: user._id.toString() };
+        return next();
+      } catch (err) {
+        return next(new Error('Authentication error: invalid token'));
+      }
+    });
+
     // Socket.IO connection handling
     io.on('connection', (socket) => {
-      logger.info('Socket.IO: User connected', { socketId: socket.id });
+      const userId = (socket as any).data?.userId as string | undefined;
+      logger.info('Socket.IO: User connected', { socketId: socket.id, userId });
       
-      // Join user to their personal room for notifications
-      socket.on('join', (userId: string) => {
+      // Auto-join authenticated user's personal room
+      if (userId) {
+        socket.join(userId);
+      }
+      
+      // Maintain backward-compat join event but restrict to own userId
+      socket.on('join', (_providedUserId: string) => {
         if (userId) {
           socket.join(userId);
-          logger.info('Socket.IO: User joined personal room', { 
-            socketId: socket.id, 
-            userId 
-          });
+          logger.info('Socket.IO: User joined personal room', { socketId: socket.id, userId });
         }
       });
 
-      // Handle user leaving their room
-      socket.on('leave', (userId: string) => {
+      // Handle user leaving their room (only own room)
+      socket.on('leave', () => {
         if (userId) {
           socket.leave(userId);
-          logger.info('Socket.IO: User left personal room', { 
-            socketId: socket.id, 
-            userId 
-          });
+          logger.info('Socket.IO: User left personal room', { socketId: socket.id, userId });
+        }
+      });
+
+      // Join device-specific room after ownership check
+      socket.on('joinDevice', async (deviceId: string) => {
+        try {
+          if (!userId || !deviceId) return;
+          const device = await deviceService.getDeviceById(deviceId);
+          if (!device || device.user.toString() !== userId) return;
+          const deviceRoom = `device:${deviceId}`;
+          socket.join(deviceRoom);
+          logger.info('Socket.IO: Joined device room', { socketId: socket.id, userId, deviceId });
+        } catch (e) {
+          logger.warn('Socket.IO: Failed to join device room', { socketId: socket.id, userId, deviceId });
+        }
+      });
+
+      socket.on('leaveDevice', async (deviceId: string) => {
+        try {
+          if (!userId || !deviceId) return;
+          const device = await deviceService.getDeviceById(deviceId);
+          if (!device || device.user.toString() !== userId) return;
+          const deviceRoom = `device:${deviceId}`;
+          socket.leave(deviceRoom);
+          logger.info('Socket.IO: Left device room', { socketId: socket.id, userId, deviceId });
+        } catch (e) {
+          logger.warn('Socket.IO: Failed to leave device room', { socketId: socket.id, userId, deviceId });
+        }
+      });
+
+      // Join conversation room after participant check
+      socket.on('joinConversation', async (conversationId: string) => {
+        try {
+          if (!userId || !conversationId) return;
+          await conversationService.getConversationById(conversationId, userId);
+          const convoRoom = `conversation:${conversationId}`;
+          socket.join(convoRoom);
+          logger.info('Socket.IO: Joined conversation room', { socketId: socket.id, userId, conversationId });
+        } catch (e) {
+          logger.warn('Socket.IO: Failed to join conversation room', { socketId: socket.id, userId, conversationId });
+        }
+      });
+
+      socket.on('leaveConversation', async (conversationId: string) => {
+        try {
+          if (!userId || !conversationId) return;
+          await conversationService.getConversationById(conversationId, userId);
+          const convoRoom = `conversation:${conversationId}`;
+          socket.leave(convoRoom);
+          logger.info('Socket.IO: Left conversation room', { socketId: socket.id, userId, conversationId });
+        } catch (e) {
+          logger.warn('Socket.IO: Failed to leave conversation room', { socketId: socket.id, userId, conversationId });
         }
       });
 

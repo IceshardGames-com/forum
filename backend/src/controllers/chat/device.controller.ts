@@ -97,9 +97,10 @@ export const getDevicesForUser = asyncErrorHandler(async (req: Request, res: Res
 });
 
 export const updateDeviceLastSeen = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user!._id;
   const { deviceId } = req.body;
 
-  await deviceService.updateLastSeen(deviceId, req.id);
+  await deviceService.updateLastSeen(userId, deviceId, req.id);
 
   const response: ApiResponse = {
     success: true,
