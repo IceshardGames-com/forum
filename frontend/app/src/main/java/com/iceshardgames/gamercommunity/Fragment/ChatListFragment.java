@@ -308,6 +308,7 @@ public class ChatListFragment extends Fragment {
             binding.searchChatmain.setVisibility(View.GONE);
             binding.chatListRecycler.setVisibility(View.GONE);
             binding.friendListRecycler.setVisibility(View.GONE);
+            binding.searchResultRecycler.setVisibility(View.GONE);
             loadFriendRequests(); // new function
         }  else if (tab.equals("Friends")) {
             // 👉 Show Friends API data
@@ -316,6 +317,7 @@ public class ChatListFragment extends Fragment {
             binding.exploreChannelsRecycler.setVisibility(View.GONE);
             binding.searchChatmain.setVisibility(View.GONE);
             binding.friendListRecycler.setVisibility(View.VISIBLE);
+            binding.searchResultRecycler.setVisibility(View.GONE);
             loadFriendsList();
         }else {
             // 👇 Hide Friend Requests when on other tabs
