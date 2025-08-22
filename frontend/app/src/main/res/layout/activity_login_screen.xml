@@ -277,6 +277,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:alpha="0.8"
+                android:visibility="gone"
                 android:fontFamily="@font/titilliumweb_semibold"
                 android:text="CONNECT VIA"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -288,6 +289,7 @@
                 android:id="@+id/social_buttons_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -365,13 +367,13 @@
             <TextView
                 android:id="@+id/tv_quote"
                 style="@style/QuoteTextStyle"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/titilliumweb_italic"
                 android:text="@string/the_only_way_to_make_sense_out_of_change_is_to_plunge_into_it_move_with_it_and_join_the_dance"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/social_buttons_layout" />
+                app:layout_constraintTop_toBottomOf="@id/social_buttons_layout" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

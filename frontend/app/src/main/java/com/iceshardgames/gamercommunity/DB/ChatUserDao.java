@@ -29,5 +29,8 @@ public interface ChatUserDao {
 
     @Query("UPDATE chat_users SET isMuted = :muted WHERE chatId = :chatId")
     void setMuted(String chatId, boolean muted);
+    @Query("SELECT * FROM chat_users WHERE chatId = :chatId LIMIT 1")
+    ChatUser getUserByChatId(String chatId);
+
 }
 

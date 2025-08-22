@@ -83,11 +83,11 @@
                 android:id="@+id/tv_about"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="About Your Gender"
+                android:text="Tell Us About Yourself"
                 android:textAllCaps="true"
                 android:textColor="@color/white"
                 android:fontFamily="@font/header"
-                android:textSize="@dimen/_22sdp"
+                android:textSize="@dimen/_20sdp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/cardprofile" />

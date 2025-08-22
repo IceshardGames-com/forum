@@ -181,7 +181,7 @@
                         android:fontFamily="@font/titilliumweb_semibold"
                         android:background="@android:color/transparent"
                         android:paddingEnd="@dimen/_10sdp"
-                        android:hint="Choose your gamertag"
+                        android:hint="Choose your username"
                         android:inputType="textPersonName"
                         android:textColor="@android:color/white"
                         android:textColorHint="@color/hint_gray"

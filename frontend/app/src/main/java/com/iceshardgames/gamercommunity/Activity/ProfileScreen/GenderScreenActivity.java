@@ -35,7 +35,7 @@ public class GenderScreenActivity extends AppCompatActivity {
             return insets;
         });
         Utills.GradientText(binding.headerStart.screenTitleNav);
-        binding.headerStart.screenTitleNav.setText("About You");
+        binding.headerStart.screenTitleNav.setText("Tell Us About Yourself");
         Utills.GradientText(binding.tvAbout);
         setSelectedButton(null);
 

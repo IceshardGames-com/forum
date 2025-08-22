@@ -16,6 +16,7 @@
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -101,17 +102,17 @@
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".Activity.LoginScreen.LoginScreenActivity"
-            android:exported="false"
-            android:resizeableActivity="true"
-            android:windowSoftInputMode="adjustPan" />
-        <activity
             android:name=".Activity.SplashScreen.SplashScreenActivity"
             android:exported="false"
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".Activity.MainScreen.DashboardScreenActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.LoginScreen.LoginScreenActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:exported="true"
             android:resizeableActivity="true"

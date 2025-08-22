@@ -36,6 +36,7 @@ import com.iceshardgames.gamercommunity.DB.ChatUser;
 import com.iceshardgames.gamercommunity.DB.ChatUserDao;
 import com.iceshardgames.gamercommunity.Model.MessageItem;
 import com.iceshardgames.gamercommunity.R;
+import com.iceshardgames.gamercommunity.Utills.SessionManager;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 import com.iceshardgames.gamercommunity.databinding.ActivityChatDetailBinding;
 import com.iceshardgames.gamercommunity.databinding.ActivityChatListBinding;
@@ -91,13 +92,15 @@ public class ChatDetailActivity extends AppCompatActivity {
         chatPartnerName = getIntent().getStringExtra("chat_partner_name");
         Log.e("==sana", "resu: "+chatPartnerName );
         chatId = getIntent().getStringExtra("chat_id");
-        if (chatId == null) chatId = "default_chat"; // fallback
+//        if (chatId == null) chatId = "default_chat"; // fallback
 
         binding.chatUsername.setText(chatPartnerName);
         binding.avatarDetail.setImageResource(R.drawable.profilepic); // or pass from intent
 
         // ✅ Init database and DAO
-        db = AppDatabase.getInstance(this);
+        String currentUserId = SessionManager.getUserId(this); // fetch logged-in user id
+        if (currentUserId == null) currentUserId = "guest";   // fallback if not logged in
+        db = AppDatabase.getInstance(this, currentUserId);
         dao = db.chatMessageDao();
         userDao = db.chatUserDao();
 

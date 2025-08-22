@@ -3,15 +3,9 @@ package com.iceshardgames.gamercommunity.Activity.MainScreen;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,29 +15,25 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.material.tabs.TabLayout;
-import com.google.android.material.tabs.TabLayoutMediator;
 import com.iceshardgames.gamercommunity.Activity.LoginScreen.LoginScreenActivity;
 import com.iceshardgames.gamercommunity.Activity.ProfileScreen.SettingScreenActivity;
-import com.iceshardgames.gamercommunity.Adapter.ImageSliderAdapter;
-import com.iceshardgames.gamercommunity.Adapter.TabsPagerAdapter;
 import com.iceshardgames.gamercommunity.Fragment.ChatListFragment;
-import com.iceshardgames.gamercommunity.Fragment.CompaniesFragmentBottom;
-import com.iceshardgames.gamercommunity.Fragment.EsportsFragmentBottom;
 import com.iceshardgames.gamercommunity.Fragment.ForumsFragmentBottom;
 import com.iceshardgames.gamercommunity.Fragment.HomeFragmentBottom;
 import com.iceshardgames.gamercommunity.Fragment.SearchFragmentBottom;
 import com.iceshardgames.gamercommunity.R;
+import com.iceshardgames.gamercommunity.Utills.SessionManager;
 import com.iceshardgames.gamercommunity.Utills.SharedPrefManager;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 import com.iceshardgames.gamercommunity.databinding.ActivityDashboardScreenBinding;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class DashboardScreenActivity extends AppCompatActivity {
 
     ActivityDashboardScreenBinding binding;
+    SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +50,15 @@ public class DashboardScreenActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        //intrest
+        prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+
+        String savedIds = prefs.getString("selected_interest_ids", "");
+        if (!savedIds.isEmpty()) {
+            List<String> idsList = Arrays.asList(savedIds.split(","));
+            Log.e("==intrest", "onCreate: " + idsList);
+        }
+
 
         binding.dashboard.bottomNavigation.setOnItemSelectedListener(item -> {
             Fragment selected = null;
@@ -78,7 +77,7 @@ public class DashboardScreenActivity extends AppCompatActivity {
             }*/ else if (itemId == R.id.nav_chat) {
                 binding.dashboard.header.screenTitleNav.setText("Chat here");
                 selected = new ChatListFragment();
-            }else if (itemId == R.id.nav_search) {
+            } else if (itemId == R.id.nav_search) {
                 binding.dashboard.header.screenTitleNav.setText("Search Nexus");
                 selected = new SearchFragmentBottom();
             }
@@ -119,7 +118,6 @@ public class DashboardScreenActivity extends AppCompatActivity {
         // Close drawer on close icon
 //        binding.ivCloseDrawer.setOnClickListener(v -> binding.drawerLayout.closeDrawer(GravityCompat.END));
 
-        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         String savedUsername = prefs.getString("username", "u/guest");
         binding.username.setText(savedUsername);
         binding.onlineStatus.setText("Online Status: On");
@@ -134,6 +132,7 @@ public class DashboardScreenActivity extends AppCompatActivity {
                     editor.remove("username"); // If you only want to delete username
                     editor.clear(); // Clears isLoggedIn and username
                     editor.apply();
+                    SessionManager.clearSession(DashboardScreenActivity.this);
 
                     Intent intent = new Intent(DashboardScreenActivity.this, LoginScreenActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Prevent back press
@@ -151,7 +150,6 @@ public class DashboardScreenActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         String savedUsername = prefs.getString("username", "u/guest");
 
         binding.username.setText(savedUsername);

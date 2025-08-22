@@ -18,13 +18,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.iceshardgames.gamercommunity.R;
+import com.iceshardgames.gamercommunity.Utills.SharedPrefManager;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 import com.iceshardgames.gamercommunity.databinding.ActivityProfileScreenBinding;
 
 public class ProfileScreenActivity extends AppCompatActivity {
 
     ActivityProfileScreenBinding binding;
-
+    String username;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,8 +38,12 @@ public class ProfileScreenActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        SharedPrefManager preferenceManager = new SharedPrefManager(this);
+        username = preferenceManager.getUsername();
+
         Utills.GradientText(binding.headerStart.screenTitleNav);
-        binding.headerStart.screenTitleNav.setText("Username");
+        binding.headerStart.screenTitleNav.setText("Screen Name");
         Utills.GradientText(binding.tvUsername);
         Clicks();
     }
@@ -46,7 +51,7 @@ public class ProfileScreenActivity extends AppCompatActivity {
     private void Clicks() {
 
         binding.passwordStrengthText.setVisibility(TextView.GONE);
-
+        binding.etUsername.setText(username);
         binding.etUsername.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}

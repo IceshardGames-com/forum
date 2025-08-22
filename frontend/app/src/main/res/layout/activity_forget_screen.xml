@@ -84,7 +84,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/header"
-                android:text="Forget Password"
+                android:text="Can’t Log In?"
                 android:textAllCaps="true"
                 android:textColor="@color/white"
                 android:textSize="@dimen/_22sdp"

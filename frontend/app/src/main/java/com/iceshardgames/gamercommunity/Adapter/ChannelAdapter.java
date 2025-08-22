@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.iceshardgames.gamercommunity.DB.AppDatabase;
 import com.iceshardgames.gamercommunity.DB.Channel;
 import com.iceshardgames.gamercommunity.R;
+import com.iceshardgames.gamercommunity.Utills.SessionManager;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -50,7 +51,10 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ChannelV
 
             ExecutorService executor = Executors.newSingleThreadExecutor();
             executor.execute(() -> {
-                AppDatabase db = AppDatabase.getInstance(context);
+                String currentUserId = SessionManager.getUserId(context);
+                if (currentUserId == null) currentUserId = "guest"; // fallback if no login
+                AppDatabase db = AppDatabase.getInstance(context, currentUserId);
+
                 db.channelDao().update(channel);
             });
         });

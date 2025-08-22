@@ -26,6 +26,7 @@ import com.bumptech.glide.request.transition.Transition;
 import com.iceshardgames.gamercommunity.DB.AppDatabase;
 import com.iceshardgames.gamercommunity.DB.ChatMessageDao;
 import com.iceshardgames.gamercommunity.R;
+import com.iceshardgames.gamercommunity.Utills.SessionManager;
 import com.iceshardgames.gamercommunity.databinding.ActivityMediaViewerBinding;
 
 import java.io.OutputStream;
@@ -159,7 +160,11 @@ public class MediaViewerActivity extends AppCompatActivity {
             // Delete message from Room DB
             if (messageId != -1) {
                 new Thread(() -> {
-                    AppDatabase db = AppDatabase.getInstance(getApplicationContext());
+                    // ✅ Get current userId from SessionManager
+                    String currentUserId = SessionManager.getUserId(getApplicationContext());
+                    if (currentUserId == null) currentUserId = "guest"; // fallback
+
+                    AppDatabase db = AppDatabase.getInstance(getApplicationContext(), currentUserId);
                     ChatMessageDao dao = db.chatMessageDao();
                     dao.getMessageById(String.valueOf(messageId));
                 }).start();

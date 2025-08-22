@@ -18,6 +18,7 @@ import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity;
 import com.iceshardgames.gamercommunity.DB.AppDatabase;
 import com.iceshardgames.gamercommunity.Model.ChatItem;
 import com.iceshardgames.gamercommunity.R;
+import com.iceshardgames.gamercommunity.Utills.SessionManager;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -99,7 +100,13 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                         case 2: // Delete
                             ExecutorService executor = Executors.newSingleThreadExecutor();
                             executor.execute(() -> {
-                                AppDatabase db = AppDatabase.getInstance(context.getApplicationContext());
+                                // ✅ Get current logged-in userId
+                                String currentUserId = SessionManager.getUserId(context);
+                                if (currentUserId == null) currentUserId = "guest"; // fallback
+
+                                // ✅ Use per-user database
+                                AppDatabase db = AppDatabase.getInstance(context.getApplicationContext(), currentUserId);
+
                                 db.chatUserDao().deleteById(chat.getChatId());
                                 db.chatMessageDao().deleteMessagesByChatId(chat.getChatId());
 

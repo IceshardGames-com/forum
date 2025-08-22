@@ -1,14 +1,13 @@
 package com.iceshardgames.gamercommunity.Activity.OtpScreen;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -18,10 +17,16 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
+import com.iceshardgames.gamercommunity.APIintegration.ApiService;
 import com.iceshardgames.gamercommunity.Activity.LoginScreen.LoginScreenActivity;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 import com.iceshardgames.gamercommunity.databinding.ActivityResetPasswordScreenBinding;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ResetPasswordScreenActivity extends AppCompatActivity {
 
@@ -41,7 +46,7 @@ public class ResetPasswordScreenActivity extends AppCompatActivity {
             return insets;
         });
         Utills.GradientText(binding.headerStart.screenTitleNav);
-        binding.headerStart.screenTitleNav.setText("Reset \nPassword");
+        binding.headerStart.screenTitleNav.setText("Recover Your Password");
         Utills.GradientText(binding.tvChoosePassword);
         clicks();
     }
@@ -52,7 +57,8 @@ public class ResetPasswordScreenActivity extends AppCompatActivity {
         // Password strength listener
         binding.passwordEditText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -60,16 +66,18 @@ public class ResetPasswordScreenActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         // Set click listener
         binding.btnresetpass.setOnClickListener(v -> {
+            String currentPassword = binding.passwordEditTextold.getText().toString().trim();
             String password = binding.passwordEditText.getText().toString().trim();
             String confirmPassword = binding.confirmPasswordEditText.getText().toString().trim();
 
-            if (validatePasswords(password, confirmPassword)) {
-                resetPassword(password);
+            if (validatePasswords(currentPassword, password, confirmPassword)) {
+                resetPassword(currentPassword, password);
             }
         });
 
@@ -126,36 +134,72 @@ public class ResetPasswordScreenActivity extends AppCompatActivity {
         return Math.min(strength, 100);
     }
 
-    private boolean validatePasswords(String password, String confirmPassword) {
+    private boolean validatePasswords(String currentPassword, String password, String confirmPassword) {
+        if (currentPassword.isEmpty()) {
+            binding.passwordEditTextold.setError("Old password cannot be empty");
+            return false;
+        }
         if (password.isEmpty()) {
             binding.passwordEditText.setError("Password cannot be empty");
             return false;
         } else if (password.length() < 8) {
             binding.passwordEditText.setError("Password must be at least 8 characters");
             return false;
-        } else if (!password.equals(confirmPassword)) {
+        }
+        if (!password.equals(confirmPassword)) {
             binding.confirmPasswordEditText.setError("Passwords don't match");
             return false;
         }
         return true;
     }
 
-    private void resetPassword(String newPassword) {
-        // Show loading
-        ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Updating password...");
-        progressDialog.show();
+    private void resetPassword(String currentPassword, String newPassword) {
+        Utills.showLoadingDialog(ResetPasswordScreenActivity.this);
+        Log.e("==pass", "currentPassword: " + currentPassword);
+        Log.e("==pass", "newPassword: " + newPassword);
+        Log.e("==pass", "newPassword: " + newPassword);
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        String accessToken = prefs.getString("accessToken", null);
+        Log.e("==pass", "token : " + accessToken);
 
-        // Simulate network call
-        new Handler().postDelayed(() -> {
-            progressDialog.dismiss();
+        ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+        ChangePasswordRequest request = new ChangePasswordRequest(
+                currentPassword,   // ✅ old password from user input
+                newPassword,       // ✅ new password from user input
+                newPassword        // ✅ confirm same as new password
+        );
+        apiService.changePassword("Bearer " + accessToken, request)
+                .enqueue(new Callback<ChangePasswordResponse>() {
+                    @Override
+                    public void onResponse(Call<ChangePasswordResponse> call, Response<ChangePasswordResponse> response) {
+                        Utills.hideLoadingDialog();
+                        Log.e("==pass", " " + (response.isSuccessful() && response.body() != null));
+                        Log.e("==pass", "response: " + response.isSuccessful());
+                        Log.e("==pass", "body: " + response.body());
+                        if (response.isSuccessful()) {
+                            ChangePasswordResponse res = response.body();
+                            if (res.isSuccess()) {
+                                Toast.makeText(ResetPasswordScreenActivity.this, res.getMessage(), Toast.LENGTH_SHORT).show();
 
-            // In a real app, you would send the new password to your backend
-            Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show();
+                                // ✅ Update stored password to new one
+                                SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                                prefs.edit().putString("password", newPassword).apply();
 
-            // Navigate back to login
-            startActivity(new Intent(this, LoginScreenActivity.class));
-            finishAffinity();
-        }, 1500);
+                                startActivity(new Intent(ResetPasswordScreenActivity.this, LoginScreenActivity.class));
+                                finishAffinity();
+                            } else {
+                                Toast.makeText(ResetPasswordScreenActivity.this, res.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(ResetPasswordScreenActivity.this, "Error code: " + response.code(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ChangePasswordResponse> call, Throwable t) {
+                        Utills.hideLoadingDialog();
+                        Toast.makeText(ResetPasswordScreenActivity.this, "Failed: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

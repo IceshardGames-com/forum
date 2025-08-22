@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Toast;
 
@@ -13,19 +14,28 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
+import com.iceshardgames.gamercommunity.APIintegration.ApiService;
+import com.iceshardgames.gamercommunity.Activity.MainScreen.DashboardScreenActivity;
 import com.iceshardgames.gamercommunity.Activity.OtpScreen.ForgetScreenActivity;
-import com.iceshardgames.gamercommunity.Activity.ProfileScreen.ProfileScreenActivity;
 import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterScreenActivity;
+import com.iceshardgames.gamercommunity.DB.AppDatabase;
 import com.iceshardgames.gamercommunity.R;
+import com.iceshardgames.gamercommunity.Utills.SessionManager;
 import com.iceshardgames.gamercommunity.Utills.SharedPrefManager;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 import com.iceshardgames.gamercommunity.databinding.ActivityLoginScreenBinding;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class
 LoginScreenActivity extends AppCompatActivity {
 
     ActivityLoginScreenBinding binding;
-
+    ApiService apiService;
+    private AppDatabase db;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +50,12 @@ LoginScreenActivity extends AppCompatActivity {
             return insets;
         });
 
+        binding.circleGradientImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(LoginScreenActivity.this,DashboardScreenActivity.class));
+            }
+        });
         Utills.GradientText(binding.headerStart.screenTitleNav);
         Utills.GradientText(binding.tvVrNexus);
         Clicks();
@@ -51,31 +67,17 @@ LoginScreenActivity extends AppCompatActivity {
         binding.btnJackIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String email = binding.etEmail.getText().toString().trim();
-                String password = binding.etPassword.getText().toString().trim();
-
-                if (email.isEmpty() || password.isEmpty()) {
-                    Toast.makeText(LoginScreenActivity.this, "Please enter email and password", Toast.LENGTH_SHORT).show();
-                } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    Toast.makeText(LoginScreenActivity.this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
-                }  else {
-                    // Perform login logic here
-                    Log.d("==login", "Login attempt with Email: " + email + ", Password: " + password);
-                    SharedPrefManager.saveEmail(LoginScreenActivity.this, email);
-                    Toast.makeText(LoginScreenActivity.this, "Logging in...", Toast.LENGTH_SHORT).show();
-
-                    SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putBoolean("isLoggedIn", true);
-                    editor.apply();
-
-                    Intent intent = new Intent(LoginScreenActivity.this, ProfileScreenActivity.class);
-                    startActivity(intent);
-                    // finish();
-
+                if (validateInputs()) {
+                    Utills.showLoadingDialog(LoginScreenActivity.this); // Show loading before API call
+                    String email = binding.etEmail.getText().toString().trim();
+                    String password = binding.etPassword.getText().toString().trim();
+                    loginApi(email, password);
+                }else {
+                    Toast.makeText(LoginScreenActivity.this, "Invalid Inputs", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+
 
         // Set OnClickListener for "Create Account" text
         binding.tvCreateAccountlayout.setOnClickListener(new View.OnClickListener() {
@@ -138,5 +140,96 @@ LoginScreenActivity extends AppCompatActivity {
         });
     }
 
+    private boolean validateInputs() {
+        String email = binding.etEmail.getText().toString().trim();
+        String password = binding.etPassword.getText().toString().trim();
+
+        boolean isValid = true;
+
+        // Validate Email
+        if (email.isEmpty()) {
+            binding.etEmail.setError("Email is required");
+            binding.etEmail.requestFocus();
+            isValid = false;
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            binding.etEmail.setError("Enter a valid email");
+            binding.etEmail.requestFocus();
+            isValid = false;
+        }
+
+        // Validate Password
+        if (password.isEmpty()) {
+            binding.etPassword.setError("Password is required");
+            if (isValid) binding.etPassword.requestFocus(); // Focus only if email was valid
+            isValid = false;
+        } else if (password.length() < 6) { // You can increase to 8 if needed
+            binding.etPassword.setError("Password must be at least 6 characters");
+            if (isValid) binding.etPassword.requestFocus();
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    private void loginApi(String email, String password) {
+
+        LoginRequest request = new LoginRequest(email, password);
+        ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+        apiService.loginUser(request).enqueue(new Callback<LoginResponse>() {
+            @Override
+            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                Utills.hideLoadingDialog();
+                if (response.isSuccessful() && response.body() != null) {
+                    LoginResponse loginResponse = response.body();
+
+                    if (loginResponse.isSuccess()) {
+                        Toast.makeText(LoginScreenActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
+
+                        // Save tokens and user data
+                        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                        prefs.edit()
+                                .putBoolean("isLoggedIn", true)
+                                .putString("refreshToken", loginResponse.getData().getTokens().getRefreshToken())
+                                .putString("username", loginResponse.getData().getUser().getUsername())
+                                .putString("password", password) // ✅ Store old password here
+                                .apply();
+
+                        prefs.edit()
+                                .putString("accessToken", loginResponse.getData().getTokens().getAccessToken())
+                                .apply();
+
+                        prefs.edit()
+                                .putString("userID", loginResponse.getData().getUser().getId())
+                                .apply();
+
+                        // ✅ Save userId for DB session
+                        SessionManager.saveUserId(LoginScreenActivity.this, loginResponse.getData().getUser().getId());
+
+                        // ✅ Initialize per-user database
+                        String currentUserId = SessionManager.getUserId(LoginScreenActivity.this);
+                        db = AppDatabase.getInstance(LoginScreenActivity.this, currentUserId);
+
+                        SharedPrefManager preferenceManager = new SharedPrefManager(LoginScreenActivity.this);
+                        preferenceManager.saveUser(loginResponse.getData().getUser().getUsername());
+                        Log.e("==pass", "token: "+loginResponse.getData().getTokens().getAccessToken() );
+                        Log.e("==pass", "id: "+loginResponse.getData().getUser().getId() );
+                        startActivity(new Intent(LoginScreenActivity.this, DashboardScreenActivity.class));
+                        finish();
+                    } else {
+                        Toast.makeText(LoginScreenActivity.this, loginResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(LoginScreenActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+                Utills.hideLoadingDialog();
+                Toast.makeText(LoginScreenActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("LoginAPI", "Failure", t);
+            }
+        });
+    }
 
 }

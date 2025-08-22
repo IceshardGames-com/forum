@@ -1,11 +1,13 @@
 package com.iceshardgames.gamercommunity.Activity.OtpScreen;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -14,11 +16,14 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.iceshardgames.gamercommunity.APIintegration.ApiService;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 import com.iceshardgames.gamercommunity.databinding.ActivityOtpVerificationScreenBinding;
-
+import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
 import java.util.Locale;
+
+import retrofit2.Call;
 
 public class OtpVerificationScreenActivity extends AppCompatActivity {
 
@@ -39,7 +44,7 @@ public class OtpVerificationScreenActivity extends AppCompatActivity {
             return insets;
         });
         Utills.GradientText(binding.headerStart.screenTitleNav);
-        binding.headerStart.screenTitleNav.setText("OTP \nVerification");
+        binding.headerStart.screenTitleNav.setText("Confirm Your Account");
         Utills.GradientText(binding.tvVerify);
         Clicks();
     }
@@ -51,11 +56,13 @@ public class OtpVerificationScreenActivity extends AppCompatActivity {
 
         // Start OTP timer (2 minutes)
         startOtpTimer();
-
+        binding.pinView.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(binding.pinView, InputMethodManager.SHOW_IMPLICIT);
         // Set click listeners
         binding.btnVerifyOtp.setOnClickListener(v -> {
-//            String otp = binding.pinView.getText().toString();
-            String otp = "123456";
+            String otp = binding.pinView.getText().toString();
+//            String otp = "123456";
             if (otp.length() == 6) {
                 verifyOtp(otp);
             } else {
@@ -98,26 +105,45 @@ public class OtpVerificationScreenActivity extends AppCompatActivity {
     }
 
     private void verifyOtp(String otp) {
-        // Show loading
-        ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Verifying OTP...");
-        progressDialog.show();
+//        // Show loading
+//        ProgressDialog progressDialog = new ProgressDialog(this);
+//        progressDialog.setMessage("Verifying OTP...");
+//        progressDialog.show();
 
-        // Simulate network call
-        new Handler().postDelayed(() -> {
-            progressDialog.dismiss();
+        Utills.showLoadingDialog(OtpVerificationScreenActivity.this);
 
-            // In a real app, you would verify the OTP with your backend
-            // For demo, we'll assume it's correct
-            if (otp.equals("123456")) { // Replace with actual verification
-                // Navigate to password reset screen
-                Intent intent = new Intent(this, ResetPasswordScreenActivity.class);
-                intent.putExtra("email", email);
-                startActivity(intent);
-            } else {
-                Toast.makeText(this, "Invalid OTP. Please try again", Toast.LENGTH_SHORT).show();
+        ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+        VerifyOtpRequest request = new VerifyOtpRequest(email, otp);
+
+        apiService.verifyOtp(request).enqueue(new retrofit2.Callback<OtpVerifyResponse>() {
+            @Override
+            public void onResponse(Call<OtpVerifyResponse> call, retrofit2.Response<OtpVerifyResponse> response) {
+                Utills.hideLoadingDialog();
+
+                if (response.isSuccessful() && response.body() != null) {
+                    OtpVerifyResponse otpResponse = response.body();
+
+                    if (otpResponse.isSuccess()) {
+                        Toast.makeText(OtpVerificationScreenActivity.this, otpResponse.getMessage(), Toast.LENGTH_SHORT).show();
+
+                        Intent intent = new Intent(OtpVerificationScreenActivity.this, ResetPasswordScreenActivity.class);
+                        intent.putExtra("email", email);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(OtpVerificationScreenActivity.this, otpResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+
+                } else {
+                    Toast.makeText(OtpVerificationScreenActivity.this, "Verification failed", Toast.LENGTH_SHORT).show();
+                }
             }
-        }, 1500);
+
+            @Override
+            public void onFailure(Call<OtpVerifyResponse> call, Throwable t) {
+                Utills.hideLoadingDialog();
+                Toast.makeText(OtpVerificationScreenActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void resendOtp() {

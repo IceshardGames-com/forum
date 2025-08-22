@@ -43,7 +43,7 @@ public class IdentifyScreenActivity extends AppCompatActivity {
             return insets;
         });
         Utills.GradientText(binding.headerStart.screenTitleNav);
-        binding.headerStart.screenTitleNav.setText("Identify \nYourself");
+        binding.headerStart.screenTitleNav.setText("Verify Your Identity");
         Utills.GradientText(binding.tvIdentify);
         Clicks();
 
