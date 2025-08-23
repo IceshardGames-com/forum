@@ -46,7 +46,7 @@ export const createApp = (): Application => {
     crossOriginEmbedderPolicy: false,
   }));
 
-  // CORS configuration
+  // CORS configuration - Updated to match Socket.IO CORS
   app.use(cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, Postman, etc.)
@@ -57,10 +57,28 @@ export const createApp = (): Application => {
         return callback(null, true);
       }
       
-      // Production CORS configuration
-      const allowedOrigins = [envConfig.CORS_ORIGIN];
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
+      // Production CORS configuration - Updated to allow testing origins
+      if (envConfig.NODE_ENV === 'production') {
+        const allowedOrigins = [
+          "https://forum-sjpj.onrender.com",
+          "https://forum-sjpj.onrender.com/",
+          // Allow localhost for testing HTML pages with production server
+          "http://localhost:8080",
+          "http://127.0.0.1:8080",
+          "http://localhost:3000",
+          "http://127.0.0.1:3000",
+          envConfig.CORS_ORIGIN,
+          envConfig.CLIENT_URL
+        ].filter(Boolean); // Remove undefined values
+        
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        
+        // For production gaming platform, allow all HTTPS origins
+        if (origin && origin.startsWith('https://')) {
+          return callback(null, true);
+        }
       }
       
       return callback(new Error('Not allowed by CORS'), false);
@@ -178,4 +196,4 @@ export const createApp = (): Application => {
 // Create and export the app instance
 const app = createApp();
 
-export default app; 
+export default app;
