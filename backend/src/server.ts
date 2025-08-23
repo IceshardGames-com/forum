@@ -54,11 +54,16 @@ const startServer = async (): Promise<void> => {
             }
           }
           
-          // Production CORS - allow your production domain and common patterns
+          // Production CORS - allow your production domain and testing origins
           if (envConfig.NODE_ENV === 'production') {
             const allowedOrigins = [
               "https://forum-sjpj.onrender.com",
               "https://forum-sjpj.onrender.com/",
+              // Allow localhost for testing HTML pages with production server
+              "http://localhost:8080",
+              "http://127.0.0.1:8080",
+              "http://localhost:3000",
+              "http://127.0.0.1:3000",
               envConfig.CLIENT_URL
             ].filter(Boolean); // Remove undefined values
             
@@ -283,4 +288,4 @@ if (require.main === module) {
   startServer();
 }
 
-export default startServer; 
+export default startServer;
