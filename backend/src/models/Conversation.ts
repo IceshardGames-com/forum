@@ -10,6 +10,11 @@ export interface IConversation extends Document {
   deletedBy?: Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
+  
+  // Instance methods
+  isParticipant(userId: string): boolean;
+  getOtherParticipant(userId: string): Types.ObjectId | null;
+  isDeletedFor(userId: string): boolean;
 }
 
 const ConversationSchema = new Schema<IConversation>(

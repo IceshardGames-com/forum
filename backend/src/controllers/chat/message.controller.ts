@@ -99,7 +99,7 @@ export const markMessageDelivered = asyncErrorHandler(async (req: Request, res: 
   const userId = req.user!._id;
   const { messageId } = req.params as { messageId: string };
 
-  await messageService.markMessageDelivered(messageId, userId, req.id);
+  await messageService.markAsDelivered(messageId, userId, req.id);
 
   const response: ApiResponse = {
     success: true,
@@ -115,7 +115,7 @@ export const markMessageRead = asyncErrorHandler(async (req: Request, res: Respo
   const userId = req.user!._id;
   const { messageId } = req.params as { messageId: string };
 
-  await messageService.markMessageRead(messageId, userId, req.id);
+  await messageService.markAsRead(messageId, userId, req.id);
 
   const response: ApiResponse = {
     success: true,

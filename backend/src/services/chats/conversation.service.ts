@@ -202,6 +202,34 @@ export class ConversationService {
     const loggerWithId = createLogger(requestId);
 
     try {
+      // First check access without population
+      const conversationForAccess = await Conversation.findById(conversationId);
+      
+      if (!conversationForAccess) {
+        throw new AppError('Conversation not found', 404, 'CONVERSATION_NOT_FOUND');
+      }
+      
+      // Check access with non-populated participants (ObjectIds)
+      const participantIds = conversationForAccess.participants.map(p => p.toString());
+      
+      // Convert userId to string for comparison (it might be an ObjectId object)
+      const userIdString = userId.toString();
+      
+      // Now check if user is a participant using string comparison
+      const isParticipant = participantIds.includes(userIdString);
+      
+      if (!isParticipant) {
+        loggerWithId.error('Access denied - user not participant', {
+          conversationId,
+          userId: userIdString,
+          participantIds,
+          userIdType: typeof userId,
+          userIdOriginal: userId
+        });
+        throw new AppError('Access denied', 403, 'ACCESS_DENIED');
+      }
+      
+      // Now get the populated version for return
       const conversation = await Conversation.findById(conversationId)
         .populate('participants', 'username email avatar');
 
@@ -209,10 +237,7 @@ export class ConversationService {
         throw new AppError('Conversation not found', 404, 'CONVERSATION_NOT_FOUND');
       }
 
-      const isParticipant = conversation.participants.some((p: any) => p.toString() === userId);
-      if (!isParticipant) {
-        throw new AppError('Access denied', 403, 'ACCESS_DENIED');
-      }
+
 
       const isDeletedForUser = conversation.deletedBy?.some(id => id.toString() === userId) || false;
       if (!conversation.isActive || isDeletedForUser) {

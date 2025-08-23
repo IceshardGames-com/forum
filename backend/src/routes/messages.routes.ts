@@ -9,11 +9,21 @@ import {
   getMessageForDevice,
 } from '../controllers/chat/message.controller';
 import Joi from 'joi';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
 // All message routes require authentication
 router.use(authenticate);
+
+// Apply general rate limiting to all message endpoints
+const messagesLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+router.use(messagesLimiter);
 
 const messagePayloadSchema = Joi.object({
   deviceId: Joi.string().required().min(1).max(255),
@@ -47,9 +57,18 @@ const messagesPaginationSchema = Joi.object({
   limit: Joi.number().integer().min(1).max(100).default(50),
 }).options({ stripUnknown: true, abortEarly: false });
 
+// Stricter limiter for sending messages
+const sendMessageLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Send encrypted message to conversation
 router.post(
   '/conversations/:conversationId',
+  sendMessageLimiter,
   validateParams(conversationIdParamSchema),
   validateBody(sendMessageSchema),
   sendMessage

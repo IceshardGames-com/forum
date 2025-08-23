@@ -23,7 +23,6 @@ const DeviceSchema = new Schema<IDevice>(
     deviceId: {
       type: String,
       required: true,
-      unique: true,
       index: true,
     },
     publicKey: {
