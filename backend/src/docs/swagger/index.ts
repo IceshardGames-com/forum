@@ -12,6 +12,9 @@ import './interests.swagger';
 import './notifications.swagger';
 import './notificationPreferences.swagger';
 import './userSearch.swagger';
+import './messages.swagger';
+import './conversations.swagger';
+import './devices.swagger';
 
 /**
  * Future documentation files can be imported here:

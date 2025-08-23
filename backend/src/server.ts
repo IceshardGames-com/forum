@@ -35,7 +35,51 @@ const startServer = async (): Promise<void> => {
     // Setup Socket.IO with CORS
     const io = new Server(httpServer, {
       cors: {
-        origin: envConfig.CLIENT_URL || "http://localhost:3000",
+        origin: (origin, callback) => {
+          // Allow requests with no origin (mobile apps, etc.)
+          if (!origin) return callback(null, true);
+          
+          // In development, allow common localhost ports
+          if (envConfig.NODE_ENV === 'development') {
+            const allowedOrigins = [
+              "http://localhost:3000",
+              "http://localhost:8080",
+              "http://localhost:3001",
+              "http://127.0.0.1:3000",
+              "http://127.0.0.1:8080",
+              "http://127.0.0.1:3001"
+            ];
+            if (allowedOrigins.includes(origin)) {
+              return callback(null, true);
+            }
+          }
+          
+          // Production CORS - allow your production domain and common patterns
+          if (envConfig.NODE_ENV === 'production') {
+            const allowedOrigins = [
+              "https://forum-sjpj.onrender.com",
+              "https://forum-sjpj.onrender.com/",
+              envConfig.CLIENT_URL
+            ].filter(Boolean); // Remove undefined values
+            
+            if (allowedOrigins.includes(origin)) {
+              return callback(null, true);
+            }
+            
+            // For production gaming platform, allow all HTTPS origins for Socket.IO
+            // This is common for gaming platforms with multiple client types
+            if (origin && origin.startsWith('https://')) {
+              return callback(null, true);
+            }
+          }
+          
+          // Fallback: use configured CLIENT_URL for other environments
+          if (envConfig.CLIENT_URL && origin === envConfig.CLIENT_URL) {
+            return callback(null, true);
+          }
+          
+          return callback(new Error('Not allowed by CORS'), false);
+        },
         methods: ["GET", "POST"],
         credentials: true
       }

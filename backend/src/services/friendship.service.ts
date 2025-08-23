@@ -10,7 +10,24 @@ export interface PaginationOptions {
   limit?: number;
 }
 
-const toObjectId = (id: string): Types.ObjectId => new Types.ObjectId(id);
+export function toObjectId(id: string | Types.ObjectId): Types.ObjectId {
+  if (!id) throw new Error("Invalid ObjectId: value is null/undefined");
+
+  // If it's already an ObjectId, return as-is
+  if (id instanceof Types.ObjectId) {
+    return id;
+  }
+
+  // If it's a string, validate & convert
+  if (typeof id === "string") {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new Error(`Invalid ObjectId string: ${id}`);
+    }
+    return new Types.ObjectId(id);
+  }
+
+  throw new Error(`Unsupported ObjectId type: ${typeof id}`);
+}
 
 export class FriendshipService {
   private static instance: FriendshipService;
@@ -310,7 +327,7 @@ export class FriendshipService {
     }
   }
 
-  public async areFriends(userId: string, otherUserId: string): Promise<boolean> {
+  public async areFriends(userId: string | Types.ObjectId, otherUserId: string | Types.ObjectId): Promise<boolean> {
     const U = toObjectId(userId);
     const O = toObjectId(otherUserId);
     

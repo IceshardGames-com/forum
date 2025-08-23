@@ -32,7 +32,7 @@ export class MessageService {
   }
 
   /**
-   * Send encrypted message with friend validation and one-initiation rule
+   * Send an encrypted message in a conversation
    */
   public async sendMessage(
     senderId: string,
@@ -56,19 +56,26 @@ export class MessageService {
         requestId
       );
 
-      const otherParticipantId = conversation.participants.find((p: any) => p.toString() !== senderId);
-      if (!otherParticipantId) {
+      // Extract the other participant ID (handle both ObjectId and populated user object)
+      const otherParticipant = conversation.participants.find((p: any) => {
+        const pId = p._id ? p._id.toString() : p.toString();
+        return pId !== senderId.toString();
+      });
+      
+      if (!otherParticipant) {
         throw new AppError('Invalid conversation participants', 400, 'INVALID_CONVERSATION');
       }
+      
+      // Get the actual ID string from the participant (could be ObjectId or populated user object)
+      const otherParticipantId = otherParticipant._id ? otherParticipant._id.toString() : otherParticipant.toString();
 
-      // Check friendship status and apply one-initiation rule
+      // Check friendship status
       const areFriends = await friendshipService.areFriends(
-        senderId,
-        otherParticipantId.toString()
+        senderId.toString(),
+        otherParticipantId
       );
 
       if (!areFriends) {
-        // Apply one-initiation rule for non-friends
         if (conversation.initiatedBy && conversation.initiatedBy.toString() !== senderId) {
           throw new AppError(
             'You cannot send messages to this user',
@@ -77,10 +84,9 @@ export class MessageService {
           );
         }
 
-        // Check if sender already sent a message (initiation limit)
         const sentMessagesCount = await Message.countDocuments({
-          conversationId: new Types.ObjectId(conversationId),
-          sender: new Types.ObjectId(senderId),
+          conversationId: new Types.ObjectId(conversationId.toString()),
+          sender: new Types.ObjectId(senderId.toString()),
         });
 
         if (sentMessagesCount >= 1) {
@@ -91,26 +97,24 @@ export class MessageService {
           );
         }
 
-        // Update conversation to mark initiator
         if (!conversation.initiatedBy) {
-          conversation.initiatedBy = new Types.ObjectId(senderId);
+          conversation.initiatedBy = new Types.ObjectId(senderId.toString());
           await conversation.save();
         }
       } else {
-        // If users are friends but conversation isn't marked as such, update it
         if (!conversation.isFriendBased) {
           await conversationService.markAsFriendBased(conversationId, requestId);
         }
       }
 
-      // Validate that all device IDs in payloads exist and belong to the recipient
+      // Validate device IDs
       const recipientDevices = await deviceService.getUserDevices(
-        otherParticipantId.toString(),
+        otherParticipantId,
         requestId
       );
-      
+
       const recipientDeviceIds = new Set(recipientDevices.map(d => d.deviceId));
-      
+
       for (const payload of payloads) {
         if (!recipientDeviceIds.has(payload.deviceId)) {
           throw new AppError(
@@ -122,22 +126,28 @@ export class MessageService {
       }
 
       // Create message
+      const conversationIdString = conversationId.toString();
+      const senderIdString = senderId.toString();
+      const conversationObjectId = new Types.ObjectId(conversationIdString);
+      const senderObjectId = new Types.ObjectId(senderIdString);
+      let replyToObjectId = replyTo ? new Types.ObjectId(replyTo.toString()) : undefined;
+
       const message = await Message.create({
-        conversationId: new Types.ObjectId(conversationId),
-        sender: new Types.ObjectId(senderId),
+        conversationId: conversationObjectId,
+        sender: senderObjectId,
         payloads,
         messageType,
-        replyTo: replyTo ? new Types.ObjectId(replyTo) : undefined,
+        replyTo: replyToObjectId,
       });
 
-      // Update conversation last message
+      // Update last message
       await conversationService.updateLastMessage(
         conversationId,
         (message._id as Types.ObjectId).toString(),
         requestId
       );
 
-      // Send real-time notifications to recipient devices
+      // Notify recipient
       try {
         for (const payload of payloads) {
           SocketManager.emitChatMessage(payload.deviceId, {
@@ -160,7 +170,7 @@ export class MessageService {
         messageId: message._id,
         conversationId,
         senderId,
-        recipientId: otherParticipantId.toString(),
+        recipientId: otherParticipantId,
         messageType,
         payloadCount: payloads.length,
         areFriends,
@@ -180,9 +190,10 @@ export class MessageService {
       throw new AppError('Failed to send message', 500, 'MESSAGE_SEND_ERROR');
     }
   }
+  
 
   /**
-   * Get messages in a conversation with pagination
+   * Get messages for a conversation with pagination
    */
   public async getConversationMessages(
     conversationId: string,
@@ -193,15 +204,14 @@ export class MessageService {
     const loggerWithId = createLogger(requestId);
 
     try {
-      // Validate conversation access
+      // Verify user has access to this conversation
       await conversationService.getConversationById(conversationId, userId, requestId);
 
       const skip = (page - 1) * limit;
 
       const [messages, total] = await Promise.all([
         Message.find({ conversationId: new Types.ObjectId(conversationId) })
-          .populate('sender', 'username avatar')
-          .populate('replyTo', 'sender createdAt')
+          .populate('sender', 'username email avatar')
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
@@ -209,16 +219,16 @@ export class MessageService {
         Message.countDocuments({ conversationId: new Types.ObjectId(conversationId) }),
       ]);
 
-      loggerWithId.info('Conversation messages retrieved', {
+      loggerWithId.info('Messages retrieved successfully', {
         conversationId,
         userId,
+        count: messages.length,
+        total,
         page,
         limit,
-        total,
-        retrieved: messages.length,
       });
 
-      return { messages: messages.reverse() as IMessage[], total }; // Reverse to get chronological order
+      return { messages: messages.reverse(), total };
     } catch (error) {
       loggerWithId.error('Failed to get conversation messages', {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -229,14 +239,14 @@ export class MessageService {
       if (error instanceof AppError) {
         throw error;
       }
-      throw new AppError('Failed to get messages', 500, 'MESSAGE_FETCH_ERROR');
+      throw new AppError('Failed to retrieve messages', 500, 'MESSAGE_FETCH_ERROR');
     }
   }
 
   /**
-   * Mark message as delivered
+   * Mark message as delivered for a user
    */
-  public async markMessageDelivered(
+  public async markAsDelivered(
     messageId: string,
     userId: string,
     requestId?: string
@@ -245,47 +255,40 @@ export class MessageService {
 
     try {
       const message = await Message.findById(messageId);
+
       if (!message) {
         throw new AppError('Message not found', 404, 'MESSAGE_NOT_FOUND');
       }
 
-      // Check if user is a participant in the conversation
-      const conversation = await conversationService.getConversationById(
+      // Verify user is a participant in the conversation
+      await conversationService.getConversationById(
         message.conversationId.toString(),
         userId,
         requestId
       );
 
-      const isParticipant = conversation.participants.some((p: any) => p.toString() === userId);
-      if (!isParticipant) {
-        throw new AppError('Access denied', 403, 'ACCESS_DENIED');
-      }
+      const userObjectId = new Types.ObjectId(userId);
 
-      // Mark as delivered
-      if (!message.deliveredTo.some((id: any) => id.toString() === userId)) {
-        message.deliveredTo.push(new Types.ObjectId(userId));
-      }
-      await message.save();
+      if (!message.deliveredTo.some(id => id.equals(userObjectId))) {
+        message.deliveredTo.push(userObjectId);
+        await message.save();
 
-      // Emit delivery confirmation to sender
-      const senderId = message.sender.toString();
-      if (senderId !== userId) {
+        // Emit delivery confirmation
         try {
-          SocketManager.emitMessageDelivery(senderId, {
+          SocketManager.emitMessageDelivery(message.sender.toString(), {
             messageId: (message._id as Types.ObjectId).toString(),
-            conversationId: message.conversationId.toString(),
             deliveredBy: userId,
             deliveredAt: new Date(),
           });
         } catch (socketError) {
-          loggerWithId.warn('Failed to send delivery confirmation', {
+          loggerWithId.warn('Failed to emit delivery confirmation', {
             error: socketError instanceof Error ? socketError.message : 'Unknown error',
             messageId,
           });
         }
       }
 
-      loggerWithId.debug('Message marked as delivered', {
+      loggerWithId.info('Message marked as delivered', {
         messageId,
         userId,
       });
@@ -299,14 +302,14 @@ export class MessageService {
       if (error instanceof AppError) {
         throw error;
       }
-      throw new AppError('Failed to mark message as delivered', 500, 'MESSAGE_DELIVERY_ERROR');
+      throw new AppError('Failed to mark as delivered', 500, 'DELIVERY_UPDATE_ERROR');
     }
   }
 
   /**
-   * Mark message as read
+   * Mark message as read for a user
    */
-  public async markMessageRead(
+  public async markAsRead(
     messageId: string,
     userId: string,
     requestId?: string
@@ -315,50 +318,46 @@ export class MessageService {
 
     try {
       const message = await Message.findById(messageId);
+
       if (!message) {
         throw new AppError('Message not found', 404, 'MESSAGE_NOT_FOUND');
       }
 
-      // Check if user is a participant in the conversation
-      const conversation = await conversationService.getConversationById(
+      // Verify user is a participant in the conversation
+      await conversationService.getConversationById(
         message.conversationId.toString(),
         userId,
         requestId
       );
 
-      const isParticipant = conversation.participants.some((p: any) => p.toString() === userId);
-      if (!isParticipant) {
-        throw new AppError('Access denied', 403, 'ACCESS_DENIED');
+      const userObjectId = new Types.ObjectId(userId);
+
+      // Mark as delivered first if not already
+      if (!message.deliveredTo.some(id => id.equals(userObjectId))) {
+        message.deliveredTo.push(userObjectId);
       }
 
-      // Mark as read (also marks as delivered)
-      if (!message.readBy.some((id: any) => id.toString() === userId)) {
-        message.readBy.push(new Types.ObjectId(userId));
-      }
-      if (!message.deliveredTo.some((id: any) => id.toString() === userId)) {
-        message.deliveredTo.push(new Types.ObjectId(userId));
-      }
-      await message.save();
+      // Mark as read
+      if (!message.readBy.some(id => id.equals(userObjectId))) {
+        message.readBy.push(userObjectId);
+        await message.save();
 
-      // Emit read confirmation to sender
-      const senderId = message.sender.toString();
-      if (senderId !== userId) {
+        // Emit read confirmation
         try {
-          SocketManager.emitMessageRead(senderId, {
+          SocketManager.emitMessageRead(message.sender.toString(), {
             messageId: (message._id as Types.ObjectId).toString(),
-            conversationId: message.conversationId.toString(),
             readBy: userId,
             readAt: new Date(),
           });
         } catch (socketError) {
-          loggerWithId.warn('Failed to send read confirmation', {
+          loggerWithId.warn('Failed to emit read confirmation', {
             error: socketError instanceof Error ? socketError.message : 'Unknown error',
             messageId,
           });
         }
       }
 
-      loggerWithId.debug('Message marked as read', {
+      loggerWithId.info('Message marked as read', {
         messageId,
         userId,
       });
@@ -372,41 +371,49 @@ export class MessageService {
       if (error instanceof AppError) {
         throw error;
       }
-      throw new AppError('Failed to mark message as read', 500, 'MESSAGE_READ_ERROR');
+      throw new AppError('Failed to mark as read', 500, 'READ_UPDATE_ERROR');
     }
   }
 
   /**
-   * Get message payload for specific device
+   * Get message payload for a specific device
    */
   public async getMessageForDevice(
     messageId: string,
     deviceId: string,
     userId: string,
     requestId?: string
-  ): Promise<IMessagePayload | null> {
+  ): Promise<IMessagePayload> {
     const loggerWithId = createLogger(requestId);
 
     try {
       const message = await Message.findById(messageId);
+
       if (!message) {
         throw new AppError('Message not found', 404, 'MESSAGE_NOT_FOUND');
       }
 
-      // Verify device belongs to user
-      const device = await deviceService.getDeviceById(deviceId, requestId);
-      if (!device || device.user.toString() !== userId) {
-        throw new AppError('Invalid device', 403, 'INVALID_DEVICE');
-      }
-
-      // Check conversation access
+      // Verify user is a participant in the conversation
       await conversationService.getConversationById(
         message.conversationId.toString(),
         userId,
         requestId
       );
 
-      return message.payloads.find((p: IMessagePayload) => p.deviceId === deviceId) || null;
+      // Find payload for this device
+      const payload = message.payloads.find(p => p.deviceId === deviceId);
+
+      if (!payload) {
+        throw new AppError('Payload not found for device', 404, 'PAYLOAD_NOT_FOUND');
+      }
+
+      loggerWithId.info('Message payload retrieved', {
+        messageId,
+        deviceId,
+        userId,
+      });
+
+      return payload;
     } catch (error) {
       loggerWithId.error('Failed to get message for device', {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -418,7 +425,7 @@ export class MessageService {
       if (error instanceof AppError) {
         throw error;
       }
-      throw new AppError('Failed to get message for device', 500, 'MESSAGE_DEVICE_ERROR');
+      throw new AppError('Failed to retrieve message payload', 500, 'PAYLOAD_FETCH_ERROR');
     }
   }
 }

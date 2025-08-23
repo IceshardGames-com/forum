@@ -1,6 +1,6 @@
 # Node modules
 node_modules/
-
+../chat-test/
 # Logs
 logs/
 *.log
