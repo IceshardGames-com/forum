@@ -14,7 +14,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity;
+import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity1;
 import com.iceshardgames.gamercommunity.DB.AppDatabase;
 import com.iceshardgames.gamercommunity.Model.ChatItem;
 import com.iceshardgames.gamercommunity.R;
@@ -69,7 +69,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
         // 👇 Add this for chat click
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, ChatDetailActivity.class);
+            Intent intent = new Intent(context, ChatDetailActivity1.class);
             intent.putExtra("chat_id", chat.getChatId());
             intent.putExtra("chat_partner_name", chat.getName());
             Log.e("ChatClick", "Opening chat with: " + chat.getName());

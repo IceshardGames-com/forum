@@ -12,7 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity;
+import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity1;
 import com.iceshardgames.gamercommunity.Model.UserItem;
 import com.iceshardgames.gamercommunity.R;
 
@@ -42,7 +42,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         holder.avatar.setImageResource(user.getAvatarResId());
 
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, ChatDetailActivity.class);
+            Intent intent = new Intent(context, ChatDetailActivity1.class);
             intent.putExtra("chat_partner_name", user.getName());
             Log.e("==sana", "useradapter: "+user.getName() );
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

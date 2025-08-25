@@ -12,10 +12,16 @@ import com.iceshardgames.gamercommunity.Activity.ProfileScreen.InterestsResponse
 import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterRequest;
 import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterResponse;
 import com.iceshardgames.gamercommunity.Model.BlockUserRequest;
+import com.iceshardgames.gamercommunity.Model.ConversationCreateRequest;
+import com.iceshardgames.gamercommunity.Model.ConversationResponse;
+import com.iceshardgames.gamercommunity.Model.DeviceRegistrationRequest;
+import com.iceshardgames.gamercommunity.Model.DevicesResponse;
 import com.iceshardgames.gamercommunity.Model.FriendListResponse;
 import com.iceshardgames.gamercommunity.Model.FriendRequestResponse;
+import com.iceshardgames.gamercommunity.Model.MessagesResponse;
 import com.iceshardgames.gamercommunity.Model.SendFriendRequest;
 import com.iceshardgames.gamercommunity.Model.SendFriendRequestResponse;
+import com.iceshardgames.gamercommunity.Model.SendMessageRequest;
 import com.iceshardgames.gamercommunity.Model.UserSearchResponse;
 
 import java.util.Map;
@@ -108,5 +114,61 @@ public interface ApiService {
             @Query("page") int page,
             @Query("limit") int limit
     );
+
+    // ApiService.java  (append to your existing interface)
+    @POST("/api/devices/register")
+    Call<DevicesResponse> registerDevice(
+            @Header("Authorization") String token,
+            @Body DeviceRegistrationRequest body
+    );
+
+    @GET("/api/devices/user/{userId}")
+    Call<DevicesResponse> getDevicesForUser(
+            @Header("Authorization") String token,
+            @Path("userId") String userId
+    );
+
+    // Conversations
+    @POST("/api/conversations")
+    Call<ConversationResponse> createOrGetConversation(
+            @Header("Authorization") String token,
+            @Body ConversationCreateRequest body
+    );
+
+    @GET("/api/conversations/{conversationId}")
+    Call<ConversationResponse> getConversation(
+            @Header("Authorization") String token,
+            @Path("conversationId") String conversationId
+    );
+
+    // Messages
+    @POST("/api/messages/conversations/{conversationId}")
+    Call<MessagesResponse> sendMessage(
+            @Header("Authorization") String token,
+            @Path("conversationId") String conversationId,
+            @Body SendMessageRequest body
+    );
+
+    @GET("/api/messages/conversations/{conversationId}")
+    Call<MessagesResponse> getMessages(
+            @Header("Authorization") String token,
+            @Path("conversationId") String conversationId,
+            @Query("page") int page,
+            @Query("limit") int limit
+    );
+
+    // Delivery / Read
+    @PATCH("/api/messages/{messageId}/delivered")
+    Call<Void> markDelivered(
+            @Header("Authorization") String token,
+            @Path("messageId") String messageId
+    );
+
+    @PATCH("/api/messages/{messageId}/read")
+    Call<Void> markRead(
+            @Header("Authorization") String token,
+            @Path("messageId") String messageId
+    );
+
 
 }

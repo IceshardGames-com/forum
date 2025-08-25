@@ -1,5 +1,6 @@
 package com.iceshardgames.gamercommunity.Adapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -12,9 +13,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity;
+import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity1;
+import com.iceshardgames.gamercommunity.Chat.ChatDetailActivity;
 import com.iceshardgames.gamercommunity.Model.FriendListResponse;
 import com.iceshardgames.gamercommunity.R;
+import com.iceshardgames.gamercommunity.Utills.Utills;
 
 import java.util.List;
 public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.FriendViewHolder> {

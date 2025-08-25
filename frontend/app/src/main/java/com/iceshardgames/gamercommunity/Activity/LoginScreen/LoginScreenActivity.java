@@ -19,7 +19,9 @@ import com.iceshardgames.gamercommunity.APIintegration.ApiService;
 import com.iceshardgames.gamercommunity.Activity.MainScreen.DashboardScreenActivity;
 import com.iceshardgames.gamercommunity.Activity.OtpScreen.ForgetScreenActivity;
 import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterScreenActivity;
+import com.iceshardgames.gamercommunity.Chat.DeviceManager;
 import com.iceshardgames.gamercommunity.DB.AppDatabase;
+import com.iceshardgames.gamercommunity.Model.DeviceRegistrationRequest;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.SessionManager;
 import com.iceshardgames.gamercommunity.Utills.SharedPrefManager;
@@ -213,6 +215,16 @@ LoginScreenActivity extends AppCompatActivity {
                         preferenceManager.saveUser(loginResponse.getData().getUser().getUsername());
                         Log.e("==pass", "token: "+loginResponse.getData().getTokens().getAccessToken() );
                         Log.e("==pass", "id: "+loginResponse.getData().getUser().getId() );
+
+                        // after login success
+                        SharedPreferences sp = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                        sp.edit()
+                                .putString("accessToken",  loginResponse.getData().getTokens().getAccessToken())
+                                .putString("userId",      loginResponse.getData().getUser().getId())
+                                .apply();
+
+                        Utills.registerDeviceAtLogin(LoginScreenActivity.this); // use the current activity or getApplicationContext()
+
                         startActivity(new Intent(LoginScreenActivity.this, DashboardScreenActivity.class));
                         finish();
                     } else {

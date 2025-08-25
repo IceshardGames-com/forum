@@ -25,7 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
 import com.iceshardgames.gamercommunity.APIintegration.ApiService;
-import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity;
+import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity1;
 import com.iceshardgames.gamercommunity.Adapter.ChannelAdapter;
 import com.iceshardgames.gamercommunity.Adapter.ChatAdapter;
 import com.iceshardgames.gamercommunity.Adapter.FriendAdapter;
@@ -760,7 +760,7 @@ public class ChatListFragment extends Fragment {
 
                     requireActivity().runOnUiThread(() -> {
                         dialog.dismiss();
-                        Intent intent = new Intent(getContext(), ChatDetailActivity.class);
+                        Intent intent = new Intent(getContext(), ChatDetailActivity1.class);
                         intent.putExtra("chat_id", chatId);
                         intent.putExtra("chat_partner_name", name);
                         startActivity(intent);

@@ -6,7 +6,6 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
-
     <uses-permission android:name="android.permission.CAMERA" /> <!-- Optional for camera -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
@@ -33,13 +32,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GamerCommunity">
         <activity
+            android:name=".Chat.ChatDetailActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false" />
+        <activity
             android:name=".Activity.MainScreen.GameDetailActivity"
             android:exported="false" />
         <activity
             android:name=".Activity.ChatScreen.MediaViewerActivity"
             android:exported="false" />
         <activity
-            android:name=".Activity.ChatScreen.ChatDetailActivity"
+            android:name=".Activity.ChatScreen.ChatDetailActivity1"
             android:exported="false"
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />

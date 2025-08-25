@@ -1,0 +1,6 @@
+<!-- res/drawable/bubble_out.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/gradient_end" />
+    <corners android:radius="16dp" />
+</shape>

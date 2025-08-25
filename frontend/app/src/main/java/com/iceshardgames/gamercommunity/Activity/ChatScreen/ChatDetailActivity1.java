@@ -15,11 +15,9 @@ import android.util.Log;
 import android.view.DragEvent;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -39,7 +37,6 @@ import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.SessionManager;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 import com.iceshardgames.gamercommunity.databinding.ActivityChatDetailBinding;
-import com.iceshardgames.gamercommunity.databinding.ActivityChatListBinding;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -50,7 +47,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ChatDetailActivity extends AppCompatActivity {
+public class ChatDetailActivity1 extends AppCompatActivity {
 
     ActivityChatDetailBinding binding;
     private MessageAdapter messageAdapter;
@@ -233,7 +230,7 @@ public class ChatDetailActivity extends AppCompatActivity {
         String formattedTime = getFormattedTime(time);
 
         ChatMessage msg = new ChatMessage(chatId, text, true, time);
-        String currentUser = Utills.getUsername(ChatDetailActivity.this);
+        String currentUser = Utills.getUsername(ChatDetailActivity1.this);
         String chatPartner = chatPartnerName; // Person you're chatting with
 
         executor.execute(() -> {
