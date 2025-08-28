@@ -32,25 +32,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GamerCommunity">
         <activity
-            android:name=".Chat.ChatDetailActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-        <activity
-            android:name=".Activity.MainScreen.GameDetailActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Activity.ChatScreen.MediaViewerActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Activity.ChatScreen.ChatDetailActivity1"
+            android:name=".Activity.ChatScreen.ChatDetailActivity"
             android:exported="false"
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".Activity.ChatScreen.NewChatActivity"
+            android:name=".Activity.MainScreen.GameDetailActivity"
             android:exported="false"
             android:resizeableActivity="true"
-            android:windowSoftInputMode="adjustResize|stateHidden" />
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".Activity.ChatScreen.MediaViewerActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".Activity.ProfileScreen.SettingScreenActivity"
             android:exported="false"
@@ -62,7 +57,7 @@
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".Activity.ProfileScreen.IntrestScreenActivity"
+            android:name=".Activity.MainScreen.DashboardScreenActivity"
             android:exported="false"
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
@@ -112,12 +107,12 @@
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".Activity.MainScreen.DashboardScreenActivity"
+            android:name=".Activity.LoginScreen.LoginScreenActivity"
             android:exported="false"
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".Activity.LoginScreen.LoginScreenActivity"
+            android:name=".Activity.ProfileScreen.IntrestScreenActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:exported="true"
             android:resizeableActivity="true"

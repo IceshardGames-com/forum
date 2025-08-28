@@ -25,9 +25,13 @@ public class InterestsResponse {
         private String _id;
         private String label;
         private String value;
-
+        // New fields from API
+        private String category;   // e.g. "action rpg", "battle royale"
+        private String franchise;  // optional, may be null/absent
         public String getId() { return _id; }
         public String getLabel() { return label; }
         public String getValue() { return value; }
+        public String getCategory() { return category; }
+        public String getFranchise() { return franchise; }
     }
 }

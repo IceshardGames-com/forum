@@ -13,6 +13,8 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -27,7 +29,11 @@ import com.iceshardgames.gamercommunity.Utills.Utills;
 import com.iceshardgames.gamercommunity.databinding.ActivityIntrestScreenBinding;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -66,8 +72,16 @@ public class IntrestScreenActivity extends AppCompatActivity {
                     List<InterestsResponse.Item> items = response.body().getData().getItems();
                     binding.interestContainer.removeAllViews();
 
-                    // Create category from API list (flat category for now)
-                    addCategory("🎮 Gaming Interests", items);
+                    /*// Create category from API list (flat category for now)
+                    addCategory("🎮 Gaming Interests", items);*/
+                    // Group by API category (dynamic)
+                    Map<String, List<InterestsResponse.Item>> grouped = groupByCategoryDynamic(items);
+
+                    // Render each category section (alphabetical)
+                    for (String cat : grouped.keySet()) {
+                        String title = toTitleCase(cat);
+                        addCategory(title, grouped.get(cat));
+                    }
 
                     // Add Continue button
                     addContinueButton();
@@ -197,7 +211,10 @@ public class IntrestScreenActivity extends AppCompatActivity {
         ChipGroup chipGroup = categoryView.findViewById(R.id.chip_group);
 
         titleText.setText(title);
-
+// Apply custom styles programmatically
+        titleText.setTextSize(20); // in sp
+        titleText.setTypeface(ResourcesCompat.getFont(this, R.font.titilliumweb_bold));
+        titleText.setTextColor(ContextCompat.getColor(this, R.color.darkgpink));
         for (InterestsResponse.Item item : chips) {
             Chip chip = new Chip(this);
             chip.setText(item.getLabel());
@@ -213,4 +230,48 @@ public class IntrestScreenActivity extends AppCompatActivity {
 
         binding.interestContainer.addView(categoryView);
     }
+
+    // import java.util.*;  // ensure Map, List, ArrayList, Collections, TreeMap, Locale
+
+    private Map<String, List<InterestsResponse.Item>> groupByCategoryDynamic(List<InterestsResponse.Item> items) {
+        // TreeMap => categories sorted alphabetically (case-insensitive)
+        Map<String, List<InterestsResponse.Item>> map =
+                new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+        for (InterestsResponse.Item it : items) {
+            String raw = it.getCategory();
+            String key = (raw == null || raw.trim().isEmpty()) ? "Other" : raw.trim();
+
+            List<InterestsResponse.Item> bucket = map.get(key);
+            if (bucket == null) {
+                bucket = new ArrayList<>();
+                map.put(key, bucket);
+            }
+            bucket.add(it);
+        }
+
+        // Sort chips inside each category by label
+        for (List<InterestsResponse.Item> list : map.values()) {
+            Collections.sort(list, (a, b) -> a.getLabel().compareToIgnoreCase(b.getLabel()));
+        }
+
+        return map;
+    }
+
+    private String toTitleCase(String s) {
+        if (s == null) return "Other";
+        s = s.trim();
+        if (s.isEmpty()) return "Other";
+        String[] parts = s.split("\\s+|-");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            String w = parts[i];
+            if (w.isEmpty()) continue;
+            String lower = w.toLowerCase(Locale.US);
+            sb.append(Character.toUpperCase(lower.charAt(0))).append(lower.substring(1));
+            if (i < parts.length - 1) sb.append(" ");
+        }
+        return sb.toString();
+    }
+
 }

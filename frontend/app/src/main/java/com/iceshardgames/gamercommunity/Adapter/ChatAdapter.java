@@ -3,7 +3,6 @@ package com.iceshardgames.gamercommunity.Adapter;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +13,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity1;
+import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity;
 import com.iceshardgames.gamercommunity.DB.AppDatabase;
 import com.iceshardgames.gamercommunity.Model.ChatItem;
 import com.iceshardgames.gamercommunity.R;
@@ -69,11 +68,16 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
         // 👇 Add this for chat click
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, ChatDetailActivity1.class);
+            Intent intent = new Intent(context, ChatDetailActivity.class);
             intent.putExtra("chat_id", chat.getChatId());
             intent.putExtra("chat_partner_name", chat.getName());
-            Log.e("ChatClick", "Opening chat with: " + chat.getName());
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            // If your chatId is "dm_<friendId>", derive the other user id:
+            String otherUserId = chat.getChatId() != null && chat.getChatId().startsWith("dm_")
+                    ? chat.getChatId().substring(3)
+                    : null;
+            if (otherUserId != null) {
+                intent.putExtra("other_user_id", otherUserId);
+            }            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         });
         holder.itemView.setOnLongClickListener(v -> {

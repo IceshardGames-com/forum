@@ -18,10 +18,9 @@ import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
 import com.iceshardgames.gamercommunity.APIintegration.ApiService;
 import com.iceshardgames.gamercommunity.Activity.MainScreen.DashboardScreenActivity;
 import com.iceshardgames.gamercommunity.Activity.OtpScreen.ForgetScreenActivity;
+import com.iceshardgames.gamercommunity.Activity.ProfileScreen.ProfileScreenActivity;
 import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterScreenActivity;
-import com.iceshardgames.gamercommunity.Chat.DeviceManager;
 import com.iceshardgames.gamercommunity.DB.AppDatabase;
-import com.iceshardgames.gamercommunity.Model.DeviceRegistrationRequest;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.SessionManager;
 import com.iceshardgames.gamercommunity.Utills.SharedPrefManager;
@@ -225,7 +224,7 @@ LoginScreenActivity extends AppCompatActivity {
 
                         Utills.registerDeviceAtLogin(LoginScreenActivity.this); // use the current activity or getApplicationContext()
 
-                        startActivity(new Intent(LoginScreenActivity.this, DashboardScreenActivity.class));
+                        startActivity(new Intent(LoginScreenActivity.this, ProfileScreenActivity.class));
                         finish();
                     } else {
                         Toast.makeText(LoginScreenActivity.this, loginResponse.getMessage(), Toast.LENGTH_SHORT).show();

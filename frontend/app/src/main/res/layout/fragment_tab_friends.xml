@@ -1,0 +1,22 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/friendListRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="8dp"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/tv_no_friends"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="No friends yet.\nFind some to get started!"
+        android:fontFamily="@font/titilliumweb_bold"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:padding="8dp"
+        android:visibility="gone"
+        android:gravity="center"/>
+</FrameLayout>

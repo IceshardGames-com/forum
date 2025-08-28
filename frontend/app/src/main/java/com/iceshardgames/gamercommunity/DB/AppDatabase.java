@@ -14,7 +14,7 @@ import java.util.Map;
         ChatMessage.class,
         Channel.class,
         FriendRequest.class   // ✅ IMPORTANT: Add this line
-}, version = 7, exportSchema = false)
+}, version = 8, exportSchema = false)
 
 public abstract class AppDatabase extends RoomDatabase {
 

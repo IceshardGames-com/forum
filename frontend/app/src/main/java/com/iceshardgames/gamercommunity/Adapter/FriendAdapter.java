@@ -13,17 +13,22 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity1;
-import com.iceshardgames.gamercommunity.Chat.ChatDetailActivity;
-import com.iceshardgames.gamercommunity.Model.FriendListResponse;
+import com.iceshardgames.gamercommunity.Activity.ChatScreen.ChatDetailActivity;
+import com.iceshardgames.gamercommunity.DB.AppDatabase;
+import com.iceshardgames.gamercommunity.DB.ChatUser;
+import com.iceshardgames.gamercommunity.Model.Response.FriendListResponse;
 import com.iceshardgames.gamercommunity.R;
-import com.iceshardgames.gamercommunity.Utills.Utills;
+import com.iceshardgames.gamercommunity.Utills.SessionManager;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.FriendViewHolder> {
 
     private Context context;
     private List<FriendListResponse.Friend> friends;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public FriendAdapter(Context context, List<FriendListResponse.Friend> friends) {
         this.context = context;
@@ -48,15 +53,39 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.FriendView
 
         // ✅ handle click
         holder.itemView.setOnClickListener(v -> {
-            // Open Chat Screen or Friend Profile
-            // Example: open ChatDetailActivity
-             Intent intent = new Intent(context, ChatDetailActivity.class);
-             intent.putExtra("chat_id", friend.getId());
-             intent.putExtra("chat_partner_name", friend.getUsername());
-            intent.putExtra("other_user_id", friend.getId());  // REQUIRED
+            String friendId = friend.getId();
+            String friendName = friend.getUsername();
+            String chatId = "dm_" + friendId; // deterministic per friend to avoid duplicates
 
-            context.startActivity(intent);
+            executor.execute(() -> {
+                // per-user DB (same as elsewhere)
+                String currentUserId = SessionManager.getUserId(context);
+                if (currentUserId == null) currentUserId = "guest";
 
+                AppDatabase db = AppDatabase.getInstance(context.getApplicationContext(), currentUserId);
+
+                // Insert-or-update ChatUser (primary key = chatId)
+                ChatUser chatUser = new ChatUser(
+                        chatId,
+                        friendName,
+                        "",          // lastMessage
+                        "",          // avatarUrl (set if you have one)
+                        System.currentTimeMillis(),
+                        false,       // pinned
+                        false,       // muted
+                        R.drawable.profilepic
+                );
+                db.chatUserDao().insertOrUpdate(chatUser);
+
+                // Jump to the chat screen
+                ((Activity) context).runOnUiThread(() -> {
+                    Intent intent = new Intent(context, ChatDetailActivity.class);
+                    intent.putExtra("chat_id", chatId);
+                    intent.putExtra("chat_partner_name", friendName);
+                    intent.putExtra("other_user_id", friendId); // keep if your chat screen needs it
+                    context.startActivity(intent);
+                });
+            });
         });
     }
 

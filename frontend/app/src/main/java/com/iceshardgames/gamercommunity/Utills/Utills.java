@@ -16,13 +16,10 @@ import android.widget.TextView;
 
 import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
 import com.iceshardgames.gamercommunity.APIintegration.ApiService;
-import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterScreenActivity;
-import com.iceshardgames.gamercommunity.Chat.DeviceManager;
-import com.iceshardgames.gamercommunity.Model.DeviceRegistrationRequest;
-import com.iceshardgames.gamercommunity.Model.DevicesResponse;
+import com.iceshardgames.gamercommunity.Activity.ChatScreen.DeviceManager;
+import com.iceshardgames.gamercommunity.Model.Request.DeviceRegistrationRequest;
+import com.iceshardgames.gamercommunity.Model.Response.DevicesResponse;
 import com.iceshardgames.gamercommunity.R;
-
-import java.util.concurrent.ExecutorService;
 
 import retrofit2.Call;
 import retrofit2.Response;
@@ -30,7 +27,6 @@ import retrofit2.Response;
 public class Utills {
 
     public static Dialog loadingDialog;
-
     public static void showLoadingDialog(Activity Activity) {
         loadingDialog = new Dialog(Activity);
         loadingDialog.setContentView(R.layout.loading_dialog);
@@ -45,13 +41,12 @@ public class Utills {
         }
     }
 
-    public static void GradientText(TextView screenTitleNav)
-    {
+    public static void GradientText(TextView screenTitleNav) {
         TextPaint paint = screenTitleNav.getPaint();
         float width = paint.measureText(screenTitleNav.getText().toString());
         Shader shader = new LinearGradient(
                 0, 0, width, screenTitleNav.getTextSize(), // horizontal gradient
-                new int[] {
+                new int[]{
                         Color.parseColor("#673373"), // Start color (orange)
                         Color.parseColor("#D76D77")  // End color (amber)
                 },
@@ -97,17 +92,40 @@ public class Utills {
         Log.d("==namah", "getDeviceName id= " + dm.getDeviceName());
 
         api.registerDevice(token, body).enqueue(new retrofit2.Callback<DevicesResponse>() {
-            @Override public void onResponse(Call<DevicesResponse> call, Response<DevicesResponse> r) {
+            @Override
+            public void onResponse(Call<DevicesResponse> call, Response<DevicesResponse> r) {
                 if (r.isSuccessful()) {
-                    Log.d("==namah", "Registered device");
+                    String registeredId = null;
+                    if (registeredId == null || registeredId.isEmpty()) {
+                        registeredId = dm.getOrCreateDeviceId();
+                    }
+                    Utills.saveDeviceId(ctx, registeredId);
+                    Log.d("==namah", "Registered device, saved id=" + registeredId);
                 } else {
                     Log.e("==namah", "Register failed code=" + r.code());
                 }
             }
-            @Override public void onFailure(Call<DevicesResponse> call, Throwable t) {
+
+            @Override
+            public void onFailure(Call<DevicesResponse> call, Throwable t) {
                 Log.e("==namah", "Register error", t);
             }
         });
     }
 
+    // Utills.java
+    public static final String PREFS = "UserPrefs";
+    private static final String KEY_DEVICE_ID = "deviceId";
+
+    public static void saveDeviceId(Context ctx, String deviceId) {
+        ctx.getSharedPreferences(PREFS, MODE_PRIVATE)
+                .edit()
+                .putString(KEY_DEVICE_ID, deviceId)
+                .apply();
+    }
+
+    public static String readDeviceId(Context ctx) {
+        return ctx.getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getString(KEY_DEVICE_ID, "");
+    }
 }

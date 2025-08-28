@@ -1,18 +1,14 @@
 <!-- res/layout/activity_chat_detail.xml -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:gravity="center">
-
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/background_image"
+        android:id="@+id/bg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0.7"
+        android:alpha="0.6"
         android:scaleType="centerCrop"
         android:src="@drawable/bg2" />
 
@@ -26,7 +22,6 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Top Bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="@dimen/_45sdp"
@@ -44,26 +39,39 @@
                 android:scaleType="centerCrop"
                 android:src="@drawable/profilepic" />
 
-            <TextView
-                android:id="@+id/chat_username"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Username"
-                android:textColor="#fff"
-                android:fontFamily="@font/titilliumweb_bold"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/titilliumweb_bold"
+                    android:text="Username"
+                    android:textColor="#fff"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/last_seen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/titilliumweb_semibold"
+                    android:text=""
+                    android:textSize="12sp" />
+            </LinearLayout>
+
         </LinearLayout>
 
-        <!-- Messages RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/messages_recycler"
+            android:id="@+id/rvMessages"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:padding="8dp" />
 
-        <!-- Message Input Area -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -77,42 +85,46 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="@drawable/button_round_background"
-                android:src="@drawable/camera"
+                android:contentDescription="Attach file"
                 android:padding="@dimen/_8sdp"
+                android:src="@drawable/camera"
                 android:tint="@color/white"
-                android:contentDescription="Attach file" />
+                android:visibility="gone" />
 
             <ImageView
                 android:id="@+id/attach_button"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:background="@drawable/button_round_background"
-                android:src="@drawable/attach"
-                android:padding="@dimen/_8sdp"
                 android:layout_marginStart="@dimen/_5sdp"
+                android:background="@drawable/button_round_background"
+                android:contentDescription="Attach file"
+                android:padding="@dimen/_8sdp"
+                android:src="@drawable/attach"
                 android:tint="@color/white"
-                android:contentDescription="Attach file" />
+                android:visibility="gone" />
 
             <EditText
-                android:id="@+id/message_input"
-                android:hint="Type a message"
-                android:background="@drawable/input_field_background_purple"
-                android:textColorHint="#AAAAAA"
-                android:textColor="#FFFFFF"
-                android:layout_weight="1"
-                android:layout_marginHorizontal="@dimen/_5sdp"
-                android:padding="12dp"
-                android:textSize="12dp"
-                android:fontFamily="@font/titilliumweb_semibold"
+                android:id="@+id/etMessage"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/_5sdp"
+                android:layout_weight="1"
+                android:background="@drawable/input_field_background_purple"
+                android:fontFamily="@font/titilliumweb_semibold"
+                android:hint="Type a message"
+                android:padding="12dp"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#AAAAAA"
+                android:textSize="12dp" />
 
             <ImageButton
-                android:id="@+id/send_button"
+                android:id="@+id/btnSend"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@android:drawable/ic_menu_send" />
         </LinearLayout>
+
+
     </LinearLayout>
 </RelativeLayout>

@@ -11,20 +11,20 @@ import com.iceshardgames.gamercommunity.Activity.OtpScreen.VerifyOtpRequest;
 import com.iceshardgames.gamercommunity.Activity.ProfileScreen.InterestsResponse;
 import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterRequest;
 import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterResponse;
-import com.iceshardgames.gamercommunity.Model.BlockUserRequest;
-import com.iceshardgames.gamercommunity.Model.ConversationCreateRequest;
-import com.iceshardgames.gamercommunity.Model.ConversationResponse;
-import com.iceshardgames.gamercommunity.Model.DeviceRegistrationRequest;
-import com.iceshardgames.gamercommunity.Model.DevicesResponse;
-import com.iceshardgames.gamercommunity.Model.FriendListResponse;
-import com.iceshardgames.gamercommunity.Model.FriendRequestResponse;
-import com.iceshardgames.gamercommunity.Model.MessagesResponse;
-import com.iceshardgames.gamercommunity.Model.SendFriendRequest;
-import com.iceshardgames.gamercommunity.Model.SendFriendRequestResponse;
-import com.iceshardgames.gamercommunity.Model.SendMessageRequest;
-import com.iceshardgames.gamercommunity.Model.UserSearchResponse;
-
-import java.util.Map;
+import com.iceshardgames.gamercommunity.Model.Request.BlockUserRequest;
+import com.iceshardgames.gamercommunity.Model.Request.ConversationCreateRequest;
+import com.iceshardgames.gamercommunity.Model.Response.ConversationResponse;
+import com.iceshardgames.gamercommunity.Model.Request.DeviceRegistrationRequest;
+import com.iceshardgames.gamercommunity.Model.Response.DevicesResponse;
+import com.iceshardgames.gamercommunity.Model.Response.FriendListResponse;
+import com.iceshardgames.gamercommunity.Model.Response.FriendRequestResponse;
+import com.iceshardgames.gamercommunity.Model.Request.LastSeenRequest;
+import com.iceshardgames.gamercommunity.Model.Response.LastSeenResponse;
+import com.iceshardgames.gamercommunity.Model.Response.MessagesResponse;
+import com.iceshardgames.gamercommunity.Model.Request.SendFriendRequest;
+import com.iceshardgames.gamercommunity.Model.Response.SendFriendRequestResponse;
+import com.iceshardgames.gamercommunity.Model.Request.SendMessageRequest;
+import com.iceshardgames.gamercommunity.Model.Response.UserSearchResponse;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -170,5 +170,9 @@ public interface ApiService {
             @Path("messageId") String messageId
     );
 
-
+    // ApiService.java
+    @PATCH("api/devices/last-seen")
+    Call<LastSeenResponse> updateLastSeen(
+            @Header("Authorization") String bearer,
+            @Body LastSeenRequest body);
 }

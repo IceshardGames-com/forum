@@ -4,12 +4,13 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.iceshardgames.gamercommunity.Model.UserSearchResponse;
+import com.iceshardgames.gamercommunity.Model.Response.UserSearchResponse;
 import com.iceshardgames.gamercommunity.R;
 
 import java.util.List;
@@ -42,7 +43,7 @@ public class UserSearchAdapter extends RecyclerView.Adapter<UserSearchAdapter.Vi
         holder.username.setText(user.getUsername());
         holder.email.setText(user.getEmail());
 
-        holder.itemView.setOnClickListener(v -> listener.onUserClick(user));
+        holder.add_request.setOnClickListener(v -> listener.onUserClick(user));
     }
 
     @Override
@@ -52,10 +53,12 @@ public class UserSearchAdapter extends RecyclerView.Adapter<UserSearchAdapter.Vi
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView username, email;
+        ImageView add_request;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             username = itemView.findViewById(R.id.textUsername);
             email = itemView.findViewById(R.id.textEmail);
+            add_request = itemView.findViewById(R.id.add_request);
         }
     }
 }
