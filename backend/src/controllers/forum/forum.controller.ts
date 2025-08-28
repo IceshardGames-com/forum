@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { asyncErrorHandler } from '../../middlewares/errorHandler';
 import forumService from '../../services/forum.service';
 import { ForumPostPermission } from '../../models/Forum';
+import { ForumMemberRole } from '../../models/ForumMember';
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -77,15 +78,15 @@ export const listPosts = asyncErrorHandler(async (req: Request, res: Response): 
 
 export const likePost = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
   const { postId } = req.params as { postId: string };
-  await forumService.likePost(postId);
-  const response: ApiResponse = { success: true, message: 'Post liked', requestId: req.id, timestamp: new Date().toISOString() };
+  await forumService.togglePostReaction(req.user!._id, postId, 'like');
+  const response: ApiResponse = { success: true, message: 'Post like toggled', requestId: req.id, timestamp: new Date().toISOString() };
   res.status(200).json(response);
 });
 
 export const dislikePost = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
   const { postId } = req.params as { postId: string };
-  await forumService.dislikePost(postId);
-  const response: ApiResponse = { success: true, message: 'Post disliked', requestId: req.id, timestamp: new Date().toISOString() };
+  await forumService.togglePostReaction(req.user!._id, postId, 'dislike');
+  const response: ApiResponse = { success: true, message: 'Post dislike toggled', requestId: req.id, timestamp: new Date().toISOString() };
   res.status(200).json(response);
 });
 
@@ -93,6 +94,31 @@ export const sharePost = asyncErrorHandler(async (req: Request, res: Response): 
   const { postId } = req.params as { postId: string };
   await forumService.sharePost(postId);
   const response: ApiResponse = { success: true, message: 'Post shared', requestId: req.id, timestamp: new Date().toISOString() };
+  res.status(200).json(response);
+});
+
+type BulkInteractionOp =
+  | { op: 'post_reaction'; postId: string; type: 'like' | 'dislike' }
+  | { op: 'comment_reaction'; commentId: string; type: 'like' | 'dislike' }
+  | { op: 'post_share'; postId: string };
+
+export const bulkInteractions = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
+  const ops = (req.body?.operations || []) as BulkInteractionOp[];
+  if (!Array.isArray(ops) || ops.length === 0) {
+    res.status(400).json({ success: false, message: 'operations array required', requestId: req.id, timestamp: new Date().toISOString() });
+    return;
+  }
+  const userId = req.user!._id;
+  for (const op of ops) {
+    if (op.op === 'post_reaction') {
+      await forumService.togglePostReaction(userId, op.postId, op.type);
+    } else if (op.op === 'comment_reaction') {
+      await forumService.toggleCommentReaction(userId, op.commentId, op.type);
+    } else if (op.op === 'post_share') {
+      await forumService.sharePost(op.postId);
+    }
+  }
+  const response: ApiResponse = { success: true, message: 'Bulk interactions processed', requestId: req.id, timestamp: new Date().toISOString() };
   res.status(200).json(response);
 });
 
@@ -116,15 +142,23 @@ export const listComments = asyncErrorHandler(async (req: Request, res: Response
 
 export const likeComment = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
   const { commentId } = req.params as { commentId: string };
-  await forumService.likeComment(commentId);
-  const response: ApiResponse = { success: true, message: 'Comment liked', requestId: req.id, timestamp: new Date().toISOString() };
+  await forumService.toggleCommentReaction(req.user!._id, commentId, 'like');
+  const response: ApiResponse = { success: true, message: 'Comment like toggled', requestId: req.id, timestamp: new Date().toISOString() };
   res.status(200).json(response);
 });
 
 export const dislikeComment = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
   const { commentId } = req.params as { commentId: string };
-  await forumService.dislikeComment(commentId);
-  const response: ApiResponse = { success: true, message: 'Comment disliked', requestId: req.id, timestamp: new Date().toISOString() };
+  await forumService.toggleCommentReaction(req.user!._id, commentId, 'dislike');
+  const response: ApiResponse = { success: true, message: 'Comment dislike toggled', requestId: req.id, timestamp: new Date().toISOString() };
+  res.status(200).json(response);
+});
+
+export const changeMemberRole = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
+  const { forumId } = req.params as { forumId: string };
+  const { userId, role } = req.body as { userId: string; role: ForumMemberRole };
+  const member = await forumService.changeMemberRole(req.user!._id, forumId, userId, role);
+  const response: ApiResponse = { success: true, data: { member }, message: 'Member role updated', requestId: req.id, timestamp: new Date().toISOString() };
   res.status(200).json(response);
 });
 

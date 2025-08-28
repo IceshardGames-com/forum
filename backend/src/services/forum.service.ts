@@ -4,6 +4,10 @@ import Forum, { IForum, ForumPostPermission } from '../models/Forum';
 import ForumMember, { IForumMember, ForumMemberRole } from '../models/ForumMember';
 import ForumPost, { IForumPost } from '../models/ForumPost';
 import ForumComment, { IForumComment } from '../models/ForumComment';
+import ForumPostReaction from '../models/ForumPostReaction';
+import ForumCommentReaction from '../models/ForumCommentReaction';
+import ReactionEvent from '../models/ReactionEvent';
+import sanitizeHtml from 'sanitize-html';
 
 type Pagination = { page?: number; limit?: number };
 
@@ -21,6 +25,16 @@ const canUserPost = async (forum: IForum, userId: string): Promise<boolean> => {
     return member.isFollower === true;
   }
   return true; // MEMBERS
+};
+
+const canUserComment = async (forum: IForum, userId: string): Promise<boolean> => {
+  // For now mirror post permissions. Adjust if separate comment policy is desired.
+  return canUserPost(forum, userId);
+};
+
+const sanitizeText = (text: string): string => {
+  // Strip HTML to plain text. Adjust allowedTags/attributes if you want basic formatting.
+  return sanitizeHtml(text, { allowedTags: [], allowedAttributes: {} }).trim();
 };
 
 export const forumService = {
@@ -90,7 +104,9 @@ export const forumService = {
     if (!forum) throw new Error('Forum not found');
     const allowed = await canUserPost(forum, userId);
     if (!allowed) throw new Error('Not allowed to post in this forum');
-    return ForumPost.create({ forum: forumId, author: userId, title: data.title, content: data.content });
+    const title = sanitizeText(data.title);
+    const content = sanitizeText(data.content);
+    return ForumPost.create({ forum: forumId, author: userId, title, content });
   },
 
   async listPosts(forumId: string, { page = 1, limit = 20 }: Pagination): Promise<IForumPost[]> {
@@ -100,13 +116,23 @@ export const forumService = {
       .limit(Math.min(limit, 50));
   },
 
-  async likePost(postId: string): Promise<void> {
-    // Simple counter; can be expanded to Reaction model in future
-    await ForumPost.updateOne({ _id: postId }, { $inc: { likes: 1 } });
-  },
-
-  async dislikePost(postId: string): Promise<void> {
-    await ForumPost.updateOne({ _id: postId }, { $inc: { dislikes: 1 } });
+  async togglePostReaction(userId: string, postId: string, type: 'like' | 'dislike'): Promise<void> {
+    const existing = await ForumPostReaction.findOne({ post: postId, user: userId });
+    if (!existing) {
+      await ForumPostReaction.create({ post: postId, user: userId, type });
+      await ReactionEvent.create({ targetType: 'post', targetId: postId as any, user: userId as any, op: type === 'like' ? 'set_like' : 'set_dislike' });
+      return;
+    }
+    if (existing.type === type) {
+      // Toggle off
+      await existing.deleteOne();
+      await ReactionEvent.create({ targetType: 'post', targetId: postId as any, user: userId as any, op: 'unset' });
+      return;
+    }
+    // Switch reaction
+    existing.type = type;
+    await existing.save();
+    await ReactionEvent.create({ targetType: 'post', targetId: postId as any, user: userId as any, op: type === 'like' ? 'set_like' : 'set_dislike' });
   },
 
   async sharePost(postId: string): Promise<void> {
@@ -116,10 +142,15 @@ export const forumService = {
   async addComment(userId: string, postId: string, content: string, parentCommentId?: string | null): Promise<IForumComment> {
     const post = await ForumPost.findById(postId);
     if (!post) throw new Error('Post not found');
+    const forum = await Forum.findById(post.forum);
+    if (!forum) throw new Error('Forum not found');
+    const allowed = await canUserComment(forum, userId);
+    if (!allowed) throw new Error('Not allowed to comment in this forum');
+    const sanitized = sanitizeText(content);
     const comment = await ForumComment.create({
       post: postId,
       author: userId,
-      content,
+      content: sanitized,
       parentComment: parentCommentId ? ensureObjectId(parentCommentId) : null,
     });
     return comment;
@@ -138,12 +169,35 @@ export const forumService = {
       .limit(Math.min(limit, 100));
   },
 
-  async likeComment(commentId: string): Promise<void> {
-    await ForumComment.updateOne({ _id: commentId }, { $inc: { likes: 1 } });
+  async toggleCommentReaction(userId: string, commentId: string, type: 'like' | 'dislike'): Promise<void> {
+    const existing = await ForumCommentReaction.findOne({ comment: commentId, user: userId });
+    if (!existing) {
+      await ForumCommentReaction.create({ comment: commentId, user: userId, type });
+      await ReactionEvent.create({ targetType: 'comment', targetId: commentId as any, user: userId as any, op: type === 'like' ? 'set_like' : 'set_dislike' });
+      return;
+    }
+    if (existing.type === type) {
+      await existing.deleteOne();
+      await ReactionEvent.create({ targetType: 'comment', targetId: commentId as any, user: userId as any, op: 'unset' });
+      return;
+    }
+    existing.type = type;
+    await existing.save();
+    await ReactionEvent.create({ targetType: 'comment', targetId: commentId as any, user: userId as any, op: type === 'like' ? 'set_like' : 'set_dislike' });
   },
 
-  async dislikeComment(commentId: string): Promise<void> {
-    await ForumComment.updateOne({ _id: commentId }, { $inc: { dislikes: 1 } });
+  async changeMemberRole(requesterId: string, forumId: string, targetUserId: string, role: ForumMemberRole): Promise<IForumMember> {
+    const forum = await Forum.findById(forumId);
+    if (!forum) throw new Error('Forum not found');
+    if (forum.owner.toString() !== requesterId) throw new Error('Only owner can manage roles');
+    if (role === ForumMemberRole.OWNER) throw new Error('Transferring ownership not supported');
+    const member = await ForumMember.findOneAndUpdate(
+      { forum: forumId, user: targetUserId },
+      { $set: { role } },
+      { new: true, upsert: false }
+    );
+    if (!member) throw new Error('Member not found');
+    return member;
   },
 };
 

@@ -40,3 +40,29 @@ export const addCommentValidation = Joi.object({
   parentCommentId: Joi.string().hex().length(24).optional(),
 });
 
+export const changeMemberRoleValidation = Joi.object({
+  userId: Joi.string().hex().length(24).required(),
+  role: Joi.string().valid('admin', 'moderator', 'member').required(),
+});
+
+export const bulkInteractionsValidation = Joi.object({
+  operations: Joi.array().min(1).items(
+    Joi.alternatives().try(
+      Joi.object({
+        op: Joi.string().valid('post_reaction').required(),
+        postId: Joi.string().hex().length(24).required(),
+        type: Joi.string().valid('like', 'dislike').required(),
+      }),
+      Joi.object({
+        op: Joi.string().valid('comment_reaction').required(),
+        commentId: Joi.string().hex().length(24).required(),
+        type: Joi.string().valid('like', 'dislike').required(),
+      }),
+      Joi.object({
+        op: Joi.string().valid('post_share').required(),
+        postId: Joi.string().hex().length(24).required(),
+      }),
+    )
+  ).required(),
+});
+
