@@ -18,6 +18,10 @@ export const listInterests = asyncErrorHandler(async (req: Request, res: Respons
       { value: { $regex: q, $options: 'i' } },
     ];
   }
+  const category = (req.query.category as string | undefined)?.trim().toLowerCase();
+  if (category && category.length > 0) {
+    filter.category = category;
+  }
 
   const [items, total] = await Promise.all([
     GamingInterest.find(filter)
