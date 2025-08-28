@@ -22,6 +22,7 @@ import devicesRoutes from './routes/devices.routes';
 import conversationsRoutes from './routes/conversations.routes';
 import messagesRoutes from './routes/messages.routes';
 import usersRoutes from './routes/users.routes';
+import forumsRoutes from './routes/forums.routes';
 
 /**
  * Express application factory
@@ -124,6 +125,7 @@ export const createApp = (): Application => {
   app.use('/api/conversations', conversationsRoutes);
   app.use('/api/messages', messagesRoutes);
   app.use('/api/users', usersRoutes);
+  app.use('/api/forums', forumsRoutes);
 
   // Root endpoint
   app.get('/', (req: Request, res: Response) => {

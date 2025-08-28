@@ -1,0 +1,42 @@
+import Joi from 'joi';
+import { ForumPostPermission } from '../models/Forum';
+
+export const createForumValidation = Joi.object({
+  name: Joi.string().min(3).max(64).required(),
+  slug: Joi.string().pattern(/^[a-z0-9-]+$/).min(3).max(64).required(),
+  description: Joi.string().max(512).optional().allow('', null),
+  verified: Joi.boolean().optional(),
+  postPermission: Joi.string().valid(...Object.values(ForumPostPermission)).optional(),
+});
+
+export const forumIdParamValidation = Joi.object({
+  forumId: Joi.string().hex().length(24).required(),
+});
+
+export const forumSlugParamValidation = Joi.object({
+  slug: Joi.string().pattern(/^[a-z0-9-]+$/).required(),
+});
+
+export const createPostValidation = Joi.object({
+  title: Joi.string().min(1).max(140).required(),
+  content: Joi.string().min(1).max(10000).required(),
+});
+
+export const paginationValidation = Joi.object({
+  page: Joi.number().integer().min(1).optional(),
+  limit: Joi.number().integer().min(1).max(100).optional(),
+});
+
+export const postIdParamValidation = Joi.object({
+  postId: Joi.string().hex().length(24).required(),
+});
+
+export const commentIdParamValidation = Joi.object({
+  commentId: Joi.string().hex().length(24).required(),
+});
+
+export const addCommentValidation = Joi.object({
+  content: Joi.string().min(1).max(5000).required(),
+  parentCommentId: Joi.string().hex().length(24).optional(),
+});
+
