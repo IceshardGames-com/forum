@@ -127,5 +127,9 @@
         <item name="android:windowMinWidthMinor">90%</item>
         <item name="android:backgroundDimEnabled">true</item>
     </style>
-
+    <style name="MyTabTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="android:fontFamily">@font/titilliumweb_bold</item>
+        <item name="android:textSize">14sp</item>
+        <item name="color">@color/white</item>
+    </style>
 </resources>

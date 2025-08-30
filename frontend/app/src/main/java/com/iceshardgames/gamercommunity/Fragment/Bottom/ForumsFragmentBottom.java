@@ -1,11 +1,14 @@
 package com.iceshardgames.gamercommunity.Fragment.Bottom;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,14 +29,23 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
+import com.iceshardgames.gamercommunity.APIintegration.ApiService;
+import com.iceshardgames.gamercommunity.Activity.OtpScreen.ChangePasswordRequest;
 import com.iceshardgames.gamercommunity.Adapter.ForumAdapter;
 import com.iceshardgames.gamercommunity.Model.ForumModel;
+import com.iceshardgames.gamercommunity.Model.Request.CreateForumRequest;
+import com.iceshardgames.gamercommunity.Model.Response.CreateForumResponse;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ForumsFragmentBottom extends Fragment {
     private EditText searchBar;
@@ -58,7 +70,7 @@ public class ForumsFragmentBottom extends Fragment {
         });
 
         // SharedPreferences for saving filter state
-        prefs = requireContext().getSharedPreferences("ForumPrefs", Context.MODE_PRIVATE);
+        prefs = requireContext().getSharedPreferences("ForumPrefs", MODE_PRIVATE);
         String saved = prefs.getString("selected_filter", "All");
         currentFilter = saved.equalsIgnoreCase("All Games") ? "All" : saved;
 
@@ -273,6 +285,66 @@ public class ForumsFragmentBottom extends Fragment {
                 return;
             }
 
+            SharedPreferences prefs = getActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+            String accessToken = prefs.getString("accessToken", null);
+            Log.e("==pass", "token : " + accessToken);
+
+            // Build request body
+            String slug = Slugify.from(title);
+            boolean verified = false;
+            String postPermission = isPrivate ? "members" : "public";
+
+            ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+            CreateForumRequest body = new CreateForumRequest(
+                    title,
+                    slug,
+                    description,
+                    verified,
+                    postPermission
+            );
+
+            Log.e("==lag", "showCreateForumDialog: "+title );
+
+            apiService.createForum("Bearer " + accessToken, body).enqueue(new Callback<CreateForumResponse>() {
+                @Override
+                public void onResponse(Call<CreateForumResponse> call, Response<CreateForumResponse> response) {
+                    createBtn.setEnabled(true);
+
+                    if (!response.isSuccessful()) {
+                        Toast.makeText(getActivity(), "Failed: " + response.code(), Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    CreateForumResponse resp = response.body();
+                    if (resp == null || !resp.isSuccess() || resp.getData() == null || resp.getData().getForum() == null) {
+                        Toast.makeText(getActivity(), "Unexpected response", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    CreateForumResponse.Forum f = resp.getData().getForum();
+
+                    // Map server forum -> UI model
+                    String meta = f.getFollowersCount() + " followers • " + f.getMembersCount() + " members";
+                    ForumModel uiModel = new ForumModel(
+                            f.getName(),
+                            meta,
+                            "Just now",
+                            f.isVerified() ? "Verified" : "New",
+                            category,              // keep the chosen category for filtering
+                            R.drawable.forum1
+                    );
+
+                    addForumToList(uiModel);
+                    Toast.makeText(getActivity(), "Forum created", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                }
+
+                @Override
+                public void onFailure(Call<CreateForumResponse> call, Throwable t) {
+                    createBtn.setEnabled(true);
+                    Toast.makeText(getActivity(), "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+
             // TODO: Save forum object to Firestore / Room / API
             ForumModel newForum = new ForumModel(title, description, "Just now", "New", category, R.drawable.forum1);
 
@@ -287,6 +359,20 @@ public class ForumsFragmentBottom extends Fragment {
     private void addForumToList(ForumModel newForum) {
         allForums.add(0, newForum); // Add to top of allForums list
         performLiveSearch(searchBar.getText().toString()); // Refresh with current search text
+    }
+    // --- small helper ---
+    private static class Slugify {
+        static String from(String s) {
+            if (s == null) return "";
+            // lower, remove non-alnum/space, collapse spaces to hyphen
+            String slug = s.toLowerCase()
+                    .replaceAll("[^a-z0-9\\s-]", "")
+                    .trim()
+                    .replaceAll("\\s+", "-")
+                    .replaceAll("-{2,}", "-");
+            if (slug.isEmpty()) slug = "forum";
+            return slug;
+        }
     }
 }
 

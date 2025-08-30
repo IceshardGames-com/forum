@@ -13,8 +13,10 @@ import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterRequest;
 import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterResponse;
 import com.iceshardgames.gamercommunity.Model.Request.BlockUserRequest;
 import com.iceshardgames.gamercommunity.Model.Request.ConversationCreateRequest;
+import com.iceshardgames.gamercommunity.Model.Request.CreateForumRequest;
 import com.iceshardgames.gamercommunity.Model.Response.ConversationResponse;
 import com.iceshardgames.gamercommunity.Model.Request.DeviceRegistrationRequest;
+import com.iceshardgames.gamercommunity.Model.Response.CreateForumResponse;
 import com.iceshardgames.gamercommunity.Model.Response.DevicesResponse;
 import com.iceshardgames.gamercommunity.Model.Response.FriendListResponse;
 import com.iceshardgames.gamercommunity.Model.Response.FriendRequestResponse;
@@ -175,4 +177,8 @@ public interface ApiService {
     Call<LastSeenResponse> updateLastSeen(
             @Header("Authorization") String bearer,
             @Body LastSeenRequest body);
+
+    @POST("/api/forums")
+    Call<CreateForumResponse> createForum(@Header("Authorization") String token,
+                                            @Body CreateForumRequest body);
 }

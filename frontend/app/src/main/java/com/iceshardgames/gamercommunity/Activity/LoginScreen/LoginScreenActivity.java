@@ -54,7 +54,7 @@ LoginScreenActivity extends AppCompatActivity {
         binding.circleGradientImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(LoginScreenActivity.this,DashboardScreenActivity.class));
+//                startActivity(new Intent(LoginScreenActivity.this,DashboardScreenActivity.class));
             }
         });
         Utills.GradientText(binding.headerStart.screenTitleNav);

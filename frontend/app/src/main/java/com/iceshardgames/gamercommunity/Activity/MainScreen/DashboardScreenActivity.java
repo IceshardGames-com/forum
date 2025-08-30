@@ -17,7 +17,7 @@ import androidx.fragment.app.Fragment;
 
 import com.iceshardgames.gamercommunity.Activity.LoginScreen.LoginScreenActivity;
 import com.iceshardgames.gamercommunity.Activity.ProfileScreen.SettingScreenActivity;
-import com.iceshardgames.gamercommunity.Fragment.ChatListFragment;
+import com.iceshardgames.gamercommunity.Fragment.Bottom.ChatListFragment;
 import com.iceshardgames.gamercommunity.Fragment.Bottom.ForumsFragmentBottom;
 import com.iceshardgames.gamercommunity.Fragment.Bottom.HomeFragmentBottom;
 import com.iceshardgames.gamercommunity.Fragment.Bottom.SearchFragmentBottom;

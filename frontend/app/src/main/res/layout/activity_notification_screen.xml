@@ -35,7 +35,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/_35sdp"
             android:layout_below="@+id/imageSlider"
-            android:layout_gravity="center_vertical"
+            android:layout_gravity="center_vertical|center"
             android:layout_marginHorizontal="@dimen/_10sdp"
             android:background="@drawable/button_round_border"
             app:tabIndicatorHeight="0dp"

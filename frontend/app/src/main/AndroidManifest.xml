@@ -57,7 +57,7 @@
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".Activity.MainScreen.DashboardScreenActivity"
+            android:name=".Activity.ProfileScreen.IntrestScreenActivity"
             android:exported="false"
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
@@ -112,7 +112,7 @@
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".Activity.ProfileScreen.IntrestScreenActivity"
+            android:name=".Activity.MainScreen.DashboardScreenActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:exported="true"
             android:resizeableActivity="true"
