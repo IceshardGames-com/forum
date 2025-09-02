@@ -11,7 +11,12 @@ import sanitizeHtml from 'sanitize-html';
 
 type Pagination = { page?: number; limit?: number };
 
-const ensureObjectId = (id: string): mongoose.Types.ObjectId => new mongoose.Types.ObjectId(id);
+const ensureObjectId = (id: string): mongoose.Types.ObjectId => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new Error(`Invalid ObjectId string: ${id}`);
+  }
+  return new mongoose.Types.ObjectId(id);
+};
 
 const canUserPost = async (forum: IForum, userId: string): Promise<boolean> => {
   if (!userId) return false;
@@ -146,12 +151,21 @@ export const forumService = {
     if (!forum) throw new Error('Forum not found');
     const allowed = await canUserComment(forum, userId);
     if (!allowed) throw new Error('Not allowed to comment in this forum');
+    // Validate parent comment, if provided
+    let parentRef: mongoose.Types.ObjectId | null = null;
+    if (parentCommentId) {
+      const parent = await ForumComment.findById(parentCommentId);
+      if (!parent) throw new Error('Parent comment not found');
+      if (parent.post.toString() !== postId.toString()) throw new Error('Parent comment does not belong to this post');
+      parentRef = ensureObjectId(parent._id as any);
+    }
+
     const sanitized = sanitizeText(content);
     const comment = await ForumComment.create({
       post: postId,
       author: userId,
       content: sanitized,
-      parentComment: parentCommentId ? ensureObjectId(parentCommentId) : null,
+      parentComment: parentRef,
     });
     return comment;
   },

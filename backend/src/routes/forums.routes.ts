@@ -27,6 +27,7 @@ import {
   forumSlugParamValidation,
   createPostValidation,
   paginationValidation,
+  listCommentsQueryValidation,
   postIdParamValidation,
   commentIdParamValidation,
   addCommentValidation,
@@ -61,7 +62,7 @@ router.post('/posts/:postId/share', validateParams(postIdParamValidation), react
 
 // Comments
 router.post('/posts/:postId/comments', validateParams(postIdParamValidation), validateBody(addCommentValidation), interactionLimiter, addComment);
-router.get('/posts/:postId/comments', validateParams(postIdParamValidation), validateQuery(paginationValidation), interactionLimiter, listComments);
+router.get('/posts/:postId/comments', validateParams(postIdParamValidation), validateQuery(listCommentsQueryValidation), interactionLimiter, listComments);
 router.post('/comments/:commentId/like', validateParams(commentIdParamValidation), reactionLimiter, likeComment);
 router.post('/comments/:commentId/dislike', validateParams(commentIdParamValidation), reactionLimiter, dislikeComment);
 

@@ -27,6 +27,16 @@ export const paginationValidation = Joi.object({
   limit: Joi.number().integer().min(1).max(100).optional(),
 });
 
+// Query validation for listing comments: supports optional parentCommentId
+export const listCommentsQueryValidation = Joi.object({
+  page: Joi.number().integer().min(1).optional(),
+  limit: Joi.number().integer().min(1).max(100).optional(),
+  parentCommentId: Joi.alternatives().try(
+    Joi.string().hex().length(24),
+    Joi.valid('null') // allow explicit 'null' to mean top-level
+  ).optional(),
+});
+
 export const postIdParamValidation = Joi.object({
   postId: Joi.string().hex().length(24).required(),
 });

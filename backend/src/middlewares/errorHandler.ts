@@ -204,6 +204,11 @@ const processError = (error: any): ApiError => {
     return handleJWTExpiredError(error);
   }
 
+  // Body parser JSON errors (malformed JSON payloads)
+  if ((error as any)?.type === 'entity.parse.failed' || (error instanceof SyntaxError && 'body' in (error as any))) {
+    return new AppError('Invalid JSON payload', 400, 'INVALID_JSON');
+  }
+
   // Default to internal server error
   return new AppError(
     envConfig.NODE_ENV === 'production' ? 'Something went wrong' : error.message,
