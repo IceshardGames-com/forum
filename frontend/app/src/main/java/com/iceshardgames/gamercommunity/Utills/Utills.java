@@ -14,12 +14,25 @@ import android.text.TextPaint;
 import android.util.Log;
 import android.widget.TextView;
 
+import androidx.fragment.app.FragmentActivity;
+
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
 import com.iceshardgames.gamercommunity.APIintegration.ApiService;
 import com.iceshardgames.gamercommunity.Activity.ChatScreen.DeviceManager;
+import com.iceshardgames.gamercommunity.Model.ForumModel;
 import com.iceshardgames.gamercommunity.Model.Request.DeviceRegistrationRequest;
 import com.iceshardgames.gamercommunity.Model.Response.DevicesResponse;
 import com.iceshardgames.gamercommunity.R;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
 import retrofit2.Response;
@@ -128,4 +141,56 @@ public class Utills {
         return ctx.getSharedPreferences(PREFS, MODE_PRIVATE)
                 .getString(KEY_DEVICE_ID, "");
     }
+
+    public static long parseServerTimeToMillis(String iso) {
+        if (iso == null) return 0L;
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                return java.time.OffsetDateTime.parse(iso).toInstant().toEpochMilli();
+            } else {
+                // common ISO forms: 2025-09-04T05:21:33.123Z or without millis
+                java.text.SimpleDateFormat sdf;
+                if (iso.endsWith("Z")) {
+                    // try with millis
+                    try {
+                        sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US);
+                        sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                        return sdf.parse(iso).getTime();
+                    } catch (Exception ignore) {
+                        // fallback without millis
+                        sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US);
+                        sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                        return sdf.parse(iso).getTime();
+                    }
+                } else {
+                    // offset like +00:00
+                    try {
+                        sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", java.util.Locale.US);
+                        return sdf.parse(iso).getTime();
+                    } catch (Exception e) {
+                        sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", java.util.Locale.US);
+                        return sdf.parse(iso).getTime();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
+    public static String getTimeAgo(long timeMillis) {
+        if (timeMillis <= 0) return "";
+        long diff = System.currentTimeMillis() - timeMillis;
+        long sec = Math.max(1, diff / 1000); // avoid 0s
+        long min = sec / 60, hr = min / 60, day = hr / 24, wk = day / 7;
+
+        if (sec < 60) return sec + "s ago";
+        if (min < 60) return min + "m ago";
+        if (hr  < 24) return hr  + "h ago";
+        if (day < 7)  return day + "d ago";
+        return wk + "w ago";
+    }
+
+
+
 }

@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -209,6 +210,7 @@ public class IntrestScreenActivity extends AppCompatActivity {
 
         TextView titleText = categoryView.findViewById(R.id.category_title);
         ChipGroup chipGroup = categoryView.findViewById(R.id.chip_group);
+        Log.e("==cat", "addCategory: "+title );
 
         titleText.setText(title);
 // Apply custom styles programmatically

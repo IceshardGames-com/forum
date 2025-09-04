@@ -29,6 +29,10 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
 import com.iceshardgames.gamercommunity.APIintegration.ApiService;
 import com.iceshardgames.gamercommunity.Activity.OtpScreen.ChangePasswordRequest;
@@ -39,6 +43,9 @@ import com.iceshardgames.gamercommunity.Model.Response.CreateForumResponse;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 
+import org.json.JSONObject;
+
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -63,14 +70,13 @@ public class ForumsFragmentBottom extends Fragment {
         Utills.GradientText(view.findViewById(R.id.title));
 
 
-
         ImageView btnCreateForum = view.findViewById(R.id.fabAddForum);
         btnCreateForum.setOnClickListener(v -> {
             showCreateForumDialog();
         });
 
         // SharedPreferences for saving filter state
-        prefs = requireContext().getSharedPreferences("ForumPrefs", MODE_PRIVATE);
+        prefs = requireContext().getSharedPreferences("UserPrefs", MODE_PRIVATE);
         String saved = prefs.getString("selected_filter", "All");
         currentFilter = saved.equalsIgnoreCase("All Games") ? "All" : saved;
 
@@ -79,13 +85,47 @@ public class ForumsFragmentBottom extends Fragment {
         forumRecycler = view.findViewById(R.id.forumRecycler);
 
         Button btnAllGames = view.findViewById(R.id.btnAllGames);
-        Button btnAction = view.findViewById(R.id.btnAction);
-        Button btnRhythm = view.findViewById(R.id.btnRhythm);
+        Button btnActionRpg = view.findViewById(R.id.btnActionRpg);
+        Button btnActionAdventure = view.findViewById(R.id.btnActionAdventure);
+        Button btnBattleRoyale = view.findViewById(R.id.btnBattleRoyale);
+        Button btnFighting = view.findViewById(R.id.btnFighting);
+        Button btnFirstPersonShooter = view.findViewById(R.id.btnFirstPersonShooter);
+        Button btnJrpg = view.findViewById(R.id.btnJrpg);
+        Button btnMetroidvania = view.findViewById(R.id.btnMetroidvania);
+        Button btnMmorpg = view.findViewById(R.id.btnMmorpg);
+        Button btnMoba = view.findViewById(R.id.btnMoba);
+        Button btnOpenWorld = view.findViewById(R.id.btnOpenWorld);
+        Button btnParty = view.findViewById(R.id.btnParty);
+        Button btnPlatformer = view.findViewById(R.id.btnPlatformer);
+        Button btnRoguelike = view.findViewById(R.id.btnRoguelike);
+        Button btnRolePlaying = view.findViewById(R.id.btnRolePlaying);
+        Button btnRpg = view.findViewById(R.id.btnRpg);
+        Button btnSandbox = view.findViewById(R.id.btnSandbox);
         Button btnSimulation = view.findViewById(R.id.btnSimulation);
-        Button btnShooter = view.findViewById(R.id.btnShooter);
-        Button btnHorror = view.findViewById(R.id.btnHorror);
+        Button btnSports = view.findViewById(R.id.btnSports);
+        Button btnStrategyRpg = view.findViewById(R.id.btnStrategyRpg);
 
-        filterButtons = Arrays.asList(btnAllGames, btnAction, btnRhythm, btnSimulation, btnShooter, btnHorror);
+        filterButtons = Arrays.asList(btnAllGames,
+                btnActionRpg,
+                btnActionAdventure,
+                btnBattleRoyale,
+                btnFighting,
+                btnFirstPersonShooter,
+                btnJrpg,
+                btnMetroidvania,
+                btnMmorpg,
+                btnMoba,
+                btnOpenWorld,
+                btnParty,
+                btnPlatformer,
+                btnRoguelike,
+                btnRolePlaying,
+                btnRpg,
+                btnSandbox,
+                btnSimulation,
+                btnSports,
+                btnStrategyRpg
+        );
 
         // Set background selector style
         for (Button b : filterButtons) {
@@ -105,11 +145,25 @@ public class ForumsFragmentBottom extends Fragment {
             filterAndDisplayForums("All");
 
         });
-        btnAction.setOnClickListener(v -> setSelectedFilter(btnAction, filterButtons));
-        btnRhythm.setOnClickListener(v -> setSelectedFilter(btnRhythm, filterButtons));
+        btnActionRpg.setOnClickListener(v -> setSelectedFilter(btnActionRpg, filterButtons));
+        btnActionAdventure.setOnClickListener(v -> setSelectedFilter(btnActionAdventure, filterButtons));
+        btnBattleRoyale.setOnClickListener(v -> setSelectedFilter(btnBattleRoyale, filterButtons));
+        btnFighting.setOnClickListener(v -> setSelectedFilter(btnFighting, filterButtons));
+        btnFirstPersonShooter.setOnClickListener(v -> setSelectedFilter(btnFirstPersonShooter, filterButtons));
+        btnJrpg.setOnClickListener(v -> setSelectedFilter(btnJrpg, filterButtons));
+        btnMetroidvania.setOnClickListener(v -> setSelectedFilter(btnMetroidvania, filterButtons));
+        btnMmorpg.setOnClickListener(v -> setSelectedFilter(btnMmorpg, filterButtons));
+        btnMoba.setOnClickListener(v -> setSelectedFilter(btnMoba, filterButtons));
+        btnOpenWorld.setOnClickListener(v -> setSelectedFilter(btnOpenWorld, filterButtons));
+        btnParty.setOnClickListener(v -> setSelectedFilter(btnParty, filterButtons));
+        btnPlatformer.setOnClickListener(v -> setSelectedFilter(btnPlatformer, filterButtons));
+        btnRoguelike.setOnClickListener(v -> setSelectedFilter(btnRoguelike, filterButtons));
+        btnRolePlaying.setOnClickListener(v -> setSelectedFilter(btnRolePlaying, filterButtons));
+        btnRpg.setOnClickListener(v -> setSelectedFilter(btnRpg, filterButtons));
+        btnSandbox.setOnClickListener(v -> setSelectedFilter(btnSandbox, filterButtons));
         btnSimulation.setOnClickListener(v -> setSelectedFilter(btnSimulation, filterButtons));
-        btnShooter.setOnClickListener(v -> setSelectedFilter(btnShooter, filterButtons));
-        btnHorror.setOnClickListener(v -> setSelectedFilter(btnHorror, filterButtons));
+        btnSports.setOnClickListener(v -> setSelectedFilter(btnSports, filterButtons));
+        btnStrategyRpg.setOnClickListener(v -> setSelectedFilter(btnStrategyRpg, filterButtons));
 
         searchBar.addTextChangedListener(new TextWatcher() {
             @Override
@@ -126,15 +180,31 @@ public class ForumsFragmentBottom extends Fragment {
             }
         });
 
-        setupForumList();
+//        setupForumList();
         // Ensure selection + filtering happens after layout is ready
         btnAllGames.post(() -> {
             setSelectedFilter(btnAllGames, filterButtons);
             filterAndDisplayForums("All");
         });
+        loadForums();
+
         filterAndDisplayForums(currentFilter);
 
         return view;
+    }
+
+    private void loadForums() {
+        SharedPreferences prefs = requireContext().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        String json = prefs.getString("forums_list", null);
+
+        if (json != null) {
+            Gson gson = new Gson();
+            Type type = new TypeToken<List<ForumModel>>() {
+            }.getType();
+            allForums = gson.fromJson(json, type);
+        } else {
+            allForums = new ArrayList<>();
+        }
     }
 
     private void performLiveSearch(String query) {
@@ -146,12 +216,12 @@ public class ForumsFragmentBottom extends Fragment {
             }
         }
 
-        ForumAdapter adapter = new ForumAdapter(getActivity(),filtered);
+        ForumAdapter adapter = new ForumAdapter(getActivity(), filtered);
         forumRecycler.setAdapter(adapter);
     }
 
 
-    private void setupForumList() {
+   /* private void setupForumList() {
         allForums = new ArrayList<>(Arrays.asList(
                 new ForumModel("Half-Life: Alyx", "2.5K • 234 posts", "Last: 2 min ago", "Active", "Action", R.drawable.forum1),
                 new ForumModel("Beat Saber", "5.2K • 456 posts", "Last: 5 min ago", "Active", "Rhythm", R.drawable.forum2),
@@ -165,7 +235,7 @@ public class ForumsFragmentBottom extends Fragment {
 
         filterAndDisplayForums("All");
 
-    }
+    }*/
 
 
     private void filterAndDisplayForums(String category) {
@@ -176,7 +246,7 @@ public class ForumsFragmentBottom extends Fragment {
             }
         }
 
-        ForumAdapter adapter = new ForumAdapter(getActivity(),filtered);
+        ForumAdapter adapter = new ForumAdapter(getActivity(), filtered);
         forumRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
         forumRecycler.setAdapter(adapter);
     }
@@ -205,6 +275,8 @@ public class ForumsFragmentBottom extends Fragment {
         return null;
     }
 
+    String permission = "admin_only";
+
     private void showCreateForumDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.CustomDialog); // Optional style
         LayoutInflater inflater = getLayoutInflater();
@@ -222,6 +294,22 @@ public class ForumsFragmentBottom extends Fragment {
         TextView createBtn = view.findViewById(R.id.btnCreateForum);
         ImageView close = view.findViewById(R.id.close);
 
+        MaterialButtonToggleGroup toggleGroup = view.findViewById(R.id.permissionToggleGroup);
+        toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (isChecked) {
+                MaterialButton selectedButton = view.findViewById(checkedId);
+                if (checkedId == R.id.btnAdminOnly) {
+                    permission = "admin_only";
+                } else if (checkedId == R.id.btnFollowers) {
+                    permission = "followers";
+                } else if (checkedId == R.id.btnMembers) {
+                    permission = "members";
+                }
+                Log.d("==ForumPermission", "Selected: " + permission);
+            }
+        });
+
+
         close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -230,7 +318,9 @@ public class ForumsFragmentBottom extends Fragment {
         });
 
         // Category options (you can load these dynamically too)
-        String[] categories = {"Action", "Adventure", "Esports", "Casual", "RPG", "Simulation"};
+        String[] categories = {"Action Rpg", "Action Adventure", "Battle Royale", "Fighting", "First Person Shooter", "Jrpg",
+                "Metroidvania", "Mmorpg", "Moba", "Open World", "Party", "Platformer",
+                "Roguelike", "Role Playing", "Rpg", "Sandbox", "Simulation", "Sports", "Strategy Rpg"};
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, categories) {
             @NonNull
             @Override
@@ -261,13 +351,17 @@ public class ForumsFragmentBottom extends Fragment {
         // Update character count
         descInput.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 charCount.setText(s.length() + "/500 characters");
             }
+
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         // Cancel button
@@ -275,6 +369,7 @@ public class ForumsFragmentBottom extends Fragment {
 
         // Create Forum button
         createBtn.setOnClickListener(v -> {
+            Utills.showLoadingDialog(getActivity());
             String title = titleInput.getText().toString().trim();
             String description = descInput.getText().toString().trim();
             String category = categorySpinner.getSelectedItem().toString();
@@ -288,11 +383,14 @@ public class ForumsFragmentBottom extends Fragment {
             SharedPreferences prefs = getActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
             String accessToken = prefs.getString("accessToken", null);
             Log.e("==pass", "token : " + accessToken);
+            List<String> existingSlugs = new ArrayList<>();
+            for (ForumModel f : allForums) {
+                existingSlugs.add(Slugify.from(f.getTitle(), new ArrayList<>()));
+            }
 
             // Build request body
-            String slug = Slugify.from(title);
+            String slug = Slugify.from(title, existingSlugs);
             boolean verified = false;
-            String postPermission = isPrivate ? "members" : "public";
 
             ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
             CreateForumRequest body = new CreateForumRequest(
@@ -300,10 +398,15 @@ public class ForumsFragmentBottom extends Fragment {
                     slug,
                     description,
                     verified,
-                    postPermission
+                    permission
             );
 
-            Log.e("==lag", "showCreateForumDialog: "+title );
+            Log.e("==lag", "token: " + "Bearer " + accessToken);
+            Log.e("==lag", "title: " + title);
+            Log.e("==lag", "slug: " + slug);
+            Log.e("==lag", "description: " + description);
+            Log.e("==lag", "verified: " + verified);
+            Log.e("==lag", "postPermission: " + permission);
 
             apiService.createForum("Bearer " + accessToken, body).enqueue(new Callback<CreateForumResponse>() {
                 @Override
@@ -311,69 +414,218 @@ public class ForumsFragmentBottom extends Fragment {
                     createBtn.setEnabled(true);
 
                     if (!response.isSuccessful()) {
-                        Toast.makeText(getActivity(), "Failed: " + response.code(), Toast.LENGTH_LONG).show();
+                        try {
+                            String errorBody = response.errorBody().string();
+                            JSONObject obj = new JSONObject(errorBody);
+
+                            if (obj.has("error")) {
+                                JSONObject error = obj.getJSONObject("error");
+                                String code = error.getString("code");
+                                if ("DUPLICATE_ERROR".equals(code) && error.getJSONObject("details").getString("field").equals("slug")) {
+                                    // Get the duplicate slug
+                                    String duplicateSlug = error.getJSONObject("details").getString("value");
+                                    Log.e("==slug", "Duplicate slug: " + duplicateSlug);
+
+                                    // Generate new slug
+                                    String newSlug = incrementSlug(duplicateSlug);
+                                    Log.e("==slug", "Retry with slug: " + newSlug);
+
+                                    // Retry the API call with new slug
+                                    retryCreateForum(title, description, category, verified, newSlug, 1);
+                                    return;
+                                }
+                            }
+
+                            Toast.makeText(getActivity(), "Failed: " + response.code(), Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(getActivity(), "Error parsing failure", Toast.LENGTH_LONG).show();
+                        }
                         return;
                     }
+
+                    // ✅ Success flow
                     CreateForumResponse resp = response.body();
                     if (resp == null || !resp.isSuccess() || resp.getData() == null || resp.getData().getForum() == null) {
                         Toast.makeText(getActivity(), "Unexpected response", Toast.LENGTH_LONG).show();
                         return;
                     }
+                    Log.e("==lag", "token: " + resp.getData().getForum().getId());
 
                     CreateForumResponse.Forum f = resp.getData().getForum();
 
                     // Map server forum -> UI model
                     String meta = f.getFollowersCount() + " followers • " + f.getMembersCount() + " members";
                     ForumModel uiModel = new ForumModel(
+                            f.getId(),
                             f.getName(),
                             meta,
                             "Just now",
                             f.isVerified() ? "Verified" : "New",
-                            category,              // keep the chosen category for filtering
-                            R.drawable.forum1
+                            category,
+                            R.drawable.forum1,
+                            permission // ✅ save it here
                     );
 
                     addForumToList(uiModel);
+                    Utills.hideLoadingDialog();
                     Toast.makeText(getActivity(), "Forum created", Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                 }
 
+
                 @Override
                 public void onFailure(Call<CreateForumResponse> call, Throwable t) {
-                    createBtn.setEnabled(true);
-                    Toast.makeText(getActivity(), "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                    if (isAdded()) {
+                        requireActivity().runOnUiThread(() -> {
+                            createBtn.setEnabled(true);
+                            Utills.hideLoadingDialog();
+                            Toast.makeText(getActivity(), "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+
+                        });
+                    }
                 }
             });
 
-            // TODO: Save forum object to Firestore / Room / API
-            ForumModel newForum = new ForumModel(title, description, "Just now", "New", category, R.drawable.forum1);
-
-            // Optional: Add to RecyclerView list
-            addForumToList(newForum);
-
-            Toast.makeText(getActivity(), "Forum Created!", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
         });
     }
 
     private void addForumToList(ForumModel newForum) {
         allForums.add(0, newForum); // Add to top of allForums list
+        saveForums(); // persist
         performLiveSearch(searchBar.getText().toString()); // Refresh with current search text
     }
+
+    private void retryCreateForum(String title, String description, String category, boolean verified, String newSlug, int attempt) {
+        if (attempt > 5) { // Limit retries to avoid infinite loop
+            Toast.makeText(getActivity(), "Failed to create forum after multiple attempts", Toast.LENGTH_LONG).show();
+            return;
+        }
+        SharedPreferences prefs = getActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        String accessToken = prefs.getString("accessToken", null);
+
+        ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+        CreateForumRequest body = new CreateForumRequest(
+                title,
+                newSlug,
+                description,
+                verified,
+                permission
+        );
+
+        apiService.createForum("Bearer " + accessToken, body).enqueue(new Callback<CreateForumResponse>() {
+            @Override
+            public void onResponse(Call<CreateForumResponse> call, Response<CreateForumResponse> response) {
+                if (!response.isSuccessful()) {
+                    try {
+                        String errorBody = response.errorBody().string();
+                        JSONObject obj = new JSONObject(errorBody);
+
+                        if (obj.has("error")) {
+                            JSONObject error = obj.getJSONObject("error");
+                            if ("DUPLICATE_ERROR".equals(error.getString("code")) &&
+                                    error.getJSONObject("details").getString("field").equals("slug")) {
+
+                                String duplicateSlug = error.getJSONObject("details").getString("value");
+                                String newSlug = incrementSlug(duplicateSlug);
+                                Log.e("==slug", "Retry with slug: " + newSlug);
+
+                                // Retry with increment
+                                retryCreateForum(title, description, category, verified, newSlug, attempt + 1);
+                                return;
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    Toast.makeText(getActivity(), "Failed: " + response.code(), Toast.LENGTH_LONG).show();
+                    return;
+                }
+                // ✅ Success
+                CreateForumResponse resp = response.body();
+                if (resp == null || !resp.isSuccess() || resp.getData() == null || resp.getData().getForum() == null) {
+                    Toast.makeText(getActivity(), "Unexpected response", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Log.e("==lag", "token: " + resp.getData().getForum().getId());
+
+                CreateForumResponse.Forum f = resp.getData().getForum();
+                String meta = f.getFollowersCount() + " followers • " + f.getMembersCount() + " members";
+
+                ForumModel uiModel = new ForumModel(f.getId(), f.getName(), meta, "Just now",
+                        f.isVerified() ? "Verified" : "New", category, R.drawable.forum1, permission);
+
+                addForumToList(uiModel);
+                Utills.hideLoadingDialog();
+                Toast.makeText(getActivity(), "Forum created", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(Call<CreateForumResponse> call, Throwable t) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        Utills.hideLoadingDialog();
+                        Toast.makeText(getActivity(), "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                    });
+                }
+            }
+        });
+    }
+
+    private void saveForums() {
+        SharedPreferences prefs = requireContext().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        Gson gson = new Gson();
+        String json = gson.toJson(allForums);
+        editor.putString("forums_list", json);
+        editor.apply();
+    }
+
+    // --- small helper ---
     // --- small helper ---
     private static class Slugify {
-        static String from(String s) {
+        static String from(String s, List<String> existingSlugs) {
             if (s == null) return "";
-            // lower, remove non-alnum/space, collapse spaces to hyphen
-            String slug = s.toLowerCase()
-                    .replaceAll("[^a-z0-9\\s-]", "")
+
+            // Step 1: Clean slug
+            String baseSlug = s.toLowerCase()
+                    .replaceAll("[^a-z0-9\\s-]", "")   // keep only letters, numbers, space, dash
                     .trim()
-                    .replaceAll("\\s+", "-")
-                    .replaceAll("-{2,}", "-");
-            if (slug.isEmpty()) slug = "forum";
-            return slug;
+                    .replaceAll("\\s+", "-")          // spaces -> dash
+                    .replaceAll("-{2,}", "-")         // collapse multiple dashes
+                    .replaceAll("^[-_]+|[-_]+$", ""); // trim leading/trailing -/_
+
+            if (baseSlug.isEmpty()) baseSlug = "forum";
+
+            // Step 2: Ensure uniqueness
+            String uniqueSlug = baseSlug;
+            int counter = 1;
+            while (existingSlugs.contains(uniqueSlug)) {
+                uniqueSlug = baseSlug + counter;  // <-- ✅ no dash here
+                counter++;
+            }
+
+            return uniqueSlug;
         }
     }
+
+    private String incrementSlug(String slug) {
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(\\d+)$");
+        java.util.regex.Matcher matcher = pattern.matcher(slug);
+
+        if (matcher.find()) {
+            // Extract number at the end
+            int num = Integer.parseInt(matcher.group(1));
+            return slug.substring(0, matcher.start(1)) + (num + 1);
+        } else {
+            // If no number, append 1
+            return slug + "1";
+        }
+    }
+
+
 }
 
 

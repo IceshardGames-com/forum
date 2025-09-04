@@ -1,0 +1,299 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/forumDetailRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/background_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.7"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg2" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blacktrans" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <!-- Post Header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/imgUserProfile"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/button_round_background"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/profilepic" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvPostAuthor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/titilliumweb_bold"
+                            android:text="ModMaster"
+                            android:textColor="@color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/tvPostTime"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="4h ago"
+                            android:textColor="@color/hint_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Post Title -->
+                <TextView
+                    android:id="@+id/tvPostTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:fontFamily="@font/titilliumweb_bold"
+                    android:text="Updated graphics mod available - Enhanced Visual Experience"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+
+                <!-- Post Content -->
+                <TextView
+                    android:id="@+id/tvPostContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/titilliumweb_raguler"
+                    android:text="Hey everyone! I've been working on a comprehensive graphics enhancement mod for months..."
+                    android:textColor="@color/light_gray"
+                    android:textSize="12sp" />
+
+                <!-- Like / Dislike / Share Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <!-- Like -->
+                    <LinearLayout
+                        android:id="@+id/layoutPostLike"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="24dp"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/imgPostLike"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/ic_like_outline" />
+
+                        <TextView
+                            android:id="@+id/tvPostLikeCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:fontFamily="@font/titilliumweb_bold"
+                            android:text="0"
+                            android:textColor="@color/white"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <!-- Dislike -->
+                    <LinearLayout
+                        android:id="@+id/layoutPostDislike"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="24dp"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/imgPostDislike"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/ic_dislike_outline" />
+
+                        <TextView
+                            android:id="@+id/tvPostDislikeCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:fontFamily="@font/titilliumweb_bold"
+                            android:text="0"
+                            android:textColor="@color/white"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                    <!-- Reply -->
+
+                    <LinearLayout
+                        android:id="@+id/layoutcomReply"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/btnCommentReply"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/comment"
+                            app:tint="#ffffff" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:fontFamily="@font/titilliumweb_bold"
+                            android:text="12"
+                            android:textColor="@color/white"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    <!-- Share -->
+                    <LinearLayout
+                        android:id="@+id/layoutPostShare"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/imgPostShare"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/share"
+                            android:tint="#ffffff" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:fontFamily="@font/titilliumweb_bold"
+                            android:text="Share"
+                            android:textColor="@color/white"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+
+                <!-- Add Comment Box -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="@drawable/button_round_background"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/profilepic" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_5sdp"
+                        android:orientation="vertical">
+
+                        <EditText
+                            android:id="@+id/etAddComment"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/input_field_background_purple"
+                            android:fontFamily="@font/titilliumweb_semibold"
+                            android:gravity="top"
+                            android:hint="Add a comment..."
+                            android:maxLines="8"
+                            android:padding="12dp"
+                            android:textColor="#FFFFFF"
+                            android:textColorHint="@color/texthint"
+                            android:textSize="10dp" />
+
+                        <TextView
+                            android:id="@+id/btnSendComment"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:layout_marginTop="@dimen/_5sdp"
+                            android:background="@drawable/button_round_background_curve"
+                            android:fontFamily="@font/titilliumweb_bold"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="5dp"
+                            android:text="Comment"
+                            android:textColor="@color/white"
+                            android:textSize="12dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Comments Header -->
+                <TextView
+                    android:id="@+id/comtext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Comments"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <!-- RecyclerView for Comments -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerComments"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        tools:listitem="@layout/comment_item" />
+
+                    <!-- Add Comment Box -->
+                </LinearLayout>
+
+
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</RelativeLayout>

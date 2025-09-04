@@ -8,17 +8,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
 import com.iceshardgames.gamercommunity.APIintegration.ApiService;
 import com.iceshardgames.gamercommunity.Adapter.FriendAdapter;
 import com.iceshardgames.gamercommunity.Model.Response.FriendListResponse;
 import com.iceshardgames.gamercommunity.R;
+import com.iceshardgames.gamercommunity.Utills.Utills;
+
 import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -27,12 +32,14 @@ public class FriendsTabFragment extends Fragment {
     private RecyclerView friendListRecycler;
     private View tvNoFriends;
 
-    @Nullable @Override
+    @Nullable
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_tab_friends, container, false);
     }
 
-    @Override public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
+    @Override
+    public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
         friendListRecycler = v.findViewById(R.id.friendListRecycler);
         tvNoFriends = v.findViewById(R.id.tv_no_friends);
         friendListRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -68,9 +75,13 @@ public class FriendsTabFragment extends Fragment {
 
             @Override
             public void onFailure(Call<FriendListResponse> call, Throwable t) {
-                friendListRecycler.setVisibility(View.GONE);
-                tvNoFriends.setVisibility(View.VISIBLE);
-                Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        friendListRecycler.setVisibility(View.GONE);
+                        tvNoFriends.setVisibility(View.VISIBLE);
+                        Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                }
             }
         });
     }

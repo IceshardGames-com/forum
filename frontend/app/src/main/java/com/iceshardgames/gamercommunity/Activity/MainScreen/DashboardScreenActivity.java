@@ -134,6 +134,13 @@ public class DashboardScreenActivity extends AppCompatActivity {
                     editor.apply();
                     SessionManager.clearSession(DashboardScreenActivity.this);
 
+                    // Clear ForumPrefs
+                    SharedPreferences forumPrefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                    forumPrefs.edit().clear().apply();
+
+                    SharedPreferences userPrefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                    userPrefs.edit().clear().apply();
+
                     Intent intent = new Intent(DashboardScreenActivity.this, LoginScreenActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Prevent back press
                     startActivity(intent);

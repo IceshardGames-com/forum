@@ -1,0 +1,52 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="@color/black">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/imgReplyUser"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/profilepic"
+            android:background="@drawable/button_round_background"
+            android:scaleType="centerCrop"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tvReplyUser"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ReplyUser"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvReplyTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="· 5m ago"
+            android:textColor="@color/hint_gray"
+            android:textSize="11sp"
+            android:layout_marginStart="6dp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvReplyText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="This is a reply."
+        android:textColor="@color/white"
+        android:textSize="13sp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="2dp" />
+
+</LinearLayout>

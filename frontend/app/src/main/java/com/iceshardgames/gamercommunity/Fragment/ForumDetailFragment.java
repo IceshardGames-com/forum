@@ -1,12 +1,17 @@
 package com.iceshardgames.gamercommunity.Fragment;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,17 +23,33 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.tabs.TabLayout;
+import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
+import com.iceshardgames.gamercommunity.APIintegration.ApiService;
 import com.iceshardgames.gamercommunity.Adapter.PostAdapter;
 import com.iceshardgames.gamercommunity.Model.PostModel;
+import com.iceshardgames.gamercommunity.Model.Request.CreatePostRequest;
+import com.iceshardgames.gamercommunity.Model.Response.CreatePostResponse;
+import com.iceshardgames.gamercommunity.Model.Response.FollowResponse;
+import com.iceshardgames.gamercommunity.Model.Response.GetPostsResponse;
+import com.iceshardgames.gamercommunity.Model.Response.JoinResponse;
+import com.iceshardgames.gamercommunity.Model.Response.LeaveResponse;
+import com.iceshardgames.gamercommunity.Model.Response.UnfollowResponse;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import android.content.SharedPreferences;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
 import java.lang.reflect.Type;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ForumDetailFragment extends Fragment {
 
@@ -37,45 +58,225 @@ public class ForumDetailFragment extends Fragment {
     private List<PostModel> allPosts;
     private PostAdapter postAdapter;
     private List<PostModel> filteredPosts;
+    String forum_id;
+    private boolean isFollowing = false; // track state
+    String accessToken;
+    private RelativeLayout joinLayout, followLayout;
+    private TextView joinText, followText;
+    private boolean isJoined = false;
+    String postPermission;
+    private TextView tvNoPosts;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_forum_details, container, false);
-
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        accessToken = prefs.getString("accessToken", null);
         TextView forumTitle = view.findViewById(R.id.forumTitle);
         TextView forumMembers = view.findViewById(R.id.forumMembers);
+        tvNoPosts = view.findViewById(R.id.tv_no_posts);
 
         Utills.GradientText(view.findViewById(R.id.forumTitle));
 
         if (getArguments() != null) {
             String title = getArguments().getString("forum_title", "Unknown Forum");
+            String forum_status = getArguments().getString("forum_status", "Unknown Forum");
+            forum_id = getArguments().getString("forum_id", "Unknown Forum");
+            postPermission = getArguments().getString("forum_permission", "admin_only");
+
             forumTitle.setText(title);
-            forumMembers.setText("8,934 members"); // replace with real value later
+            forumMembers.setText(forum_status); // replace with real value later
         }
 
         tabLayout = view.findViewById(R.id.forumTabLayout);
+        followLayout = view.findViewById(R.id.followLayout);
+        joinLayout = view.findViewById(R.id.joinLayout);
+        followText = view.findViewById(R.id.followText);
+        joinText = view.findViewById(R.id.joinText);
         postRecyclerView = view.findViewById(R.id.forumPostRecycler);
         ImageView fabAddPost = view.findViewById(R.id.fabAddPost);
 
-        allPosts = loadPosts();
-        // Replace with API/DB call later
-        filteredPosts = new ArrayList<>(allPosts);
-
-        postAdapter = new PostAdapter(filteredPosts);
+        allPosts = new ArrayList<>();
+        filteredPosts = new ArrayList<>();
+        postAdapter = new PostAdapter(getActivity(),filteredPosts);
         postRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         postRecyclerView.setAdapter(postAdapter);
+
+        loadPostsFromApi(); // ✅ real API call
+
 
         setupTabs();
         handleTabSelection();
 
         fabAddPost.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Add Post Clicked", Toast.LENGTH_SHORT).show();
+
+            Log.e("==lag", "postPermission: " + postPermission);
+
+            if (postPermission.equals("followers") && !isFollowing) {
+                Toast.makeText(getContext(), "You must follow this forum to post", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (postPermission.equals("members") && !isJoined) {
+                Toast.makeText(getContext(), "You must join this forum to post", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (postPermission.equals("members")) {
+                // Check paid membership
+                boolean isPaid = prefs.getBoolean("isPaidMember_" + forum_id, false); // you need to set this when verifying payment
+                if (!isPaid) {
+                    Toast.makeText(getContext(), "Only paid members can post", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
             showCreateForumDialog();
 
         });
 
+
+        isFollowing = loadFollowState();
+        followText.setText(isFollowing ? "Unfollow" : "Follow");
+
+        isJoined = loadJoinState();
+        joinText.setText(isJoined ? "Leave" : "Join");
+
+        followLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Utills.showLoadingDialog(getActivity());
+                followAPI();
+            }
+        });
+
+        joinLayout.setOnClickListener(v -> {
+            Utills.showLoadingDialog(getActivity());
+            joinAPI();
+        });
+
         return view;
+    }
+
+    private void joinAPI() {
+        ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+
+        if (!isJoined) {
+            // Join API
+            apiService.joinForum("Bearer " + accessToken, forum_id)
+                    .enqueue(new Callback<JoinResponse>() {
+                        @Override
+                        public void onResponse(Call<JoinResponse> call, Response<JoinResponse> response) {
+                            Utills.hideLoadingDialog();
+                            if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                                isJoined = true;
+                                joinText.setText("Leave");
+                                saveJoinState(true);  // ✅ Save state
+                                Toast.makeText(getContext(), "Joined forum", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getContext(), "Failed to join", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<JoinResponse> call, Throwable t) {
+                            if (isAdded()) {
+                                requireActivity().runOnUiThread(() -> {
+                                    Utills.hideLoadingDialog();
+                                    Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        }
+                    });
+
+        } else {
+            // Leave API
+            apiService.leaveForum("Bearer " + accessToken, forum_id)
+                    .enqueue(new Callback<LeaveResponse>() {
+                        @Override
+                        public void onResponse(Call<LeaveResponse> call, Response<LeaveResponse> response) {
+                            Utills.hideLoadingDialog();
+                            if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                                isJoined = false;
+                                joinText.setText("Join");
+                                saveJoinState(false); // ✅ Save state
+                                Toast.makeText(getContext(), "Left forum", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getContext(), "Failed to leave", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<LeaveResponse> call, Throwable t) {
+                            if (isAdded()) {
+                                requireActivity().runOnUiThread(() -> {
+                                    Utills.hideLoadingDialog();
+                                    Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        }
+                    });
+        }
+    }
+
+
+    private void followAPI() {
+        if (!isFollowing) {
+            // Call Follow API
+
+            ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+            apiService.followForum("Bearer " + accessToken, forum_id).enqueue(new Callback<FollowResponse>() {
+                @Override
+                public void onResponse(Call<FollowResponse> call, Response<FollowResponse> response) {
+                    Utills.hideLoadingDialog();
+                    if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                        isFollowing = true;
+                        followText.setText("Unfollow");
+                        saveFollowState(true);  // ✅ Save state
+                        Toast.makeText(getContext(), "Followed forum", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(), "Failed to follow", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<FollowResponse> call, Throwable t) {
+                    if (isAdded()) {
+                        requireActivity().runOnUiThread(() -> {
+                            Utills.hideLoadingDialog();
+                            Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+            });
+        } else {
+            ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+            apiService.unfollowForum("Bearer " + accessToken, forum_id).enqueue(new Callback<UnfollowResponse>() {
+                @Override
+                public void onResponse(Call<UnfollowResponse> call, Response<UnfollowResponse> response) {
+                    Utills.hideLoadingDialog();
+                    if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                        isFollowing = false;
+                        followText.setText("Follow");
+                        saveFollowState(false); // ✅ Save state
+                        Toast.makeText(getContext(), "Unfollowed forum", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(), "Failed to unfollow", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<UnfollowResponse> call, Throwable t) {
+                    if (isAdded()) {
+                        requireActivity().runOnUiThread(() -> {
+                            Utills.hideLoadingDialog();
+                            Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+            });
+        }
     }
 
     private void showCreateForumDialog() {
@@ -90,27 +291,88 @@ public class ForumDetailFragment extends Fragment {
 
         AlertDialog dialog = builder.create();
 
+//        btnPost.setOnClickListener(view1 -> {
+//            String title = inputTitle.getText().toString().trim();
+//            String content = inputContent.getText().toString().trim();
+//
+//            if (title.isEmpty() || content.isEmpty()) {
+//                Toast.makeText(getContext(), "Please enter title and content", Toast.LENGTH_SHORT).show();
+//                return;
+//            }
+//
+//            if (!title.isEmpty() && !content.isEmpty()) {
+//                PostModel newPost = new PostModel(title, "You", 0, 0, true, false);
+//                allPosts.add(0, newPost); // ✅ Add to top
+//                savePosts(); // ✅ Save changes
+//                TabLayout.Tab selectedTab = tabLayout.getTabAt(tabLayout.getSelectedTabPosition());
+//                if (selectedTab != null && selectedTab.getCustomView() != null) {
+//                    TextView tabText = selectedTab.getCustomView().findViewById(R.id.tabText);
+//                    if (tabText != null) {
+//                        filterPosts(tabText.getText().toString());
+//                    }
+//                }
+//                dialog.dismiss();
+//            } else {
+//                Toast.makeText(getContext(), "Please enter title and content", Toast.LENGTH_SHORT).show();
+//            }
+//        });
         btnPost.setOnClickListener(view1 -> {
             String title = inputTitle.getText().toString().trim();
             String content = inputContent.getText().toString().trim();
 
-            if (!title.isEmpty() && !content.isEmpty()) {
-                PostModel newPost = new PostModel(title, "You", 0, 0, true, false);
-                allPosts.add(0, newPost); // ✅ Add to top
-                savePosts(); // ✅ Save changes
-                TabLayout.Tab selectedTab = tabLayout.getTabAt(tabLayout.getSelectedTabPosition());
-                if (selectedTab != null && selectedTab.getCustomView() != null) {
-                    TextView tabText = selectedTab.getCustomView().findViewById(R.id.tabText);
-                    if (tabText != null) {
-                        filterPosts(tabText.getText().toString());
-                    }
-                }
-                dialog.dismiss();
-            } else {
+            if (title.isEmpty() || content.isEmpty()) {
                 Toast.makeText(getContext(), "Please enter title and content", Toast.LENGTH_SHORT).show();
+                return;
             }
-        });
 
+            Utills.showLoadingDialog(getActivity());
+            ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+            CreatePostRequest body = new CreatePostRequest(title, content);
+
+            apiService.createPost("Bearer " + accessToken, forum_id, body)
+                    .enqueue(new Callback<CreatePostResponse>() {
+                        @Override
+                        public void onResponse(Call<CreatePostResponse> call, Response<CreatePostResponse> response) {
+                            Utills.hideLoadingDialog();
+                            if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                                CreatePostResponse.Post newPost = response.body().getData().getPost();
+                                // assuming your API model has: newPost.getId(), getCreatedAt() ISO string
+                                long createdAtMillis = Utills.parseServerTimeToMillis(newPost.getCreatedAt());
+                                if (createdAtMillis == 0L) createdAtMillis = System.currentTimeMillis();
+                                PostModel postModel = new PostModel(
+                                        newPost.getId(),
+                                        newPost.getTitle(),
+                                        newPost.getContent(),
+                                        newPost.getLikes(),
+                                        0,
+                                        true,
+                                        false,
+                                        createdAtMillis
+                                );
+
+                                allPosts.add(0, postModel);
+                                filteredPosts.clear();
+                                filteredPosts.addAll(allPosts);
+                                postAdapter.notifyDataSetChanged();
+                                dialog.dismiss();
+                                loadPostsFromApi(); // ✅ real API call
+                                Toast.makeText(getContext(), "Post created", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getContext(), "Failed to create post", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<CreatePostResponse> call, Throwable t) {
+                            if (isAdded()) {
+                                requireActivity().runOnUiThread(() -> {
+                                    Utills.hideLoadingDialog();
+                                    Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        }
+                    });
+        });
         dialog.show();
     }
 
@@ -230,13 +492,15 @@ public class ForumDetailFragment extends Fragment {
         postAdapter.notifyDataSetChanged();
     }
 
+/*
     private List<PostModel> loadPosts() {
-        SharedPreferences prefs = getContext().getSharedPreferences("ForumPrefs", getContext().MODE_PRIVATE);
+        SharedPreferences prefs = getContext().getSharedPreferences("UserPrefs", getContext().MODE_PRIVATE);
         String json = prefs.getString("forum_posts", null);
 
         if (json != null) {
             Gson gson = new Gson();
-            Type type = new TypeToken<List<PostModel>>() {}.getType();
+            Type type = new TypeToken<List<PostModel>>() {
+            }.getType();
             return gson.fromJson(json, type);
         } else {
             // Default mock data
@@ -250,8 +514,70 @@ public class ForumDetailFragment extends Fragment {
             return postList;
         }
     }
+*/
+
+    private void loadPostsFromApi() {
+        ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+        Log.e("==lag", "forum_id: " + forum_id);
+        Log.e("==lag", "accessToken: " + accessToken);
+
+        apiService.getPosts("Bearer " + accessToken, forum_id)
+                .enqueue(new Callback<GetPostsResponse>() {
+                    @Override
+                    public void onResponse(Call<GetPostsResponse> call, Response<GetPostsResponse> response) {
+                        if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                            allPosts.clear();
+                            for (CreatePostResponse.Post post : response.body().getData().getPosts()) {
+                                long createdAtMillis = Utills.parseServerTimeToMillis(post.getCreatedAt());
+                                if (createdAtMillis == 0L) {
+                                    // as a last resort, do NOT set to now; leave 0 or some safe default
+                                    // but better to keep server time correct
+                                }
+                                allPosts.add(new PostModel(
+                                        post.getId(),
+                                        post.getTitle(),
+                                        post.getContent(),
+                                        post.getLikes(),
+                                        0,
+                                        false,
+                                        false,
+                                        createdAtMillis
+                                ));
+                            }
+                            filteredPosts.clear();
+                            filteredPosts.addAll(allPosts);
+                            postAdapter.notifyDataSetChanged();
+
+                            // ✅ Show "No posts available" if empty
+                            if (filteredPosts.isEmpty()) {
+                                tvNoPosts.setVisibility(View.VISIBLE);
+                                postRecyclerView.setVisibility(View.GONE);
+                            } else {
+                                tvNoPosts.setVisibility(View.GONE);
+                                postRecyclerView.setVisibility(View.VISIBLE);
+                            }
+                        } else {
+                            Toast.makeText(getContext(), "Failed to load posts", Toast.LENGTH_SHORT).show();
+                            tvNoPosts.setVisibility(View.VISIBLE);
+                            postRecyclerView.setVisibility(View.GONE);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<GetPostsResponse> call, Throwable t) {
+                        if (isAdded()) {
+                            requireActivity().runOnUiThread(() -> {
+                                Toast.makeText(requireActivity(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                tvNoPosts.setVisibility(View.VISIBLE);
+                                postRecyclerView.setVisibility(View.GONE);
+                            });
+                        }
+                    }
+                });
+    }
+
     private void savePosts() {
-        SharedPreferences prefs = getContext().getSharedPreferences("ForumPrefs", getContext().MODE_PRIVATE);
+        SharedPreferences prefs = getContext().getSharedPreferences("UserPrefs", getContext().MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         Gson gson = new Gson();
         String json = gson.toJson(allPosts);
@@ -259,5 +585,28 @@ public class ForumDetailFragment extends Fragment {
         editor.apply();
     }
 
+    private void saveFollowState(boolean state) {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean("isFollowing_" + forum_id, state);
+        editor.apply();
+    }
+
+    private void saveJoinState(boolean state) {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean("isJoined_" + forum_id, state);
+        editor.apply();
+    }
+
+    private boolean loadFollowState() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        return prefs.getBoolean("isFollowing_" + forum_id, false);
+    }
+
+    private boolean loadJoinState() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        return prefs.getBoolean("isJoined_" + forum_id, false);
+    }
 
 }

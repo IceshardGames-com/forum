@@ -11,12 +11,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
 import com.iceshardgames.gamercommunity.APIintegration.ApiService;
 import com.iceshardgames.gamercommunity.Adapter.ChannelAdapter;
@@ -32,11 +34,13 @@ import com.iceshardgames.gamercommunity.Model.Response.SendFriendRequestResponse
 import com.iceshardgames.gamercommunity.Model.Response.UserSearchResponse;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.SessionManager;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -52,8 +56,13 @@ public class MessagesTabFragment extends Fragment {
 
     private final ItemTouchHelper.SimpleCallback swipeCallback =
             new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-                @Override public boolean onMove(@NonNull RecyclerView rv, @NonNull RecyclerView.ViewHolder vh, @NonNull RecyclerView.ViewHolder t) { return false; }
-                @Override public void onSwiped(@NonNull RecyclerView.ViewHolder vh, int dir) {
+                @Override
+                public boolean onMove(@NonNull RecyclerView rv, @NonNull RecyclerView.ViewHolder vh, @NonNull RecyclerView.ViewHolder t) {
+                    return false;
+                }
+
+                @Override
+                public void onSwiped(@NonNull RecyclerView.ViewHolder vh, int dir) {
                     int position = vh.getAdapterPosition();
                     ChatItem chat = chatList.get(position);
                     if (dir == ItemTouchHelper.LEFT) {
@@ -68,12 +77,14 @@ public class MessagesTabFragment extends Fragment {
                 }
             };
 
-    @Nullable @Override
+    @Nullable
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_tab_messages, container, false);
     }
 
-    @Override public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
+    @Override
+    public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
         chatListRecycler = v.findViewById(R.id.chat_list_recycler);
         searchResultRecycler = v.findViewById(R.id.searchResultRecycler);
         exploreChannelsRecycler = v.findViewById(R.id.explore_channels_recycler);
@@ -99,8 +110,12 @@ public class MessagesTabFragment extends Fragment {
 
     private void setupSearch() {
         searchChat.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (s.length() > 1) {
                     searchUsersApi(s.toString());
                 } else if (s.length() == 0) {
@@ -108,7 +123,9 @@ public class MessagesTabFragment extends Fragment {
                     chatListRecycler.setVisibility(View.VISIBLE);
                 }
             }
-            @Override public void afterTextChanged(Editable s) {
+
+            @Override
+            public void afterTextChanged(Editable s) {
                 ivClear.setVisibility(s.length() > 0 ? View.VISIBLE : View.GONE);
             }
         });
@@ -149,7 +166,11 @@ public class MessagesTabFragment extends Fragment {
 
             @Override
             public void onFailure(Call<UserSearchResponse> call, Throwable t) {
-                Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                }
             }
         });
     }
@@ -180,7 +201,11 @@ public class MessagesTabFragment extends Fragment {
 
             @Override
             public void onFailure(Call<SendFriendRequestResponse> call, Throwable t) {
-                Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                }
             }
         });
     }

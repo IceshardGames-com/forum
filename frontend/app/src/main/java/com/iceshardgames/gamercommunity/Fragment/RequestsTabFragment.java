@@ -8,11 +8,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
 import com.iceshardgames.gamercommunity.APIintegration.ApiService;
 import com.iceshardgames.gamercommunity.Adapter.FriendRequestAdapter;
@@ -20,8 +22,10 @@ import com.iceshardgames.gamercommunity.DB.FriendRequest;
 import com.iceshardgames.gamercommunity.Model.Request.BlockUserRequest;
 import com.iceshardgames.gamercommunity.Model.Response.FriendRequestResponse;
 import com.iceshardgames.gamercommunity.R;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -30,12 +34,14 @@ public class RequestsTabFragment extends Fragment {
     private RecyclerView friendRequestRecycler;
     private View tvNoRequests;
 
-    @Nullable @Override
+    @Nullable
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_tab_requests, container, false);
     }
 
-    @Override public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
+    @Override
+    public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
         friendRequestRecycler = v.findViewById(R.id.friendRequestRecycler);
         tvNoRequests = v.findViewById(R.id.tv_no_requests);
         friendRequestRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -89,9 +95,13 @@ public class RequestsTabFragment extends Fragment {
 
             @Override
             public void onFailure(Call<FriendRequestResponse> call, Throwable t) {
-                tvNoRequests.setVisibility(View.VISIBLE);
-                friendRequestRecycler.setVisibility(View.GONE);
-                Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        tvNoRequests.setVisibility(View.VISIBLE);
+                        friendRequestRecycler.setVisibility(View.GONE);
+                        Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                }
             }
         });
     }
@@ -101,7 +111,8 @@ public class RequestsTabFragment extends Fragment {
         String accessToken = prefs.getString("accessToken", null);
         ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
         apiService.acceptFriendRequest("Bearer " + accessToken, requestId).enqueue(new Callback<FriendRequestResponse>() {
-            @Override public void onResponse(Call<FriendRequestResponse> call, Response<FriendRequestResponse> response) {
+            @Override
+            public void onResponse(Call<FriendRequestResponse> call, Response<FriendRequestResponse> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(getContext(), "Request accepted", Toast.LENGTH_SHORT).show();
                     loadFriendRequests();
@@ -109,8 +120,14 @@ public class RequestsTabFragment extends Fragment {
                     Toast.makeText(getContext(), "Failed to accept", Toast.LENGTH_SHORT).show();
                 }
             }
-            @Override public void onFailure(Call<FriendRequestResponse> call, Throwable t) {
-                Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+
+            @Override
+            public void onFailure(Call<FriendRequestResponse> call, Throwable t) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                }
             }
         });
     }
@@ -120,7 +137,8 @@ public class RequestsTabFragment extends Fragment {
         String accessToken = prefs.getString("accessToken", null);
         ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
         apiService.declineFriendRequest("Bearer " + accessToken, requestId).enqueue(new Callback<FriendRequestResponse>() {
-            @Override public void onResponse(Call<FriendRequestResponse> call, Response<FriendRequestResponse> resp) {
+            @Override
+            public void onResponse(Call<FriendRequestResponse> call, Response<FriendRequestResponse> resp) {
                 if (resp.isSuccessful()) {
                     Toast.makeText(getContext(), "Declined", Toast.LENGTH_SHORT).show();
                     loadFriendRequests();
@@ -128,8 +146,14 @@ public class RequestsTabFragment extends Fragment {
                     Toast.makeText(getContext(), "Failed to decline", Toast.LENGTH_SHORT).show();
                 }
             }
-            @Override public void onFailure(Call<FriendRequestResponse> call, Throwable t) {
-                Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+
+            @Override
+            public void onFailure(Call<FriendRequestResponse> call, Throwable t) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                }
             }
         });
     }
@@ -139,7 +163,8 @@ public class RequestsTabFragment extends Fragment {
         String accessToken = prefs.getString("accessToken", null);
         ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
         apiService.blockUser("Bearer " + accessToken, new BlockUserRequest(userId)).enqueue(new Callback<FriendRequestResponse>() {
-            @Override public void onResponse(Call<FriendRequestResponse> call, Response<FriendRequestResponse> resp) {
+            @Override
+            public void onResponse(Call<FriendRequestResponse> call, Response<FriendRequestResponse> resp) {
                 if (resp.isSuccessful()) {
                     Toast.makeText(getContext(), "Blocked", Toast.LENGTH_SHORT).show();
                     loadFriendRequests();
@@ -147,8 +172,14 @@ public class RequestsTabFragment extends Fragment {
                     Toast.makeText(getContext(), "Failed to block", Toast.LENGTH_SHORT).show();
                 }
             }
-            @Override public void onFailure(Call<FriendRequestResponse> call, Throwable t) {
-                Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+
+            @Override
+            public void onFailure(Call<FriendRequestResponse> call, Throwable t) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                }
             }
         });
     }

@@ -14,18 +14,26 @@ import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterResponse
 import com.iceshardgames.gamercommunity.Model.Request.BlockUserRequest;
 import com.iceshardgames.gamercommunity.Model.Request.ConversationCreateRequest;
 import com.iceshardgames.gamercommunity.Model.Request.CreateForumRequest;
+import com.iceshardgames.gamercommunity.Model.Request.CreatePostRequest;
 import com.iceshardgames.gamercommunity.Model.Response.ConversationResponse;
 import com.iceshardgames.gamercommunity.Model.Request.DeviceRegistrationRequest;
 import com.iceshardgames.gamercommunity.Model.Response.CreateForumResponse;
+import com.iceshardgames.gamercommunity.Model.Response.CreatePostResponse;
 import com.iceshardgames.gamercommunity.Model.Response.DevicesResponse;
+import com.iceshardgames.gamercommunity.Model.Response.FollowResponse;
 import com.iceshardgames.gamercommunity.Model.Response.FriendListResponse;
 import com.iceshardgames.gamercommunity.Model.Response.FriendRequestResponse;
 import com.iceshardgames.gamercommunity.Model.Request.LastSeenRequest;
+import com.iceshardgames.gamercommunity.Model.Response.GetPostsResponse;
+import com.iceshardgames.gamercommunity.Model.Response.JoinResponse;
 import com.iceshardgames.gamercommunity.Model.Response.LastSeenResponse;
+import com.iceshardgames.gamercommunity.Model.Response.LeaveResponse;
 import com.iceshardgames.gamercommunity.Model.Response.MessagesResponse;
 import com.iceshardgames.gamercommunity.Model.Request.SendFriendRequest;
+import com.iceshardgames.gamercommunity.Model.Response.PostLikeResponse;
 import com.iceshardgames.gamercommunity.Model.Response.SendFriendRequestResponse;
 import com.iceshardgames.gamercommunity.Model.Request.SendMessageRequest;
+import com.iceshardgames.gamercommunity.Model.Response.UnfollowResponse;
 import com.iceshardgames.gamercommunity.Model.Response.UserSearchResponse;
 
 import retrofit2.Call;
@@ -85,6 +93,7 @@ public interface ApiService {
             @Header("Authorization") String token,
             @Path("id") String requestId
     );
+
     @PATCH("/api/friends/decline/{id}")
     Call<FriendRequestResponse> declineFriendRequest(
             @Header("Authorization") String token,
@@ -102,6 +111,7 @@ public interface ApiService {
             @Header("Authorization") String token,
             @Body SendFriendRequest request
     );
+
     @GET("/api/users/search")
     Call<UserSearchResponse> searchUsers(
             @Header("Authorization") String token,
@@ -110,6 +120,7 @@ public interface ApiService {
             @Query("limit") int limit,
             @Query("includeInactive") boolean includeInactive
     );
+
     @GET("/api/friends")
     Call<FriendListResponse> getFriends(
             @Header("Authorization") String token,
@@ -180,5 +191,44 @@ public interface ApiService {
 
     @POST("/api/forums")
     Call<CreateForumResponse> createForum(@Header("Authorization") String token,
-                                            @Body CreateForumRequest body);
+                                          @Body CreateForumRequest body);
+
+    @GET("/api/forums/slug/{slug}")
+    Call<CreateForumResponse> getForumBySlug(
+            @Header("Authorization") String token,
+            @Path("slug") String slug
+    );
+
+    @POST("/api/forums/{forumId}/follow")
+    Call<FollowResponse> followForum(@Header("Authorization") String token, @Path("forumId") String forumId);
+
+    @POST("/api/forums/{forumId}/unfollow")
+    Call<UnfollowResponse> unfollowForum(@Header("Authorization") String token, @Path("forumId") String forumId);
+
+    @POST("/api/forums/{forumId}/join")
+    Call<JoinResponse> joinForum(@Header("Authorization") String token, @Path("forumId") String forumId);
+
+    @POST("/api/forums/{forumId}/leave")
+    Call<LeaveResponse> leaveForum(@Header("Authorization") String token, @Path("forumId") String forumId);
+
+    // ApiService.java
+    @POST("/api/forums/{forumId}/posts")
+    Call<CreatePostResponse> createPost(
+            @Header("Authorization") String token,
+            @Path("forumId") String forumId,
+            @Body CreatePostRequest body
+    );
+
+    @GET("/api/forums/{forumId}/posts")
+    Call<GetPostsResponse> getPosts(
+            @Header("Authorization") String token,
+            @Path("forumId") String forumId
+    );
+
+    @POST("api/forums/posts/{postId}/like")
+    Call<PostLikeResponse> likePost(
+            @Header("Authorization") String bearer,
+            @Path("postId") String postId
+    );
+
 }

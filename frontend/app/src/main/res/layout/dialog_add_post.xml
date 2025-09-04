@@ -48,7 +48,7 @@
             android:textColor="#FFFFFF"
             android:fontFamily="@font/titilliumweb_bold"
             android:layout_marginTop="@dimen/_10sdp"
-            android:background="@drawable/category_button_selected"
+            android:background="@drawable/button_round_background_curve"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 

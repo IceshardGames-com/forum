@@ -51,6 +51,10 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumViewHol
 
             Bundle bundle = new Bundle();
             bundle.putString("forum_title", forumList.get(position).getTitle());
+            bundle.putString("forum_id", forumList.get(position).getId());
+            bundle.putString("forum_status", forumList.get(position).getStats());
+            bundle.putString("forum_permission", forumList.get(position).getPostPermission());
+
             detailFragment.setArguments(bundle);
 
             fragmentManager.beginTransaction()

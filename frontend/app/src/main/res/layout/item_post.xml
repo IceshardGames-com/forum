@@ -1,9 +1,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
     android:background="@drawable/bg_gradient_companynews"
     android:orientation="vertical"
-    android:layout_marginBottom="10dp"
     android:padding="12dp">
 
     <LinearLayout
@@ -24,9 +24,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="@dimen/_5sdp"
             android:fontFamily="@font/titilliumweb_bold"
             android:gravity="center_vertical"
+            android:maxLines="2"
             android:text="Post Title"
             android:textColor="@color/white"
             android:textSize="14dp" />
@@ -40,38 +40,57 @@
         android:layout_marginTop="@dimen/_5sdp"
         android:orientation="horizontal">
 
-        <ImageView
-            android:layout_width="@dimen/_10sdp"
-            android:layout_height="@dimen/_10sdp"
-            android:src="@drawable/ic_person"
-            android:tint="#6A697A"/>
 
-        <TextView
-            android:id="@+id/postMeta"
-            android:text="by User"
-            android:textColor="#6A697A"
-            android:layout_marginStart="@dimen/_5sdp"
-            android:textSize="10sp"
-            android:fontFamily="@font/titilliumweb_raguler"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <ImageView
-            android:layout_width="@dimen/_10sdp"
-            android:layout_height="@dimen/_10sdp"
-            android:src="@drawable/time"
-            android:layout_marginStart="@dimen/_15sdp"
-            android:tint="#6A697A"/>
+            <ImageView
+                android:layout_width="@dimen/_10sdp"
+                android:layout_height="@dimen/_10sdp"
+                android:src="@drawable/ic_person"
+                android:tint="#6A697A" />
 
-        <TextView
-            android:id="@+id/postTime"
-            android:text="2h ago"
-            android:layout_marginStart="@dimen/_5sdp"
-            android:textColor="#6A697A"
-            android:textSize="10sp"
-            android:fontFamily="@font/titilliumweb_raguler"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/postMeta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_5sdp"
+                android:fontFamily="@font/titilliumweb_raguler"
+                android:text="by User"
+                android:textColor="#6A697A"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/_10sdp"
+                android:layout_height="@dimen/_10sdp"
+                android:layout_marginStart="@dimen/_15sdp"
+                android:src="@drawable/time"
+                android:tint="#6A697A" />
+
+            <TextView
+                android:id="@+id/postTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_5sdp"
+                android:fontFamily="@font/titilliumweb_raguler"
+                android:text="2h ago"
+                android:textColor="#6A697A"
+                android:textSize="10sp" />
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -81,40 +100,57 @@
         android:layout_marginTop="@dimen/_5sdp"
         android:orientation="horizontal">
 
-        <ImageView
-            android:layout_width="@dimen/_10sdp"
-            android:layout_height="@dimen/_10sdp"
-            android:src="@drawable/chat"
-            android:tint="#6A697A"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/postReplies"
-            android:text="12 replies"
-            android:textColor="#6A697A"
-            android:textSize="10sp"
-            android:layout_marginStart="@dimen/_5sdp"
-            android:fontFamily="@font/titilliumweb_raguler"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            <ImageView
+                android:layout_width="@dimen/_10sdp"
+                android:layout_height="@dimen/_10sdp"
+                android:src="@drawable/chat"
+                android:tint="#6A697A" />
 
-        <ImageView
-            android:layout_width="@dimen/_10sdp"
-            android:layout_height="@dimen/_10sdp"
-            android:src="@drawable/heart"
-            android:layout_marginStart="@dimen/_15sdp"
-            android:tint="#6A697A"/>
+            <TextView
+                android:id="@+id/postReplies"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_5sdp"
+                android:fontFamily="@font/titilliumweb_raguler"
+                android:text="12 replies"
+                android:textColor="#6A697A"
+                android:textSize="10sp" />
+        </LinearLayout>
 
-        <TextView
-            android:id="@+id/postLikes"
-            android:text="45 likes"
-            android:textColor="#6A697A"
-            android:textSize="10sp"
-            android:layout_marginStart="@dimen/_5sdp"
-            android:fontFamily="@font/titilliumweb_raguler"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
+            <ImageView
+                android:layout_width="@dimen/_10sdp"
+                android:layout_height="@dimen/_10sdp"
+                android:layout_marginStart="@dimen/_15sdp"
+                android:src="@drawable/heart"
+                android:tint="#6A697A" />
 
+            <TextView
+                android:id="@+id/postLikes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_5sdp"
+                android:fontFamily="@font/titilliumweb_raguler"
+                android:text="45 likes"
+                android:textColor="#6A697A"
+                android:textSize="10sp" />
+
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

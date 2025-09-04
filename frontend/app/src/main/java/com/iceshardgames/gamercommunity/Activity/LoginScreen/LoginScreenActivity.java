@@ -236,6 +236,7 @@ LoginScreenActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<LoginResponse> call, Throwable t) {
+
                 Utills.hideLoadingDialog();
                 Toast.makeText(LoginScreenActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.e("LoginAPI", "Failure", t);
