@@ -295,6 +295,7 @@
                 android:layout_height="wrap_content"
                 android:text="CONNECT VIA"
                 android:alpha="0.8"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 android:fontFamily="@font/titilliumweb_semibold"
@@ -306,6 +307,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tv_connect_via">

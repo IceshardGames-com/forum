@@ -22,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="10dp">
+        android:paddingHorizontal="10dp">
 
         <ScrollView
             android:layout_width="match_parent"
@@ -55,6 +55,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
+                        <Button
+                            android:id="@+id/btnFlushNow"
+                            android:visibility="gone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Flush Now (DEV)"
+                            android:layout_marginTop="16dp"
+                            android:background="@drawable/button_round_background_curve"
+                            android:textColor="@color/white"
+                            android:padding="8dp"/>
 
                         <TextView
                             android:id="@+id/tvPostAuthor"
@@ -63,15 +73,16 @@
                             android:fontFamily="@font/titilliumweb_bold"
                             android:text="ModMaster"
                             android:textColor="@color/white"
-                            android:textSize="18sp" />
+                            android:textSize="20sp" />
 
                         <TextView
                             android:id="@+id/tvPostTime"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="4h ago"
-                            android:textColor="@color/hint_gray"
-                            android:textSize="12sp" />
+                            android:fontFamily="@font/titilliumweb_raguler"
+                            android:textColor="@color/light_gray"
+                            android:textSize="10sp" />
                     </LinearLayout>
 
                 </LinearLayout>
@@ -79,6 +90,7 @@
                 <!-- Post Title -->
                 <TextView
                     android:id="@+id/tvPostTitle"
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -93,10 +105,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:fontFamily="@font/titilliumweb_raguler"
+                    android:fontFamily="@font/titilliumweb_semibold"
                     android:text="Hey everyone! I've been working on a comprehensive graphics enhancement mod for months..."
-                    android:textColor="@color/light_gray"
-                    android:textSize="12sp" />
+                    android:textColor="#D5D5D5"
+                    android:textSize="14sp"
+                    android:ellipsize="end"
+                    android:maxLines="5"
+                    android:scrollHorizontally="false"
+                    android:singleLine="false"
+                    android:overScrollMode="never" />
+
+
 
                 <!-- Like / Dislike / Share Row -->
                 <LinearLayout
@@ -129,7 +148,7 @@
                             android:layout_marginStart="10dp"
                             android:fontFamily="@font/titilliumweb_bold"
                             android:text="0"
-                            android:textColor="@color/white"
+                            android:textColor="#B95D76"
                             android:textSize="14sp" />
                     </LinearLayout>
 
@@ -156,7 +175,7 @@
                             android:layout_marginStart="10dp"
                             android:fontFamily="@font/titilliumweb_bold"
                             android:text="0"
-                            android:textColor="@color/white"
+                            android:textColor="#B95D76"
                             android:textSize="14sp" />
                     </LinearLayout>
                     <!-- Reply -->
@@ -173,16 +192,17 @@
                             android:id="@+id/btnCommentReply"
                             android:layout_width="18dp"
                             android:layout_height="18dp"
-                            android:src="@drawable/comment"
-                            app:tint="#ffffff" />
+                            android:tint="#B95D76"
+                            android:src="@drawable/comment"/>
 
                         <TextView
+                            android:id="@+id/commentcount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
+                            android:layout_marginStart="8dp"
                             android:fontFamily="@font/titilliumweb_bold"
-                            android:text="12"
-                            android:textColor="@color/white"
+                            android:text="0"
+                            android:textColor="#B95D76"
                             android:textSize="12sp" />
                     </LinearLayout>
                     <!-- Share -->
@@ -198,8 +218,8 @@
                             android:id="@+id/imgPostShare"
                             android:layout_width="18dp"
                             android:layout_height="18dp"
-                            android:src="@drawable/share"
-                            android:tint="#ffffff" />
+                            android:tint="#B95D76"
+                            android:src="@drawable/share"/>
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -207,7 +227,7 @@
                             android:layout_marginStart="10dp"
                             android:fontFamily="@font/titilliumweb_bold"
                             android:text="Share"
-                            android:textColor="@color/white"
+                            android:textColor="#B95D76"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -225,6 +245,7 @@
                         android:layout_height="32dp"
                         android:background="@drawable/button_round_background"
                         android:scaleType="centerCrop"
+                        android:layout_marginTop="@dimen/_3sdp"
                         android:src="@drawable/profilepic" />
 
                     <LinearLayout
@@ -243,9 +264,10 @@
                             android:hint="Add a comment..."
                             android:maxLines="8"
                             android:padding="12dp"
+                            android:minLines="2"
                             android:textColor="#FFFFFF"
                             android:textColorHint="@color/texthint"
-                            android:textSize="10dp" />
+                            android:textSize="12dp" />
 
                         <TextView
                             android:id="@+id/btnSendComment"

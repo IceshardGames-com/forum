@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.text.TextPaint;
 import android.util.Log;
 import android.widget.TextView;
@@ -28,6 +29,7 @@ import com.iceshardgames.gamercommunity.R;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -192,5 +194,30 @@ public class Utills {
     }
 
 
+    public static long parseIso8601ToMillis(String iso) {
+        if (iso == null || iso.isEmpty()) return 0L;
 
+        // Works on all API levels if Java 8 desugaring is enabled (recommended)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                return Instant.parse(iso).toEpochMilli();
+            }
+        } catch (Throwable ignore) {}
+
+        // Fallback with millis
+        try {
+            java.text.SimpleDateFormat f = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US);
+            f.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+            return f.parse(iso).getTime();
+        } catch (Exception e1) {
+            // Fallback without millis
+            try {
+                java.text.SimpleDateFormat f2 = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US);
+                f2.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                return f2.parse(iso).getTime();
+            } catch (Exception e2) {
+                return 0L;
+            }
+        }
+    }
 }

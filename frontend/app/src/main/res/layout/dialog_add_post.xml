@@ -11,6 +11,7 @@
         android:padding="@dimen/_10sdp"
         android:background="@drawable/border">
 
+
         <EditText
             android:id="@+id/inputPostTitle"
             android:layout_width="match_parent"
@@ -19,9 +20,9 @@
             android:textColorHint="#AAAAAA"
             android:textColor="#FFFFFF"
             android:padding="12dp"
-            android:textSize="10dp"
+            android:textSize="12dp"
             android:fontFamily="@font/titilliumweb_semibold"
-            android:hint="Post Title" />
+            android:hint="Title" />
 
         <EditText
             android:id="@+id/inputPostContent"
@@ -34,7 +35,7 @@
             android:textColorHint="#AAAAAA"
             android:textColor="#FFFFFF"
             android:padding="12dp"
-            android:textSize="10dp"
+            android:textSize="12dp"
             android:fontFamily="@font/titilliumweb_semibold"
             android:gravity="top" />
 

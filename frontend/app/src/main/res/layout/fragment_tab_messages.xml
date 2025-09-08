@@ -16,7 +16,8 @@
         android:layout_height="50dp"
         android:background="@drawable/bg_gradient_discussion"
         android:orientation="horizontal"
-        android:layout_margin="10dp"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginVertical="@dimen/_3sdp"
         android:gravity="center_vertical">
 
         <ImageView
@@ -33,7 +34,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:hint="Search chats..."
+            android:hint="Search Friends..."
             android:textColor="#FFFFFF"
             android:textColorHint="#888888"
             android:paddingHorizontal="10dp"

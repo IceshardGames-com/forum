@@ -11,6 +11,11 @@ import com.iceshardgames.gamercommunity.Activity.OtpScreen.VerifyOtpRequest;
 import com.iceshardgames.gamercommunity.Activity.ProfileScreen.InterestsResponse;
 import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterRequest;
 import com.iceshardgames.gamercommunity.Activity.RegisterScreen.RegisterResponse;
+import com.iceshardgames.gamercommunity.AddCommentBody;
+import com.iceshardgames.gamercommunity.BulkBody;
+import com.iceshardgames.gamercommunity.CommentResp;
+import com.iceshardgames.gamercommunity.CommentsPage;
+import com.iceshardgames.gamercommunity.GenericResp;
 import com.iceshardgames.gamercommunity.Model.Request.BlockUserRequest;
 import com.iceshardgames.gamercommunity.Model.Request.ConversationCreateRequest;
 import com.iceshardgames.gamercommunity.Model.Request.CreateForumRequest;
@@ -36,6 +41,7 @@ import com.iceshardgames.gamercommunity.Model.Request.SendMessageRequest;
 import com.iceshardgames.gamercommunity.Model.Response.UnfollowResponse;
 import com.iceshardgames.gamercommunity.Model.Response.UserSearchResponse;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -225,10 +231,39 @@ public interface ApiService {
             @Path("forumId") String forumId
     );
 
-    @POST("api/forums/posts/{postId}/like")
-    Call<PostLikeResponse> likePost(
+    @POST("api/forums/posts/{postId}/comments")
+    Call<GenericResp<CommentResp>> addComment(
+            @Header("Authorization") String bearer,@Path("postId") String postId, @Body AddCommentBody body);
+
+
+    @GET("api/forums/posts/{postId}/comments")
+    Call<GenericResp<CommentsPage>> listComments(
             @Header("Authorization") String bearer,
-            @Path("postId") String postId
+            @Path("postId") String postId,
+            @Query("parentCommentId") String parentCommentId,
+            @Query("page") Integer page,
+            @Query("limit") Integer limit
     );
 
+
+    // Individual toggles (you can use these OR the bulk endpoint)
+    @POST("api/forums/posts/{postId}/like")
+    Call<ResponseBody> likePost(@Header("Authorization") String bearer,@Path("postId") String postId);
+
+
+    @POST("api/forums/posts/{postId}/dislike")
+    Call<ResponseBody> dislikePost(@Header("Authorization") String bearer,@Path("postId") String postId);
+
+
+    @POST("api/forums/comments/{commentId}/like")
+    Call<ResponseBody> likeComment(@Header("Authorization") String bearer,@Path("commentId") String commentId);
+
+
+    @POST("api/forums/comments/{commentId}/dislike")
+    Call<ResponseBody> dislikeComment(@Header("Authorization") String bearer,@Path("commentId") String commentId);
+
+
+    // Bulk interactions (flush every 30s)
+    @POST("api/forums/interactions/bulk")
+    Call<ResponseBody> bulk(@Header("Authorization") String bearer, @Body BulkBody body);
 }

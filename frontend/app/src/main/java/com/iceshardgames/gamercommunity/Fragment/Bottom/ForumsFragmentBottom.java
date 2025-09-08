@@ -3,7 +3,6 @@ package com.iceshardgames.gamercommunity.Fragment.Bottom;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
@@ -35,7 +34,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.iceshardgames.gamercommunity.APIintegration.ApiClient;
 import com.iceshardgames.gamercommunity.APIintegration.ApiService;
-import com.iceshardgames.gamercommunity.Activity.OtpScreen.ChangePasswordRequest;
 import com.iceshardgames.gamercommunity.Adapter.ForumAdapter;
 import com.iceshardgames.gamercommunity.Model.ForumModel;
 import com.iceshardgames.gamercommunity.Model.Request.CreateForumRequest;
@@ -431,7 +429,7 @@ public class ForumsFragmentBottom extends Fragment {
                                     Log.e("==slug", "Retry with slug: " + newSlug);
 
                                     // Retry the API call with new slug
-                                    retryCreateForum(title, description, category, verified, newSlug, 1);
+                                    retryCreateForum(title, description, category, verified, newSlug, 1,dialog);
                                     return;
                                 }
                             }
@@ -496,7 +494,7 @@ public class ForumsFragmentBottom extends Fragment {
         performLiveSearch(searchBar.getText().toString()); // Refresh with current search text
     }
 
-    private void retryCreateForum(String title, String description, String category, boolean verified, String newSlug, int attempt) {
+    private void retryCreateForum(String title, String description, String category, boolean verified, String newSlug, int attempt, AlertDialog dialog) {
         if (attempt > 5) { // Limit retries to avoid infinite loop
             Toast.makeText(getActivity(), "Failed to create forum after multiple attempts", Toast.LENGTH_LONG).show();
             return;
@@ -531,7 +529,7 @@ public class ForumsFragmentBottom extends Fragment {
                                 Log.e("==slug", "Retry with slug: " + newSlug);
 
                                 // Retry with increment
-                                retryCreateForum(title, description, category, verified, newSlug, attempt + 1);
+                                retryCreateForum(title, description, category, verified, newSlug, attempt + 1, dialog);
                                 return;
                             }
                         }
@@ -559,6 +557,7 @@ public class ForumsFragmentBottom extends Fragment {
                 addForumToList(uiModel);
                 Utills.hideLoadingDialog();
                 Toast.makeText(getActivity(), "Forum created", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
             }
 
             @Override
