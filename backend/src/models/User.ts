@@ -23,6 +23,9 @@ export interface IUser extends Document {
   createdAt: Date;
   updatedAt: Date;
 
+  avatarImageId?: string; // Cloudflare Images ID
+  avatarR2Key?: string; // Optional fallback stored in R2
+
   // Instance methods
   comparePassword(candidatePassword: string): Promise<boolean>;
   toJSON(): Omit<IUser, 'password'>;
@@ -87,6 +90,15 @@ const userSchema = new Schema<IUser>(
         ref: 'GamingInterest',
       },
     ],
+    avatarImageId: {
+      type: String,
+      default: undefined,
+      index: true,
+    },
+    avatarR2Key: {
+      type: String,
+      default: undefined,
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt
@@ -167,6 +179,24 @@ userSchema.virtual('displayName').get(function () {
 // Virtual to check if user is privileged (developer or admin)
 userSchema.virtual('isPrivileged').get(function () {
   return this.role === UserRole.DEVELOPER || this.role === UserRole.ADMIN;
+});
+
+// Virtual for avatar URL
+userSchema.virtual('avatar').get(function () {
+  try {
+    const self = this as any;
+    const { CF_IMAGES_DELIVERY_URL, R2_PUBLIC_BASE_URL } = require('../config/env').envConfig;
+    if (self.avatarImageId && CF_IMAGES_DELIVERY_URL) {
+      const base = CF_IMAGES_DELIVERY_URL.replace(/\/$/, '');
+      return `${base}/${self.avatarImageId}/avatar`; // use an Images variant named "avatar"
+    }
+    if (self.avatarR2Key && R2_PUBLIC_BASE_URL) {
+      return `${R2_PUBLIC_BASE_URL.replace(/\/$/, '')}/${self.avatarR2Key}`;
+    }
+    return undefined;
+  } catch (_e) {
+    return undefined;
+  }
 });
 
 // Static interface for model methods

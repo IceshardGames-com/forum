@@ -45,6 +45,8 @@ export interface UpdateProfileData {
   username?: string;
   email?: string;
   interests?: string[];
+  avatarImageId?: string;
+  avatarR2Key?: string;
 }
 
 /**
@@ -337,7 +339,7 @@ export class AuthService {
     const logger = createLogger(requestId);
 
     try {
-      const { username, email, interests } = updateData;
+      const { username, email, interests, avatarImageId, avatarR2Key } = updateData;
 
       // Find the user
       const user = await User.findById(userId);
@@ -401,6 +403,14 @@ export class AuthService {
           throw new AppError('Invalid interest IDs provided', 400, 'INVALID_INTERESTS');
         }
         (user as any).interests = interests;
+      }
+
+      // Update avatar fields if provided
+      if (avatarImageId !== undefined) {
+        (user as any).avatarImageId = avatarImageId || undefined;
+      }
+      if (avatarR2Key !== undefined) {
+        (user as any).avatarR2Key = avatarR2Key || undefined;
       }
 
       // Save updated user

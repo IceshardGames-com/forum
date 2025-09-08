@@ -392,6 +392,14 @@
  *                 items:
  *                   type: string
  *                   example: "64d2f1e9c7b2a1f0c9a1e2b3"
+ *               avatarImageId:
+ *                 type: string
+ *                 description: Cloudflare Images ID for the user's avatar
+ *                 example: "abcd1234efgh5678ijkl9012"
+ *               avatarR2Key:
+ *                 type: string
+ *                 description: Optional R2 object key for the user's avatar
+ *                 example: "avatars/1717000000-xyz123"
  *     responses:
  *       200:
  *         description: Profile updated successfully

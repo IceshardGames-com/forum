@@ -13,11 +13,13 @@ interface ApiResponse<T = any> {
 }
 
 export const createForum = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
-  const { name, slug, description, verified, postPermission } = req.body as { name: string; slug: string; description?: string; verified?: boolean; postPermission?: ForumPostPermission };
-  const payload: { name: string; slug: string; description?: string; verified?: boolean; postPermission?: ForumPostPermission } = { name, slug };
+  const { name, slug, description, verified, postPermission, imageId, imageR2Key } = req.body as { name: string; slug: string; description?: string; verified?: boolean; postPermission?: ForumPostPermission; imageId?: string; imageR2Key?: string };
+  const payload: { name: string; slug: string; description?: string; verified?: boolean; postPermission?: ForumPostPermission; imageId?: string; imageR2Key?: string } = { name, slug };
   if (description !== undefined) payload.description = description;
   if (verified !== undefined) payload.verified = verified;
   if (postPermission !== undefined) payload.postPermission = postPermission;
+  if (imageId !== undefined) payload.imageId = imageId;
+  if (imageR2Key !== undefined) payload.imageR2Key = imageR2Key;
   const forum = await forumService.createForum(req.user!._id, payload);
   const response: ApiResponse = { success: true, data: { forum }, message: 'Forum created', requestId: req.id, timestamp: new Date().toISOString() };
   res.status(201).json(response);
@@ -61,8 +63,11 @@ export const leaveForum = asyncErrorHandler(async (req: Request, res: Response):
 
 export const createPost = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
   const { forumId } = req.params as { forumId: string };
-  const { title, content } = req.body as { title: string; content: string };
-  const post = await forumService.createPost(req.user!._id, forumId, { title, content });
+  const { title, content, imageIds, mediaR2Keys } = req.body as { title: string; content: string; imageIds?: string[]; mediaR2Keys?: string[] };
+  const payload: { title: string; content: string; imageIds?: string[]; mediaR2Keys?: string[] } = { title, content };
+  if (Array.isArray(imageIds)) payload.imageIds = imageIds;
+  if (Array.isArray(mediaR2Keys)) payload.mediaR2Keys = mediaR2Keys;
+  const post = await forumService.createPost(req.user!._id, forumId, payload);
   const response: ApiResponse = { success: true, data: { post }, message: 'Post created', requestId: req.id, timestamp: new Date().toISOString() };
   res.status(201).json(response);
 });

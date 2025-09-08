@@ -44,6 +44,18 @@ export interface EnvConfig {
 
   // Socket.IO Configuration
   CLIENT_URL: string;
+
+  // Cloudflare R2 (S3-compatible) Configuration
+  R2_ACCOUNT_ID: string;
+  R2_ACCESS_KEY_ID: string;
+  R2_SECRET_ACCESS_KEY: string;
+  R2_BUCKET_NAME: string;
+  R2_PUBLIC_BASE_URL: string;
+
+  // Cloudflare Images Configuration
+  CF_IMAGES_ACCOUNT_ID: string;
+  CF_IMAGES_API_TOKEN: string;
+  CF_IMAGES_DELIVERY_URL: string;
 }
 
 const getEnvValue = (key: string, defaultValue?: string): string => {
@@ -116,6 +128,18 @@ export const envConfig: EnvConfig = {
 
     // Socket.IO Configuration
   CLIENT_URL: getEnvValue('CLIENT_URL', process.env.NODE_ENV === 'production' ? 'https://forum-sjpj.onrender.com' : 'http://localhost:3000'),
+
+  // Cloudflare R2 (S3-compatible) Configuration
+  R2_ACCOUNT_ID: getEnvValue('R2_ACCOUNT_ID', ''),
+  R2_ACCESS_KEY_ID: getEnvValue('R2_ACCESS_KEY_ID', ''),
+  R2_SECRET_ACCESS_KEY: getEnvValue('R2_SECRET_ACCESS_KEY', ''),
+  R2_BUCKET_NAME: getEnvValue('R2_BUCKET_NAME', ''),
+  R2_PUBLIC_BASE_URL: getEnvValue('R2_PUBLIC_BASE_URL', ''),
+
+  // Cloudflare Images Configuration
+  CF_IMAGES_ACCOUNT_ID: getEnvValue('CF_IMAGES_ACCOUNT_ID', ''),
+  CF_IMAGES_API_TOKEN: getEnvValue('CF_IMAGES_API_TOKEN', ''),
+  CF_IMAGES_DELIVERY_URL: getEnvValue('CF_IMAGES_DELIVERY_URL', ''),
 };
 
 // Validate critical environment variables on startup
@@ -136,6 +160,21 @@ export const validateEnv = (): void => {
   if (envConfig.NODE_ENV === 'production') {
     const emailVars = ['EMAIL_USER', 'EMAIL_PASS'];
     for (const v of emailVars) {
+      if (!process.env[v]) {
+        throw new Error(`Required environment variable ${v} is not set for production`);
+      }
+    }
+
+    // In production, require Cloudflare configurations
+    const r2Vars = ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME'];
+    for (const v of r2Vars) {
+      if (!process.env[v]) {
+        throw new Error(`Required environment variable ${v} is not set for production`);
+      }
+    }
+
+    const imagesVars = ['CF_IMAGES_ACCOUNT_ID', 'CF_IMAGES_API_TOKEN', 'CF_IMAGES_DELIVERY_URL'];
+    for (const v of imagesVars) {
       if (!process.env[v]) {
         throw new Error(`Required environment variable ${v} is not set for production`);
       }

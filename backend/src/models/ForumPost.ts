@@ -11,6 +11,8 @@ export interface IForumPost extends Document {
   shares: number;
   createdAt: Date;
   updatedAt: Date;
+  imageIds?: string[]; // Cloudflare Images IDs
+  mediaR2Keys?: string[]; // R2 keys for attachments (images/gifs/files)
 }
 
 const forumPostSchema = new Schema<IForumPost>({
@@ -49,6 +51,14 @@ const forumPostSchema = new Schema<IForumPost>({
   shares: {
     type: Number,
     default: 0,
+  },
+  imageIds: {
+    type: [String],
+    default: [],
+  },
+  mediaR2Keys: {
+    type: [String],
+    default: [],
   },
 }, {
   timestamps: true,
