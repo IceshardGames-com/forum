@@ -15,6 +15,7 @@ import './userSearch.swagger';
 import './messages.swagger';
 import './conversations.swagger';
 import './devices.swagger';
+import './forums.swagger';
 
 /**
  * Future documentation files can be imported here:

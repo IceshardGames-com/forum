@@ -20,6 +20,11 @@
  *           type: string
  *         description: Search term (matches label or value, case-insensitive)
  *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Optional category filter (lowercase key)
+ *       - in: query
  *         name: page
  *         schema:
  *           type: integer
@@ -52,6 +57,8 @@
  *                           label:
  *                             type: string
  *                           value:
+ *                             type: string
+ *                           category:
  *                             type: string
  *                     page:
  *                       type: integer
