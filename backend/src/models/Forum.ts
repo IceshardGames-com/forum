@@ -19,6 +19,8 @@ export interface IForum extends Document {
   membersCount: number;
   createdAt: Date;
   updatedAt: Date;
+  imageId?: string; // Cloudflare Images ID for forum banner/icon
+  imageR2Key?: string; // Optional R2 fallback
 }
 
 const forumSchema = new Schema<IForum>({
@@ -70,6 +72,14 @@ const forumSchema = new Schema<IForum>({
   membersCount: {
     type: Number,
     default: 0,
+  },
+  imageId: {
+    type: String,
+    default: undefined,
+  },
+  imageR2Key: {
+    type: String,
+    default: undefined,
   },
 }, {
   timestamps: true,

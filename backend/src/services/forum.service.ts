@@ -43,7 +43,7 @@ const sanitizeText = (text: string): string => {
 };
 
 export const forumService = {
-  async createForum(ownerId: string, data: { name: string; slug: string; description?: string; verified?: boolean; postPermission?: ForumPostPermission }): Promise<IForum> {
+  async createForum(ownerId: string, data: { name: string; slug: string; description?: string; verified?: boolean; postPermission?: ForumPostPermission; imageId?: string; imageR2Key?: string }): Promise<IForum> {
     const forum = await Forum.create({
       uuid: uuidv4(),
       name: data.name,
@@ -52,6 +52,8 @@ export const forumService = {
       owner: ensureObjectId(ownerId),
       verified: Boolean(data.verified) || false,
       postPermission: data.postPermission || ForumPostPermission.MEMBERS,
+      imageId: data.imageId,
+      imageR2Key: data.imageR2Key,
     });
 
     await ForumMember.create({ forum: forum._id, user: ownerId, role: ForumMemberRole.OWNER, isFollower: true });
@@ -104,14 +106,22 @@ export const forumService = {
     }
   },
 
-  async createPost(userId: string, forumId: string, data: { title: string; content: string }): Promise<IForumPost> {
+  async createPost(userId: string, forumId: string, data: { title: string; content: string; imageIds?: string[]; mediaR2Keys?: string[] }): Promise<IForumPost> {
     const forum = await Forum.findById(forumId);
     if (!forum) throw new Error('Forum not found');
     const allowed = await canUserPost(forum, userId);
     if (!allowed) throw new Error('Not allowed to post in this forum');
     const title = sanitizeText(data.title);
     const content = sanitizeText(data.content);
-    return ForumPost.create({ forum: forumId, author: userId, title, content });
+    const post = await ForumPost.create({
+      forum: forumId,
+      author: userId,
+      title,
+      content,
+      imageIds: Array.isArray(data.imageIds) ? data.imageIds.slice(0, 10) : [],
+      mediaR2Keys: Array.isArray(data.mediaR2Keys) ? data.mediaR2Keys.slice(0, 10) : [],
+    });
+    return post;
   },
 
   async listPosts(forumId: string, { page = 1, limit = 20 }: Pagination): Promise<IForumPost[]> {

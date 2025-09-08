@@ -202,6 +202,8 @@ export const updateProfileValidation = Joi.object({
     .max(5)
     .messages({ 'array.max': 'You can select up to 5 interests' })
     .optional(),
+  avatarImageId: Joi.string().min(1).optional().allow(null),
+  avatarR2Key: Joi.string().min(1).optional().allow(null),
   // Don't allow role updates through profile update
 }).min(1) // At least one field must be provided
   .options({

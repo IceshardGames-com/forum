@@ -145,12 +145,19 @@ export class AuthController {
   public updateProfile = asyncErrorHandler(async (req: Request, res: Response): Promise<void> => {
     const logger = createLogger(req.id);
 
-    const { username, email, interests } = req.body;
+    const { username, email, interests, avatarImageId, avatarR2Key } = req.body as { username?: string; email?: string; interests?: string[]; avatarImageId?: string; avatarR2Key?: string };
 
     // Call auth service
+    const payload: { username?: string; email?: string; interests?: string[]; avatarImageId?: string; avatarR2Key?: string } = {};
+    if (typeof username === 'string') payload.username = username;
+    if (typeof email === 'string') payload.email = email;
+    if (Array.isArray(interests)) payload.interests = interests;
+    if (typeof avatarImageId === 'string') payload.avatarImageId = avatarImageId;
+    if (typeof avatarR2Key === 'string') payload.avatarR2Key = avatarR2Key;
+
     const user = await authService.updateProfile(
       req.user!._id,
-      { username, email, interests },
+      payload,
       req.id
     );
 
