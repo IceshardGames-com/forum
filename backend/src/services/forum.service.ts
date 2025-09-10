@@ -130,22 +130,43 @@ export const forumService = {
     const allowed = await canUserComment(forum, userId);
     if (!allowed) throw new Error('Not allowed to react in this forum');
 
-    const existing = await ForumPostReaction.findOne({ post: postId, user: userId });
-    if (!existing) {
-      await ForumPostReaction.create({ post: postId, user: userId, type });
-      await ReactionEvent.create({ targetType: 'post', targetId: postId as any, user: userId as any, op: type === 'like' ? 'set_like' : 'set_dislike' });
-      return;
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      const existing = await ForumPostReaction.findOne({ post: postId, user: userId }).session(session);
+
+      let incLikes = 0;
+      let incDislikes = 0;
+
+      if (!existing) {
+        // none -> like/dislike
+        if (type === 'like') incLikes = 1; else incDislikes = 1;
+        await ForumPostReaction.create([{ post: postId, user: userId, type }], { session });
+        await ReactionEvent.create([{ targetType: 'post', targetId: postId as any, user: userId as any, op: type === 'like' ? 'set_like' : 'set_dislike' }], { session });
+      } else if (existing.type === type) {
+        // like -> like (toggle off) OR dislike -> dislike (toggle off)
+        if (type === 'like') incLikes = -1; else incDislikes = -1;
+        await existing.deleteOne({ session });
+        await ReactionEvent.create([{ targetType: 'post', targetId: postId as any, user: userId as any, op: 'unset' }], { session });
+      } else {
+        // switch like <-> dislike
+        if (type === 'like') { incLikes = 1; incDislikes = -1; } else { incLikes = -1; incDislikes = 1; }
+        existing.type = type;
+        await existing.save({ session });
+        await ReactionEvent.create([{ targetType: 'post', targetId: postId as any, user: userId as any, op: type === 'like' ? 'set_like' : 'set_dislike' }], { session });
+      }
+
+      const update: any = {};
+      if (incLikes) update.likes = incLikes;
+      if (incDislikes) update.dislikes = (update.dislikes || 0) + incDislikes;
+      if (Object.keys(update).length) {
+        await ForumPost.updateOne({ _id: postId }, { $inc: update }, { session });
+      }
+
+      await session.commitTransaction();
+    } finally {
+      session.endSession();
     }
-    if (existing.type === type) {
-      // Toggle off
-      await existing.deleteOne();
-      await ReactionEvent.create({ targetType: 'post', targetId: postId as any, user: userId as any, op: 'unset' });
-      return;
-    }
-    // Switch reaction
-    existing.type = type;
-    await existing.save();
-    await ReactionEvent.create({ targetType: 'post', targetId: postId as any, user: userId as any, op: type === 'like' ? 'set_like' : 'set_dislike' });
   },
 
   async sharePost(postId: string): Promise<void> {
@@ -202,20 +223,40 @@ export const forumService = {
     const allowed = await canUserComment(forum, userId);
     if (!allowed) throw new Error('Not allowed to react in this forum');
 
-    const existing = await ForumCommentReaction.findOne({ comment: commentId, user: userId });
-    if (!existing) {
-      await ForumCommentReaction.create({ comment: commentId, user: userId, type });
-      await ReactionEvent.create({ targetType: 'comment', targetId: commentId as any, user: userId as any, op: type === 'like' ? 'set_like' : 'set_dislike' });
-      return;
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      const existing = await ForumCommentReaction.findOne({ comment: commentId, user: userId }).session(session);
+
+      let incLikes = 0;
+      let incDislikes = 0;
+
+      if (!existing) {
+        if (type === 'like') incLikes = 1; else incDislikes = 1;
+        await ForumCommentReaction.create([{ comment: commentId, user: userId, type }], { session });
+        await ReactionEvent.create([{ targetType: 'comment', targetId: commentId as any, user: userId as any, op: type === 'like' ? 'set_like' : 'set_dislike' }], { session });
+      } else if (existing.type === type) {
+        if (type === 'like') incLikes = -1; else incDislikes = -1;
+        await existing.deleteOne({ session });
+        await ReactionEvent.create([{ targetType: 'comment', targetId: commentId as any, user: userId as any, op: 'unset' }], { session });
+      } else {
+        if (type === 'like') { incLikes = 1; incDislikes = -1; } else { incLikes = -1; incDislikes = 1; }
+        existing.type = type;
+        await existing.save({ session });
+        await ReactionEvent.create([{ targetType: 'comment', targetId: commentId as any, user: userId as any, op: type === 'like' ? 'set_like' : 'set_dislike' }], { session });
+      }
+
+      const update: any = {};
+      if (incLikes) update.likes = incLikes;
+      if (incDislikes) update.dislikes = (update.dislikes || 0) + incDislikes;
+      if (Object.keys(update).length) {
+        await ForumComment.updateOne({ _id: commentId }, { $inc: update }, { session });
+      }
+
+      await session.commitTransaction();
+    } finally {
+      session.endSession();
     }
-    if (existing.type === type) {
-      await existing.deleteOne();
-      await ReactionEvent.create({ targetType: 'comment', targetId: commentId as any, user: userId as any, op: 'unset' });
-      return;
-    }
-    existing.type = type;
-    await existing.save();
-    await ReactionEvent.create({ targetType: 'comment', targetId: commentId as any, user: userId as any, op: type === 'like' ? 'set_like' : 'set_dislike' });
   },
 
   async changeMemberRole(requesterId: string, forumId: string, targetUserId: string, role: ForumMemberRole): Promise<IForumMember> {

@@ -44,6 +44,10 @@ export interface EnvConfig {
 
   // Socket.IO Configuration
   CLIENT_URL: string;
+
+  // Reactions aggregation worker (optional)
+  REACTIONS_AGG_ENABLED?: boolean;
+  REACTIONS_AGG_INTERVAL_MS?: number;
 }
 
 const getEnvValue = (key: string, defaultValue?: string): string => {
@@ -116,6 +120,9 @@ export const envConfig: EnvConfig = {
 
     // Socket.IO Configuration
   CLIENT_URL: getEnvValue('CLIENT_URL', process.env.NODE_ENV === 'production' ? 'https://forum-sjpj.onrender.com' : 'http://localhost:3000'),
+  // Reactions aggregation worker (optional; defaults disabled)
+  REACTIONS_AGG_ENABLED: getEnvBoolean('REACTIONS_AGG_ENABLED', false),
+  REACTIONS_AGG_INTERVAL_MS: getEnvNumber('REACTIONS_AGG_INTERVAL_MS', 3600000),
 };
 
 // Validate critical environment variables on startup

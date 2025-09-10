@@ -210,7 +210,12 @@ const startServer = async (): Promise<void> => {
         socketio: 'Socket.IO enabled',
       });
     });
-    startReactionsWorker(15000);
+    // Start periodic aggregation only when explicitly enabled
+    if ((envConfig as any).REACTIONS_AGG_ENABLED) {
+      const interval = (envConfig as any).REACTIONS_AGG_INTERVAL_MS || 3600000;
+      startReactionsWorker(interval);
+      logger.info('Reactions aggregator enabled', { intervalMs: interval });
+    }
 
     // Graceful shutdown handling
     const gracefulShutdown = (signal: string) => {
