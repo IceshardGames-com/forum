@@ -5,6 +5,7 @@ import { envConfig, validateEnv } from './config/env';
 import { database } from './config/database';
 import { logger } from './utils/logger';
 import { jwtService } from './utils/jwt';
+import { startReactionsWorker } from './workers/reactions.worker';
 import { User } from './models/User';
 import { deviceService } from './services/chats/device.service';
 import { conversationService } from './services/chats/conversation.service';
@@ -209,6 +210,7 @@ const startServer = async (): Promise<void> => {
         socketio: 'Socket.IO enabled',
       });
     });
+    startReactionsWorker(5000);
 
     // Graceful shutdown handling
     const gracefulShutdown = (signal: string) => {
