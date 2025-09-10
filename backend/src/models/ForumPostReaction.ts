@@ -35,6 +35,7 @@ const forumPostReactionSchema = new Schema<IForumPostReaction>({
 });
 
 forumPostReactionSchema.index({ post: 1, user: 1 }, { unique: true });
+forumPostReactionSchema.index({ post: 1, type: 1 });
 
 export const ForumPostReaction = mongoose.model<IForumPostReaction>('ForumPostReaction', forumPostReactionSchema);
 export default ForumPostReaction;

@@ -9,7 +9,10 @@ export const logsQueryValidation = Joi.object({
   to: Joi.date().iso().optional(),
   order: Joi.string().valid('asc', 'desc').default('desc'),
   limit: Joi.number().integer().min(1).max(500).default(100),
-}).options({ stripUnknown: true, abortEarly: false });
+})
+  .or('level', 'requestId', 'q')
+  .messages({ 'object.missing': 'Provide at least one of: level, requestId, q' })
+  .options({ stripUnknown: true, abortEarly: false });
 
 export default { logsQueryValidation };
 

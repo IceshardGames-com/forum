@@ -122,6 +122,14 @@ export const forumService = {
   },
 
   async togglePostReaction(userId: string, postId: string, type: 'like' | 'dislike'): Promise<void> {
+    // Permission: must be at least a follower/member according to forum policy
+    const post = await ForumPost.findById(postId);
+    if (!post) throw new Error('Post not found');
+    const forum = await Forum.findById(post.forum);
+    if (!forum) throw new Error('Forum not found');
+    const allowed = await canUserComment(forum, userId);
+    if (!allowed) throw new Error('Not allowed to react in this forum');
+
     const existing = await ForumPostReaction.findOne({ post: postId, user: userId });
     if (!existing) {
       await ForumPostReaction.create({ post: postId, user: userId, type });
@@ -184,6 +192,16 @@ export const forumService = {
   },
 
   async toggleCommentReaction(userId: string, commentId: string, type: 'like' | 'dislike'): Promise<void> {
+    // Permission: same as comment/post within the forum
+    const comment = await ForumComment.findById(commentId);
+    if (!comment) throw new Error('Comment not found');
+    const post = await ForumPost.findById(comment.post);
+    if (!post) throw new Error('Post not found');
+    const forum = await Forum.findById(post.forum);
+    if (!forum) throw new Error('Forum not found');
+    const allowed = await canUserComment(forum, userId);
+    if (!allowed) throw new Error('Not allowed to react in this forum');
+
     const existing = await ForumCommentReaction.findOne({ comment: commentId, user: userId });
     if (!existing) {
       await ForumCommentReaction.create({ comment: commentId, user: userId, type });

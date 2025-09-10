@@ -88,11 +88,52 @@ export interface LoggerWithContext {
 export class ContextualLogger implements LoggerWithContext {
   constructor(private requestId?: string) {}
 
+  private sanitizeMeta(meta?: Record<string, any>): Record<string, any> | undefined {
+    if (!meta || typeof meta !== 'object') return meta;
+
+    const redactKeys = new Set([
+      'authorization', 'Authorization', 'password', 'token', 'jwt', 'cookie',
+      'refreshToken', 'accessToken', 'apiKey', 'x-api-key', 'secret'
+    ]);
+
+    const maskEmail = (val: string): string => {
+      const m = val.match(/([A-Za-z0-9._%+-]+)@([A-Za-z0-9.-]+\.[A-Za-z]{2,})/);
+      if (!m) return val;
+      const localRaw = m[1] || '';
+      const domain = m[2] || '';
+      if (!localRaw || !domain) return val;
+      const len = localRaw.length;
+      const maskedLocal = len <= 2 ? '*'.repeat(len) : `${localRaw[0]}${'*'.repeat(Math.max(1, len - 2))}${localRaw[len - 1]}`;
+      return val.replace(m[0], `${maskedLocal}@${domain}`);
+    };
+
+    const recur = (obj: any): any => {
+      if (Array.isArray(obj)) return obj.map(recur);
+      if (obj && typeof obj === 'object') {
+        const out: any = {};
+        for (const [k, v] of Object.entries(obj)) {
+          if (redactKeys.has(k)) {
+            out[k] = '[REDACTED]';
+          } else if (typeof v === 'string') {
+            out[k] = maskEmail(v);
+          } else {
+            out[k] = recur(v);
+          }
+        }
+        return out;
+      }
+      if (typeof obj === 'string') return maskEmail(obj);
+      return obj;
+    };
+
+    return recur(meta);
+  }
+
   private log(level: string, message: string, meta?: Record<string, any>): void {
     const logData = {
       message,
       requestId: this.requestId,
-      ...meta,
+      ...(this.sanitizeMeta(meta)),
     };
     logger.log(level, logData);
   }

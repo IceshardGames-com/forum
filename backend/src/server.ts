@@ -210,7 +210,7 @@ const startServer = async (): Promise<void> => {
         socketio: 'Socket.IO enabled',
       });
     });
-    startReactionsWorker(5000);
+    startReactionsWorker(15000);
 
     // Graceful shutdown handling
     const gracefulShutdown = (signal: string) => {

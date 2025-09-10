@@ -35,6 +35,7 @@ const forumCommentReactionSchema = new Schema<IForumCommentReaction>({
 });
 
 forumCommentReactionSchema.index({ comment: 1, user: 1 }, { unique: true });
+forumCommentReactionSchema.index({ comment: 1, type: 1 });
 
 export const ForumCommentReaction = mongoose.model<IForumCommentReaction>('ForumCommentReaction', forumCommentReactionSchema);
 export default ForumCommentReaction;

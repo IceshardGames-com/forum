@@ -56,7 +56,7 @@ export const changeMemberRoleValidation = Joi.object({
 });
 
 export const bulkInteractionsValidation = Joi.object({
-  operations: Joi.array().min(1).items(
+  operations: Joi.array().min(1).max(50).items(
     Joi.alternatives().try(
       Joi.object({
         op: Joi.string().valid('post_reaction').required(),

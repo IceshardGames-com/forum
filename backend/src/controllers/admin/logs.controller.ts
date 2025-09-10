@@ -28,6 +28,7 @@ export const listLogs = asyncErrorHandler(async (req: Request, res: Response): P
   }
 
   const items: LogRecord[] = [];
+  const HARD_CAP = 1000;
 
   const stream = fs.createReadStream(logPath, { encoding: 'utf8' });
   const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
@@ -57,6 +58,7 @@ export const listLogs = asyncErrorHandler(async (req: Request, res: Response): P
         if (!hay.includes(q.toLowerCase())) continue;
       }
       items.push(rec);
+      if (items.length >= HARD_CAP) break;
     }
   }
 
