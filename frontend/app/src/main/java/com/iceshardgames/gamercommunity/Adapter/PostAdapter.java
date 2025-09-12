@@ -54,9 +54,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                     post.getPostId(),
                     post.getTitle(),
                     post.getAuthor(),
-                    post.getLikes(),
+                    post.getDisLikes(),
                     post.getReplies(),
-                    post.getCreatedAt() // <-- pass millis
+                    post.getCreatedAt() ,
+                    post.getLikes(),// <-- pass millis
+                    post.getAuthorId()// <-- pass millis
             );
 
             ((AppCompatActivity) activity).getSupportFragmentManager()

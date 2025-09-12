@@ -22,17 +22,26 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.iceshardgames.gamercommunity.APIintegration.ApiService;
 import com.iceshardgames.gamercommunity.BulkOp;
+import com.iceshardgames.gamercommunity.CommentItem;
+import com.iceshardgames.gamercommunity.CommentsPage;
+import com.iceshardgames.gamercommunity.GenericResp;
 import com.iceshardgames.gamercommunity.InteractionsBuffer;
 import com.iceshardgames.gamercommunity.Model.Comment;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.PendingStore;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * CommentAdapter that:
@@ -53,7 +62,15 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     // set of expanded keys (serverId or clientId or fallback position string)
+    // set of expanded keys (serverId or clientId or fallback position string)
     private final Set<String> expandedKeys = new HashSet<>();
+
+    // track replies that are currently being loaded (by serverId)
+    private final Set<String> repliesLoading = Collections.synchronizedSet(new HashSet<>());
+
+    // small placeholder text while loading (optional)
+    private static final String REPLIES_LOADING_PLACEHOLDER = "Loading replies…";
+
 
     public CommentAdapter(List<Comment> commentList, Context context, InteractionsBuffer buffer, ApiService api, String postId) {
         this.commentList = commentList;
@@ -73,7 +90,8 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     @Override
     public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
         Comment comment = commentList.get(position);
-
+// Load saved reaction state
+        loadCommentReactionState(comment);
         // a stable key for this comment row (prefer serverId, then clientId, else position)
         final String key = comment.getServerId() != null ? comment.getServerId()
                 : (comment.getClientId() != null ? comment.getClientId() : "pos:" + position);
@@ -88,6 +106,69 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         // icons from model state
         holder.imgLike.setImageResource(comment.isLiked() ? R.drawable.ic_like_filled : R.drawable.ic_like_outline);
         holder.imgDislike.setImageResource(comment.isDisliked() ? R.drawable.ic_dislike_filled : R.drawable.ic_dislike_outline);
+
+        // --- robust icon decision logic (saved-state > in-memory > counts) ---
+// reuse the already-defined 'key' from earlier in onBindViewHolder()
+// (key is serverId, or clientId, or "pos:NN")
+        boolean savedLiked = false;
+        boolean savedDisliked = false;
+        boolean hasSavedKeys = false;
+
+        if (key != null) {
+            try {
+                SharedPreferences prefs = context.getSharedPreferences("CommentReactions", MODE_PRIVATE);
+                String prefKey = "comment_" + key;
+                hasSavedKeys = prefs.contains(prefKey + "_liked") || prefs.contains(prefKey + "_disliked");
+                savedLiked = prefs.getBoolean(prefKey + "_liked", false);
+                savedDisliked = prefs.getBoolean(prefKey + "_disliked", false);
+            } catch (Exception e) {
+                Log.w("CommentAdapter", "error reading saved comment reaction", e);
+            }
+        } else {
+            Log.w("CommentAdapter", "onBindViewHolder: key is null for position=" + position);
+        }
+
+// Decide final icon states
+        boolean showLikeFilled;
+        boolean showDislikeFilled;
+
+        if (savedLiked) {
+            showLikeFilled = true;
+            showDislikeFilled = false;
+        } else if (savedDisliked) {
+            showLikeFilled = false;
+            showDislikeFilled = true;
+        } else {
+            // no explicit saved positive reaction -> use in-memory optimistic flags if set
+            if (comment.isLiked() || comment.isDisliked()) {
+                showLikeFilled = comment.isLiked();
+                showDislikeFilled = comment.isDisliked();
+            } else {
+                // fallback to counts
+                showLikeFilled = comment.getLikeCount() > 0;
+                showDislikeFilled = comment.getDislikeCount() > 0;
+            }
+        }
+
+// Diagnostic (optional)
+        Log.d("CommentAdapter", "bind pos=" + position + " key=" + key + " savedLiked=" + savedLiked +
+                " savedDisliked=" + savedDisliked + " showLike=" + showLikeFilled + " likes=" + comment.getLikeCount());
+
+// Apply drawables robustly (use ContextCompat to support vector drawables)
+        try {
+            int likeRes = showLikeFilled ? R.drawable.ic_like_filled : R.drawable.ic_like_outline;
+            int dislikeRes = showDislikeFilled ? R.drawable.ic_dislike_filled : R.drawable.ic_dislike_outline;
+            holder.imgLike.setImageDrawable(androidx.core.content.ContextCompat.getDrawable(context, likeRes));
+            holder.imgLike.invalidate();
+            holder.imgLike.post(() -> holder.imgLike.refreshDrawableState());
+
+            holder.imgDislike.setImageDrawable(androidx.core.content.ContextCompat.getDrawable(context, dislikeRes));
+            holder.imgDislike.invalidate();
+            holder.imgDislike.post(() -> holder.imgDislike.refreshDrawableState());
+        } catch (Exception e) {
+            Log.w("CommentAdapter", "failed to set comment icons", e);
+        }
+
 
         // Like click (always call buffer with best available id)
         holder.layoutLike.setOnClickListener(v -> {
@@ -115,7 +196,9 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             // decide reaction target: prefer serverId, fall back to clientId (optimistic comments)
             String target = comment.getServerId() != null ? comment.getServerId() : comment.getClientId();
             if (target != null) {
-                buffer.likeComment(target);
+                buffer.likeComment(target, postId);
+                saveCommentReactionState(target, comment.isLiked(), comment.isDisliked(),
+                        comment.getLikeCount(), comment.getDislikeCount());
             } else {
                 Log.d("InteractionsBuffer", "likeComment: no target id (serverId/clientId) for optimistic comment");
             }
@@ -145,7 +228,9 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
 
             String target = comment.getServerId() != null ? comment.getServerId() : comment.getClientId();
             if (target != null) {
-                buffer.dislikeComment(target);
+                buffer.dislikeComment(target, postId);
+                saveCommentReactionState(target, comment.isLiked(), comment.isDisliked(),
+                        comment.getLikeCount(), comment.getDislikeCount());
             } else {
                 Log.d("InteractionsBuffer", "dislikeComment: no target id (serverId/clientId) for optimistic comment");
             }
@@ -174,30 +259,39 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         // Determine visibility based on expansion state
         if (expandedKeys.contains(key)) {
             holder.repliesContainer.setVisibility(View.VISIBLE);
+            holder.layoutReplyBox.setVisibility(View.VISIBLE);
         } else {
             holder.repliesContainer.setVisibility(View.GONE);
         }
 
         // reply input always hidden initially
-        holder.layoutReplyBox.setVisibility(View.GONE);
+//        holder.layoutReplyBox.setVisibility(View.GONE);
 
         // ===== btnReply click behavior =====
+        // ===== btnReply click behavior =====
         holder.btnReply.setOnClickListener(v -> {
-            // If there are in-memory replies -> toggle expansion
+            int pos = holder.getBindingAdapterPosition();
+            if (pos == RecyclerView.NO_POSITION) return;
+
+            // a stable key for this comment row (prefer serverId, then clientId, else position)
+            final String keyLocal = key;
+
+            // If we already have in-memory replies -> toggle expansion quickly
             if (comment.getReplies() != null && !comment.getReplies().isEmpty()) {
-                if (expandedKeys.contains(key)) {
+                if (expandedKeys.contains(keyLocal)) {
                     // collapse
-                    expandedKeys.remove(key);
-                    notifyItemChanged(position);
+                    expandedKeys.remove(keyLocal);
+                    notifyItemChanged(pos);
                 } else {
-                    // expand
-                    expandedKeys.add(key);
-                    notifyItemChanged(position);
+                    // expand (they exist locally already)
+                    expandedKeys.add(keyLocal);
+                    notifyItemChanged(pos);
                 }
+                holder.layoutReplyBox.setVisibility(View.VISIBLE);
                 return;
             }
 
-            // No in-memory replies -> check PendingStore (off UI thread)
+            // No in-memory replies -> check PendingStore (off UI thread) and maybe fetch server replies
             backgroundExecutor.execute(() -> {
                 boolean pendingRepliesExist = false;
                 try {
@@ -225,10 +319,27 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
                 mainHandler.post(() -> {
                     if (hasPending) {
                         // expand and show placeholder (actual optimistic replies will be merged by loadComments)
-                        expandedKeys.add(key);
-                        notifyItemChanged(position);
+                        expandedKeys.add(keyLocal);
+                        notifyItemChanged(pos);
+                        holder.layoutReplyBox.setVisibility(View.VISIBLE);
+                        return;
+                    }
+
+                    // No local pending replies -- attempt to lazy-load server replies if we have serverId
+                    if (comment.getServerId() != null && !repliesLoading.contains(comment.getServerId())) {
+                        // mark loading and show immediate placeholder
+                        repliesLoading.add(comment.getServerId());
+                        holder.repliesContainer.removeAllViews();
+                        TextView loading = new TextView(context);
+                        loading.setText(REPLIES_LOADING_PLACEHOLDER);
+                        holder.repliesContainer.addView(loading);
+                        holder.repliesContainer.setVisibility(View.VISIBLE);
+                        holder.layoutReplyBox.setVisibility(View.VISIBLE);
+
+                        // fire network request to fetch replies
+                        fetchRepliesForComment(comment, keyLocal, pos, holder);
                     } else {
-                        // toggle reply input box
+                        // fallback: just show reply input box (no server replies available)
                         if (holder.layoutReplyBox.getVisibility() == View.VISIBLE) {
                             holder.layoutReplyBox.setVisibility(View.GONE);
                         } else {
@@ -371,4 +482,125 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             ((LinearLayout) itemView).addView(repliesContainer);
         }
     }
+
+    // Add this method to save comment reaction state
+    private void saveCommentReactionState(String commentId, boolean liked, boolean disliked, int likeCount, int dislikeCount) {
+        SharedPreferences prefs = context.getSharedPreferences("CommentReactions", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        String key = "comment_" + commentId;
+
+        editor.putBoolean(key + "_liked", liked);
+        editor.putBoolean(key + "_disliked", disliked);
+        editor.putInt(key + "_likes", likeCount);
+        editor.putInt(key + "_dislikes", dislikeCount);
+        editor.apply();
+    }
+    // Add this method to load comment reaction state
+    private void loadCommentReactionState(Comment comment) {
+        String commentId = comment.getServerId() != null ? comment.getServerId() : comment.getClientId();
+        if (commentId == null) return;
+
+        SharedPreferences prefs = context.getSharedPreferences("CommentReactions", MODE_PRIVATE);
+        String key = "comment_" + commentId;
+
+        comment.setLiked(prefs.getBoolean(key + "_liked", false));
+        comment.setDisliked(prefs.getBoolean(key + "_disliked", false));
+        comment.setLikeCount(prefs.getInt(key + "_likes", comment.getLikeCount()));
+        comment.setDislikeCount(prefs.getInt(key + "_dislikes", comment.getDislikeCount()));
+    }
+
+    /**
+     * Fetch replies for a comment from server (parentCommentId = comment.serverId).
+     * On success, attach replies to the comment model, load saved reaction state for each,
+     * and notify the adapter to rebind the item.
+     */
+    /**
+     * Fetch replies for a comment from server (parentCommentId = comment.serverId).
+     * On success, attach replies to the comment model using comment.addReply(...),
+     * load saved reaction state for each reply, and refresh the item UI.
+     */
+    private void fetchRepliesForComment(final Comment comment, final String key, final int position, final CommentViewHolder holder) {
+        final String parentId = comment.getServerId();
+        if (parentId == null) {
+            repliesLoading.remove(parentId);
+            return;
+        }
+
+        // get token from prefs (adapter doesn't store accessToken)
+        String token = context.getSharedPreferences("UserPrefs", MODE_PRIVATE).getString("accessToken", "");
+
+        api.listComments("Bearer " + token, postId, parentId, 1, 50).enqueue(new Callback<GenericResp<CommentsPage>>() {
+            @Override
+            public void onResponse(Call<GenericResp<CommentsPage>> call, Response<GenericResp<CommentsPage>> res) {
+                repliesLoading.remove(parentId);
+                if (!res.isSuccessful() || res.body() == null || !res.body().success) {
+                    // failed -> remove loading placeholder and show reply input
+                    mainHandler.post(() -> {
+                        holder.repliesContainer.removeAllViews();
+                        holder.repliesContainer.setVisibility(View.GONE);
+                        holder.layoutReplyBox.setVisibility(View.VISIBLE);
+                        notifyItemChanged(position);
+                    });
+                    return;
+                }
+
+                List<CommentItem> serverReplies = res.body().data.comments != null ? res.body().data.comments : new ArrayList<>();
+
+                // clear any existing replies (we expect it empty) and add fetched ones
+                try {
+                    comment.getReplies().clear();
+                } catch (Exception ignore) { }
+
+                for (CommentItem it : serverReplies) {
+                    long createdMillis = 0;
+                    try { createdMillis = Utills.parseIso8601ToMillis(it.createdAt); } catch (Exception ignore) {}
+                    Comment r = new Comment(getDisplayNameFromPrefs(), it.content, Utills.getTimeAgo(createdMillis));
+                    r.setLikeCount(it.likes);
+                    r.setDislikeCount(it.dislikes);
+                    r.setServerId(it.id);
+                    // load saved comment reaction state (from SharedPreferences)
+                    loadCommentReactionState(r);
+                    comment.addReply(r);
+                }
+
+                // ensure expanded so UI shows replies
+                expandedKeys.add(key);
+
+                // update UI on main thread (populate repliesContainer immediately)
+                mainHandler.post(() -> {
+                    holder.repliesContainer.removeAllViews();
+                    for (Comment reply : comment.getReplies()) {
+                        View replyView = LayoutInflater.from(context).inflate(R.layout.reply_item, holder.repliesContainer, false);
+                        TextView tvReplyUser = replyView.findViewById(R.id.tvReplyUser);
+                        TextView tvReplyTime = replyView.findViewById(R.id.tvReplyTime);
+                        TextView tvReplyText = replyView.findViewById(R.id.tvReplyText);
+
+                        tvReplyUser.setText("@" + reply.getUser());
+                        tvReplyTime.setText("· " + reply.getTime());
+                        tvReplyText.setText(reply.getText());
+
+                        holder.repliesContainer.addView(replyView);
+                    }
+                    holder.repliesContainer.setVisibility(View.VISIBLE);
+                    holder.layoutReplyBox.setVisibility(View.VISIBLE);
+                    notifyItemChanged(position);
+                });
+            }
+
+            @Override
+            public void onFailure(Call<GenericResp<CommentsPage>> call, Throwable t) {
+                repliesLoading.remove(parentId);
+                Log.e("CommentAdapter", "Failed to fetch replies: " + t.getMessage());
+                mainHandler.post(() -> {
+                    holder.repliesContainer.removeAllViews();
+                    holder.repliesContainer.setVisibility(View.GONE);
+                    holder.layoutReplyBox.setVisibility(View.VISIBLE);
+                    notifyItemChanged(position);
+                });
+            }
+        });
+    }
+
+
+
 }

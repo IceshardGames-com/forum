@@ -2,6 +2,7 @@ package com.iceshardgames.gamercommunity.Adapter;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,13 +49,15 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumViewHol
         holder.itemView.setOnClickListener(v -> {
             FragmentManager fragmentManager = ((AppCompatActivity) context).getSupportFragmentManager();
             ForumDetailFragment detailFragment = new ForumDetailFragment();
+            Log.e("==lag", "forum_slugs: "+forumList.get(position).getSlug() );
 
             Bundle bundle = new Bundle();
             bundle.putString("forum_title", forumList.get(position).getTitle());
             bundle.putString("forum_id", forumList.get(position).getId());
             bundle.putString("forum_status", forumList.get(position).getStats());
             bundle.putString("forum_permission", forumList.get(position).getPostPermission());
-
+            bundle.putString("forum_owner", forumList.get(position).getOwner());
+            bundle.putString("forum_slug", forumList.get(position).getSlug()); // or getId() if slug == id
             detailFragment.setArguments(bundle);
 
             fragmentManager.beginTransaction()

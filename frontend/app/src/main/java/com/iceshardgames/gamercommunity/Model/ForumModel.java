@@ -8,12 +8,21 @@ public class ForumModel {
     private String lastActive;
     private String status;
     private String category;
+    private String owner;
     private int imageResId;
     private String postPermission;  // ✅ NEW FIELD
+    // inside ForumModel
+    private String slug; // add to fields & constructor
 
+    public String getSlug() {
+        return slug;
+    }
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
     // Default constructor needed for Gson
     public ForumModel() {}
-    public ForumModel(String id, String title, String stats, String lastActive, String status, String category, int imageResId, String postPermission) {
+    public ForumModel(String id, String title, String stats, String lastActive, String status, String category, int imageResId, String postPermission, String owner, String slug) {
         this.id = id;
         this.title = title;
         this.stats = stats;
@@ -22,6 +31,8 @@ public class ForumModel {
         this.category = category;
         this.imageResId = imageResId;
         this.postPermission = postPermission;
+        this.owner = owner;
+        this.slug = slug;
     }
     public String getPostPermission() { return postPermission; }
 
@@ -47,6 +58,9 @@ public class ForumModel {
 
     public String getCategory() {
         return category;
+    }
+    public String getOwner() {
+        return owner;
     }
 
     public int getImageResId() {

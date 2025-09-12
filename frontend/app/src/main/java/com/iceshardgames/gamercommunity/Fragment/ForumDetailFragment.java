@@ -3,7 +3,12 @@ package com.iceshardgames.gamercommunity.Fragment;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,7 +70,9 @@ public class ForumDetailFragment extends Fragment {
     private TextView joinText, followText;
     private boolean isJoined = false;
     String postPermission;
+    String forum_owner;
     private TextView tvNoPosts;
+    String forum_slug = "";
 
     @Nullable
     @Override
@@ -75,6 +82,7 @@ public class ForumDetailFragment extends Fragment {
         accessToken = prefs.getString("accessToken", null);
         TextView forumTitle = view.findViewById(R.id.forumTitle);
         TextView forumMembers = view.findViewById(R.id.forumMembers);
+        LinearLayout FJlayout = view.findViewById(R.id.FJlayout);
         tvNoPosts = view.findViewById(R.id.tv_no_posts);
 
         Utills.GradientText(view.findViewById(R.id.forumTitle));
@@ -84,6 +92,8 @@ public class ForumDetailFragment extends Fragment {
             String forum_status = getArguments().getString("forum_status", "Unknown Forum");
             forum_id = getArguments().getString("forum_id", "Unknown Forum");
             postPermission = getArguments().getString("forum_permission", "admin_only");
+            forum_owner = getArguments().getString("forum_owner", "Unknown Forum");
+            forum_slug = getArguments().getString("forum_slug", "Unknown Forum"); // fallback to id if slug absent
 
             forumTitle.setText(title);
             forumMembers.setText(forum_status); // replace with real value later
@@ -105,6 +115,26 @@ public class ForumDetailFragment extends Fragment {
 
         loadPostsFromApi(); // ✅ real API call
 
+        // ---- Session
+        String myUserId = prefs.getString("userId", ""); // ensure set at login
+
+        Log.e("==lag", "myUserId: "+myUserId );
+        Log.e("==lag", "forum_owner: "+forum_owner );
+        Log.e("==lag", "forum_slug: "+forum_slug );
+        if(myUserId.equals(forum_owner)){
+            FJlayout.setVisibility(View.GONE);
+        }else {
+            FJlayout.setVisibility(View.VISIBLE);
+        }
+
+        TextView shareBtn = view.findViewById(R.id.shareSlug); // or your actual share icon
+        shareBtn.setOnClickListener(v -> {
+            // replace with your real slug variable
+            Log.e("==lag", "forum_slug: "+forum_slug );
+            String slug = forum_slug;
+            showSlugDialog(slug);
+        });
+
 
         setupTabs();
         handleTabSelection();
@@ -113,24 +143,27 @@ public class ForumDetailFragment extends Fragment {
 
             Log.e("==lag", "postPermission: " + postPermission);
 
-            if (postPermission.equals("followers") && !isFollowing) {
-                Toast.makeText(getContext(), "You must follow this forum to post", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (postPermission.equals("members") && !isJoined) {
-                Toast.makeText(getContext(), "You must join this forum to post", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (postPermission.equals("members")) {
-                // Check paid membership
-                boolean isPaid = prefs.getBoolean("isPaidMember_" + forum_id, false); // you need to set this when verifying payment
-                if (!isPaid) {
-                    Toast.makeText(getContext(), "Only paid members can post", Toast.LENGTH_SHORT).show();
+            if(!myUserId.equals(forum_owner)) {
+                if (postPermission.equals("followers") && !isFollowing) {
+                    Toast.makeText(getContext(), "You must follow this forum to post", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
+                if (postPermission.equals("members") && !isJoined) {
+                    Toast.makeText(getContext(), "You must join this forum to post", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (postPermission.equals("members")) {
+                    // Check paid membership
+                    boolean isPaid = prefs.getBoolean("isPaidMember_" + forum_id, false); // you need to set this when verifying payment
+                    if (!isPaid) {
+                        Toast.makeText(getContext(), "Only paid members can post", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
             }
+
 
             showCreateForumDialog();
 
@@ -344,10 +377,12 @@ public class ForumDetailFragment extends Fragment {
                                         newPost.getTitle(),
                                         newPost.getContent(),
                                         newPost.getLikes(),
-                                        0,
+                                        newPost.getDislikes(),
                                         true,
                                         false,
-                                        createdAtMillis
+                                        createdAtMillis,
+                                        newPost.getLikes(),
+                                        newPost.getAuthor()
                                 );
 
                                 allPosts.add(0, postModel);
@@ -538,10 +573,12 @@ public class ForumDetailFragment extends Fragment {
                                         post.getTitle(),
                                         post.getContent(),
                                         post.getLikes(),
-                                        0,
+                                        post.getDislikes(),
                                         false,
                                         false,
-                                        createdAtMillis
+                                        createdAtMillis,
+                                        post.getLikes(),
+                                        post.getAuthor()
                                 ));
                             }
                             filteredPosts.clear();
@@ -608,5 +645,54 @@ public class ForumDetailFragment extends Fragment {
         SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
         return prefs.getBoolean("isJoined_" + forum_id, false);
     }
+
+    private void showSlugDialog(String slugToShare) {
+        if (!isAdded()) return;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity(), R.style.CustomDialog);
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_share_slug, null);
+        builder.setView(dialogView);
+
+        TextView slugText = dialogView.findViewById(R.id.slug_text);
+        slugText.setText(slugToShare);
+
+        ImageView btnCopy = dialogView.findViewById(R.id.btn_copy);
+        ImageView btnShare = dialogView.findViewById(R.id.btn_share);
+
+        AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.show();
+
+        // Optional: adjust width
+        if (dialog.getWindow() != null) {
+            int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.92);
+            dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
+        btnCopy.setOnClickListener(v -> {
+            copyTextToClipboard(slugToShare);
+            Toast.makeText(getContext(), "Copied", Toast.LENGTH_SHORT).show();
+        });
+
+        btnShare.setOnClickListener(v -> {
+            shareText(slugToShare);
+        });
+    }
+
+    private void copyTextToClipboard(String text) {
+        ClipboardManager clipboard = (ClipboardManager) requireActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("forum_slug", text);
+        clipboard.setPrimaryClip(clip);
+    }
+
+    private void shareText(String text) {
+        Intent sendIntent = new Intent(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+        sendIntent.setType("text/plain");
+
+        Intent chooser = Intent.createChooser(sendIntent, "Share forum slug");
+        startActivity(chooser);
+    }
+
 
 }

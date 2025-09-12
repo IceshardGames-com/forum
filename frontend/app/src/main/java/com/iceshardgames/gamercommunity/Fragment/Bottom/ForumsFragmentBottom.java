@@ -2,12 +2,17 @@ package com.iceshardgames.gamercommunity.Fragment.Bottom;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import com.github.slugify.Slugify;
+
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +21,8 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,15 +45,19 @@ import com.iceshardgames.gamercommunity.Adapter.ForumAdapter;
 import com.iceshardgames.gamercommunity.Model.ForumModel;
 import com.iceshardgames.gamercommunity.Model.Request.CreateForumRequest;
 import com.iceshardgames.gamercommunity.Model.Response.CreateForumResponse;
+import com.iceshardgames.gamercommunity.Model.Response.ForumBySlugResponse;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -59,6 +70,8 @@ public class ForumsFragmentBottom extends Fragment {
     private List<Button> filterButtons;
     private String currentFilter = "All";
     private SharedPreferences prefs;
+    private AlertDialog currentDialog = null;
+    private AlertDialog currentDialog2 = null;
 
     @Nullable
     @Override
@@ -70,7 +83,8 @@ public class ForumsFragmentBottom extends Fragment {
 
         ImageView btnCreateForum = view.findViewById(R.id.fabAddForum);
         btnCreateForum.setOnClickListener(v -> {
-            showCreateForumDialog();
+//            showCreateForumDialog();
+            showFabOptionsDialog();
         });
 
         // SharedPreferences for saving filter state
@@ -191,8 +205,53 @@ public class ForumsFragmentBottom extends Fragment {
         return view;
     }
 
+    private void showFabOptionsDialog() {
+        // Prevent stacking dialogs
+        if (currentDialog != null && currentDialog.isShowing()) return;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity(), R.style.CustomDialog);
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_fab_options, null);
+        builder.setView(dialogView);
+
+        // Find views
+        LinearLayout optionCreate = dialogView.findViewById(R.id.option_create);
+        LinearLayout optionJoin = dialogView.findViewById(R.id.option_join);
+        TextView cancel = dialogView.findViewById(R.id.dialog_cancel);
+        TextView dialog_title = dialogView.findViewById(R.id.dialog_title);
+
+        Utills.GradientText(dialog_title);
+        // Create and show
+        currentDialog = builder.create();
+        currentDialog.setCanceledOnTouchOutside(true);
+
+        // Click handlers
+        optionCreate.setOnClickListener(v -> {
+            if (currentDialog != null && currentDialog.isShowing()) currentDialog.dismiss();
+            // small delay can help avoid UI overlap (optional)
+            showCreateForumDialog();
+        });
+
+        optionJoin.setOnClickListener(v -> {
+            if (currentDialog != null && currentDialog.isShowing()) currentDialog.dismiss();
+            showJoinForumDialog();
+        });
+
+        cancel.setOnClickListener(v -> {
+            if (currentDialog != null && currentDialog.isShowing()) currentDialog.dismiss();
+        });
+
+        currentDialog.setOnDismissListener(d -> currentDialog = null);
+        currentDialog.show();
+
+        // Optionally set dialog width to match parent - small margin
+        int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.92);
+        if (currentDialog.getWindow() != null) {
+            currentDialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
     private void loadForums() {
-        SharedPreferences prefs = requireContext().getSharedPreferences("UserPrefs", MODE_PRIVATE);
         String json = prefs.getString("forums_list", null);
 
         if (json != null) {
@@ -378,16 +437,18 @@ public class ForumsFragmentBottom extends Fragment {
                 return;
             }
 
-            SharedPreferences prefs = getActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
             String accessToken = prefs.getString("accessToken", null);
-            Log.e("==pass", "token : " + accessToken);
-            List<String> existingSlugs = new ArrayList<>();
-            for (ForumModel f : allForums) {
-                existingSlugs.add(Slugify.from(f.getTitle(), new ArrayList<>()));
-            }
+            Log.e("==lag", "token : " + accessToken);
 
-            // Build request body
-            String slug = Slugify.from(title, existingSlugs);
+            // 1) Build backend-compliant base slug
+            String baseSlug = Slugs.makeSlug(title); // lowercase, only a-z0-9- and length 3..64
+
+            // 2) Create a short suffix (android id or random), then unique slug
+            String shortId = Slugs.shortIdFromAndroidIdOrRandom(getContext()); // e.g. "4f9a82c1"
+            String slug = Slugs.uniqueSlug(baseSlug, shortId); // base + "-" + shortId (max length respected)
+
+            Log.e("==lag", "slug : " + slug);
+
             boolean verified = false;
 
             ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
@@ -424,12 +485,17 @@ public class ForumsFragmentBottom extends Fragment {
                                     String duplicateSlug = error.getJSONObject("details").getString("value");
                                     Log.e("==slug", "Duplicate slug: " + duplicateSlug);
 
-                                    // Generate new slug
-                                    String newSlug = incrementSlug(duplicateSlug);
-                                    Log.e("==slug", "Retry with slug: " + newSlug);
+                                    // Generate a fresh short id (randomized) and form a new slug using the same base
+                                    String freshShort = UUID.randomUUID().toString().replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+                                    if (freshShort.length() > 12)
+                                        freshShort = freshShort.substring(0, 12);
+                                    String newSlug = "";
+                                    newSlug = Slugs.uniqueSlug(baseSlug, freshShort);
+                                    Log.e("==slug", "Duplicate slug returned by server. Retrying with new slug: " + slug);
+
 
                                     // Retry the API call with new slug
-                                    retryCreateForum(title, description, category, verified, newSlug, 1,dialog);
+                                    retryCreateForum(title, description, category, verified, newSlug, 1, dialog);
                                     return;
                                 }
                             }
@@ -462,7 +528,9 @@ public class ForumsFragmentBottom extends Fragment {
                             f.isVerified() ? "Verified" : "New",
                             category,
                             R.drawable.forum1,
-                            permission // ✅ save it here
+                            permission, // ✅ save it here
+                            f.getOwner(),
+                            slug
                     );
 
                     addForumToList(uiModel);
@@ -478,6 +546,7 @@ public class ForumsFragmentBottom extends Fragment {
                         requireActivity().runOnUiThread(() -> {
                             createBtn.setEnabled(true);
                             Utills.hideLoadingDialog();
+                            dialog.dismiss();
                             Toast.makeText(getActivity(), "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
 
                         });
@@ -496,10 +565,14 @@ public class ForumsFragmentBottom extends Fragment {
 
     private void retryCreateForum(String title, String description, String category, boolean verified, String newSlug, int attempt, AlertDialog dialog) {
         if (attempt > 5) { // Limit retries to avoid infinite loop
-            Toast.makeText(getActivity(), "Failed to create forum after multiple attempts", Toast.LENGTH_LONG).show();
+            if (isAdded()) {
+                requireActivity().runOnUiThread(() -> {
+                    Utills.hideLoadingDialog();
+                    Toast.makeText(getActivity(), "Failed to create forum after multiple attempts", Toast.LENGTH_LONG).show();
+                });
+            }
             return;
         }
-        SharedPreferences prefs = getActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
         String accessToken = prefs.getString("accessToken", null);
 
         ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
@@ -510,6 +583,7 @@ public class ForumsFragmentBottom extends Fragment {
                 verified,
                 permission
         );
+        Log.e("==lag", "Attempt " + attempt + " with slug: " + newSlug);
 
         apiService.createForum("Bearer " + accessToken, body).enqueue(new Callback<CreateForumResponse>() {
             @Override
@@ -525,8 +599,17 @@ public class ForumsFragmentBottom extends Fragment {
                                     error.getJSONObject("details").getString("field").equals("slug")) {
 
                                 String duplicateSlug = error.getJSONObject("details").getString("value");
-                                String newSlug = incrementSlug(duplicateSlug);
-                                Log.e("==slug", "Retry with slug: " + newSlug);
+                                // Generate fresh short suffix (randomized) and form new slug using base part of duplicateSlug
+                                // Extract base part (remove trailing -suffix if present)
+                                String base = duplicateSlug.replaceAll("-[a-z0-9]{1,}$", "");
+                                String freshShort = UUID.randomUUID().toString()
+                                        .replaceAll("[^a-zA-Z0-9]", "")
+                                        .toLowerCase();
+                                if (freshShort.length() > 12)
+                                    freshShort = freshShort.substring(0, 12);
+
+                                String newSlug = Slugs.uniqueSlug(base, freshShort);
+                                Log.e("==slug", "Retrying with newSlug: " + newSlug);
 
                                 // Retry with increment
                                 retryCreateForum(title, description, category, verified, newSlug, attempt + 1, dialog);
@@ -534,16 +617,23 @@ public class ForumsFragmentBottom extends Fragment {
                             }
                         }
                     } catch (Exception e) {
+                        dialog.dismiss();
                         e.printStackTrace();
                     }
-
+                    dialog.dismiss();
+                    Utills.hideLoadingDialog();
                     Toast.makeText(getActivity(), "Failed: " + response.code(), Toast.LENGTH_LONG).show();
                     return;
                 }
                 // ✅ Success
                 CreateForumResponse resp = response.body();
                 if (resp == null || !resp.isSuccess() || resp.getData() == null || resp.getData().getForum() == null) {
-                    Toast.makeText(getActivity(), "Unexpected response", Toast.LENGTH_LONG).show();
+                    if (isAdded()) {
+                        requireActivity().runOnUiThread(() -> {
+                            Utills.hideLoadingDialog();
+                            Toast.makeText(getActivity(), "Unexpected response from server", Toast.LENGTH_LONG).show();
+                        });
+                    }
                     return;
                 }
                 Log.e("==lag", "token: " + resp.getData().getForum().getId());
@@ -552,11 +642,19 @@ public class ForumsFragmentBottom extends Fragment {
                 String meta = f.getFollowersCount() + " followers • " + f.getMembersCount() + " members";
 
                 ForumModel uiModel = new ForumModel(f.getId(), f.getName(), meta, "Just now",
-                        f.isVerified() ? "Verified" : "New", category, R.drawable.forum1, permission);
+                        f.isVerified() ? "Verified" : "New", category, R.drawable.forum1, permission,f.getOwner(),newSlug);
 
                 addForumToList(uiModel);
                 Utills.hideLoadingDialog();
-                Toast.makeText(getActivity(), "Forum created", Toast.LENGTH_SHORT).show();
+                // Update UI / local storage on main thread
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        addForumToList(uiModel);
+                        Utills.hideLoadingDialog();
+                        Toast.makeText(getActivity(), "Forum created", Toast.LENGTH_SHORT).show();
+                        if (dialog != null && dialog.isShowing()) dialog.dismiss();
+                    });
+                }
                 dialog.dismiss();
             }
 
@@ -565,6 +663,7 @@ public class ForumsFragmentBottom extends Fragment {
                 if (isAdded()) {
                     requireActivity().runOnUiThread(() -> {
                         Utills.hideLoadingDialog();
+                        dialog.dismiss();
                         Toast.makeText(getActivity(), "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
                     });
                 }
@@ -573,7 +672,6 @@ public class ForumsFragmentBottom extends Fragment {
     }
 
     private void saveForums() {
-        SharedPreferences prefs = requireContext().getSharedPreferences("UserPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
         Gson gson = new Gson();
@@ -582,33 +680,37 @@ public class ForumsFragmentBottom extends Fragment {
         editor.apply();
     }
 
+  /*  // --- small helper ---
     // --- small helper ---
     // --- small helper ---
     private static class Slugify {
-        static String from(String s, List<String> existingSlugs) {
-            if (s == null) return "";
+        static String from(String title, Context context) {
+            if (title == null) return "";
 
-            // Step 1: Clean slug
-            String baseSlug = s.toLowerCase()
-                    .replaceAll("[^a-z0-9\\s-]", "")   // keep only letters, numbers, space, dash
+            // Clean title: only letters/numbers, spaces become underscores
+            String baseSlug = title.toLowerCase()
+                    .replaceAll("[^a-z0-9\\s]", "")  // keep only letters, numbers, spaces
                     .trim()
-                    .replaceAll("\\s+", "-")          // spaces -> dash
-                    .replaceAll("-{2,}", "-")         // collapse multiple dashes
-                    .replaceAll("^[-_]+|[-_]+$", ""); // trim leading/trailing -/_
+                    .replaceAll("\\s+", "_");       // spaces -> underscore
 
-            if (baseSlug.isEmpty()) baseSlug = "forum";
-
-            // Step 2: Ensure uniqueness
-            String uniqueSlug = baseSlug;
-            int counter = 1;
-            while (existingSlugs.contains(uniqueSlug)) {
-                uniqueSlug = baseSlug + counter;  // <-- ✅ no dash here
-                counter++;
+            if (baseSlug.isEmpty()) {
+                baseSlug = "forum";
             }
 
-            return uniqueSlug;
+            // Get device-specific UUID (ANDROID_ID is stable per device)
+            String deviceUuid = android.provider.Settings.Secure.getString(
+                    context.getContentResolver(),
+                    android.provider.Settings.Secure.ANDROID_ID
+            );
+
+            if (deviceUuid == null || deviceUuid.isEmpty()) {
+                deviceUuid = java.util.UUID.randomUUID().toString().replace("-", "");
+            }
+
+            return baseSlug + "_" + deviceUuid;
         }
     }
+
 
     private String incrementSlug(String slug) {
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(\\d+)$");
@@ -622,9 +724,224 @@ public class ForumsFragmentBottom extends Fragment {
             // If no number, append 1
             return slug + "1";
         }
+    }*/
+
+    public static final class Slugs {
+        // Build base slug matching backend rules
+        public static String makeSlug(String raw) {
+            if (raw == null) raw = "";
+            // 1) remove accents
+            String s = Normalizer.normalize(raw, Normalizer.Form.NFD);
+            s = s.replaceAll("\\p{M}", ""); // remove diacritics
+            s = s.toLowerCase(Locale.ROOT);
+            // 2) spaces/underscores -> hyphen
+            s = s.replaceAll("[\\s_]+", "-");
+            // 3) allow only a-z0-9-
+            s = s.replaceAll("[^a-z0-9-]", "");
+            // 4) collapse multiple hyphens, trim ends
+            s = s.replaceAll("-{2,}", "-").replaceAll("^-|-$", "");
+            // 5) enforce length 3..64
+            if (s.length() < 3) s = (s + "000").substring(0, 3);
+            if (s.length() > 64) s = s.substring(0, 64);
+            return s;
+        }
+
+        // Attach a short suffix derived from uuid (kept alphanumeric lowercase, up to 6 chars)
+        public static String uniqueSlug(String base, String uuid) {
+            String suffix = (uuid == null ? "" : uuid.replaceAll("[^a-zA-Z0-9]", "").toLowerCase());
+            suffix = suffix.length() >= 6 ? suffix.substring(0, 6) : suffix;
+            if (suffix.isEmpty()) return base;
+            String sep = "-";
+            int maxBase = Math.max(0, 64 - (sep.length() + suffix.length()));
+            String trimmed = base.length() > maxBase ? base.substring(0, maxBase) : base;
+            return trimmed + sep + suffix;
+        }
+
+        // Helper: produce a short stable-ish id: prefer androidId else random
+        public static String shortIdFromAndroidIdOrRandom(Context ctx) {
+            String androidId = null;
+            try {
+                androidId = Settings.Secure.getString(
+                        ctx.getContentResolver(), Settings.Secure.ANDROID_ID);
+            } catch (Exception ignored) {
+            }
+            String src = (androidId == null || androidId.isEmpty())
+                    ? UUID.randomUUID().toString()
+                    : androidId;
+            String clean = src.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+            if (clean.length() == 0)
+                clean = UUID.randomUUID().toString().replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+            return clean.length() > 12 ? clean.substring(0, 12) : clean;
+        }
     }
 
+    private void showJoinForumDialog() {
+        // Prevent multiple dialogs
+        if (currentDialog2 != null && currentDialog2.isShowing()) return;
 
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity(), R.style.CustomDialog);
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_join_forum, null);
+        builder.setView(dialogView);
+
+        EditText inputSlug = dialogView.findViewById(R.id.input_join_slug);
+        TextView errorText = dialogView.findViewById(R.id.join_error_text);
+        TextView join_dialog_title = dialogView.findViewById(R.id.join_dialog_title);
+        TextView joinBtn = dialogView.findViewById(R.id.btn_join_confirm);
+        TextView cancelBtn = dialogView.findViewById(R.id.btn_join_cancel);
+        ProgressBar progress = dialogView.findViewById(R.id.join_progress);
+
+        currentDialog2 = builder.create();
+        currentDialog2.setCanceledOnTouchOutside(true);
+
+        Utills.GradientText(join_dialog_title);
+        cancelBtn.setOnClickListener(v -> {
+            if (currentDialog2 != null && currentDialog2.isShowing()) currentDialog2.dismiss();
+        });
+
+        joinBtn.setOnClickListener(v -> {
+            Utills.showLoadingDialog(getActivity());
+            String slug = inputSlug.getText().toString().trim();
+            if (slug.isEmpty()) {
+                errorText.setText("Please enter a forum slug or invite code.");
+                errorText.setVisibility(View.VISIBLE);
+                return;
+            }
+
+            // ---------- DUPLICATE CHECK (before calling API) ----------
+            // Normalize input for comparison
+            String normalizedInput = slug.toLowerCase(Locale.ROOT).trim();
+
+            boolean alreadyExists = false;
+            for (ForumModel fm : allForums) {
+                // Adapt these getters if your ForumModel uses different names.
+                String existingId = fm.getId() == null ? "" : fm.getId().toLowerCase(Locale.ROOT);
+                String existingCategory = fm.getCategory() == null ? "" : fm.getCategory().toLowerCase(Locale.ROOT);
+                String existingTitle = fm.getTitle() == null ? "" : fm.getTitle().toLowerCase(Locale.ROOT);
+
+                if (existingId.equals(normalizedInput)
+                        || existingCategory.equals(normalizedInput)
+                        || existingTitle.equals(normalizedInput)) {
+                    alreadyExists = true;
+                    break;
+                }
+            }
+
+            if (alreadyExists) {
+                Utills.hideLoadingDialog();
+                joinBtn.setEnabled(true);
+                progress.setVisibility(View.GONE);
+                errorText.setText("You already have this forum in your list. please join new forum.");
+                errorText.setVisibility(View.VISIBLE);
+                return;
+            }
+            // ---------- end duplicate check ----------
+
+            // Hide error, show progress
+            errorText.setVisibility(View.GONE);
+            joinBtn.setEnabled(false);
+            progress.setVisibility(View.VISIBLE);
+            String accessToken = prefs.getString("accessToken", null);
+            Log.e("==lag", "token : " + accessToken);
+            // ✅ Call real API
+            ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+            Call<ForumBySlugResponse> call = apiService.getForumBySlug("Bearer " + accessToken, slug);
+
+            call.enqueue(new Callback<ForumBySlugResponse>() {
+                @Override
+                public void onResponse(Call<ForumBySlugResponse> call, Response<ForumBySlugResponse> response) {
+                    Utills.hideLoadingDialog();
+                    if (currentDialog2 != null && currentDialog2.isShowing())
+                        currentDialog2.dismiss();
+                    if (!isAdded()) return;
+
+                    joinBtn.setEnabled(true);
+                    progress.setVisibility(View.GONE);
+
+                    if (!response.isSuccessful()) {
+                        Utills.hideLoadingDialog();
+                        if (currentDialog2 != null && currentDialog2.isShowing())
+                            currentDialog2.dismiss();
+                        String msg = "Failed: " + response.code();
+                        try {
+                            if (response.errorBody() != null) {
+                                msg = response.errorBody().string();
+                            }
+                        } catch (Exception ignored) {
+                        }
+                        errorText.setText("Error: " + msg);
+                        errorText.setVisibility(View.VISIBLE);
+                        return;
+                    }
+
+                    ForumBySlugResponse body = response.body();
+                    if (body == null || !body.isSuccess() || body.getData() == null || body.getData().getForum() == null) {
+                        errorText.setText("Forum not found or unexpected response.");
+                        errorText.setVisibility(View.VISIBLE);
+                        return;
+                    }
+
+                    ForumBySlugResponse.Data.Forum f = body.getData().getForum();
+
+                    // Build meta string
+                    String meta = f.getFollowersCount() + " followers • " + f.getMembersCount() + " members";
+
+                    // Map server forum -> UI model
+                    ForumModel uiModel = new ForumModel(
+                            f.getId(),
+                            f.getName(),
+                            meta,
+                            "Just now",
+                            f.isVerified() ? "Verified" : "New",
+                            f.getSlug(),              // using slug as category fallback
+                            R.drawable.forum1,        // placeholder icon
+                            f.getPostPermission(),
+                            f.getOwner(),f.getSlug()
+                    );
+
+                    // Add to local list + persist
+                    addForumToList(uiModel);
+
+                    Toast.makeText(getActivity(), "Joined forum: " + f.getName(), Toast.LENGTH_SHORT).show();
+
+                    // Close dialog
+                    if (currentDialog2 != null && currentDialog2.isShowing())
+                        currentDialog2.dismiss();
+                }
+
+                @Override
+                public void onFailure(Call<ForumBySlugResponse> call, Throwable t) {
+                    Utills.hideLoadingDialog();
+                    if (currentDialog2 != null && currentDialog2.isShowing())
+                        currentDialog2.dismiss();
+                    if (!isAdded()) return;
+
+                    joinBtn.setEnabled(true);
+                    progress.setVisibility(View.GONE);
+                    errorText.setText("Network error: " + t.getMessage());
+                    errorText.setVisibility(View.VISIBLE);
+                }
+            });
+        });
+
+        currentDialog2.setOnDismissListener(d -> currentDialog2 = null);
+
+        // show then safely adjust window
+        if (!isAdded()) return;            // fragment not attached -> avoid crashes
+        currentDialog2.show();
+
+        try {
+            if (currentDialog2.getWindow() != null) {
+                int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.92);
+                currentDialog2.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+                currentDialog2.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+                currentDialog2.getWindow().setGravity(Gravity.CENTER);
+            }
+        } catch (Exception e) {
+            Log.w("ForumsFragmentBottom", "Failed to resize dialog window: " + e.getMessage());
+        }
+
+    }
 }
 
 

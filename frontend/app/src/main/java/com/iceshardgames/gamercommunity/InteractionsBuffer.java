@@ -29,6 +29,7 @@ public class InteractionsBuffer {
     private final ApiService api;
     private final Context appCtx;
 
+
     // thread-safe list for concurrent UI pushes
     private final CopyOnWriteArrayList<BulkOp> buffer = new CopyOnWriteArrayList<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -122,13 +123,13 @@ public class InteractionsBuffer {
     }
 
     // ---------- COMMENT reactions ----------
-    public void likeComment(String commentId) {
+    public void likeComment(String commentId, String postId) {
         if (commentId == null) return;
 
         BulkOp existing = findAnyExistingReaction("comment_reaction", commentId);
 
         if (existing == null) {
-            BulkOp op = BulkOp.commentReaction(commentId, "like");
+            BulkOp op = BulkOp.commentReaction(postId,commentId, "like");
             buffer.add(op);
             pendingStore.addOp(op);
             Log.d("InteractionsBuffer", "likeComment enqueued for commentId=" + commentId + " (buffer size=" + buffer.size() + ")");
@@ -140,18 +141,18 @@ public class InteractionsBuffer {
             removeOpFromBufferAndPending(existing);
         } else {
             Log.d("InteractionsBuffer", "Replacing existing comment reaction (" + existing.type + ") with like for " + commentId);
-            BulkOp newOp = BulkOp.commentReaction(commentId, "like");
+            BulkOp newOp = BulkOp.commentReaction(postId,commentId, "like");
             replaceOrAddOp(existing, newOp);
         }
     }
 
-    public void dislikeComment(String commentId) {
+    public void dislikeComment(String commentId, String postId) {
         if (commentId == null) return;
 
         BulkOp existing = findAnyExistingReaction("comment_reaction", commentId);
 
         if (existing == null) {
-            BulkOp op = BulkOp.commentReaction(commentId, "dislike");
+            BulkOp op = BulkOp.commentReaction(postId,commentId, "dislike");
             buffer.add(op);
             pendingStore.addOp(op);
             Log.d("InteractionsBuffer", "dislikeComment enqueued for commentId=" + commentId + " (buffer size=" + buffer.size() + ")");
@@ -163,13 +164,10 @@ public class InteractionsBuffer {
             removeOpFromBufferAndPending(existing);
         } else {
             Log.d("InteractionsBuffer", "Replacing existing comment reaction (" + existing.type + ") with dislike for " + commentId);
-            BulkOp newOp = BulkOp.commentReaction(commentId, "dislike");
+            BulkOp newOp = BulkOp.commentReaction(postId,commentId, "dislike");
             replaceOrAddOp(existing, newOp);
         }
     }
-
-
-
 
     public void enqueueCreateComment(String postId, String content, String parentCommentId, String clientId) {
         BulkOp op = BulkOp.createComment(postId, content, parentCommentId, clientId);
@@ -256,15 +254,72 @@ public class InteractionsBuffer {
                     @Override
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                         try {
-                            if (!response.isSuccessful()) {
-                                // on failure, requeue the supported ops at front so they are retried
-                                buffer.addAll(0, supported);
-                                String err = response.errorBody() != null ? response.errorBody().toString() : "no body";
-                                Log.e("InteractionsBuffer", "Bulk failed (supported): HTTP " + response.code() + " body=" + err);
-                            } else {
+                            if (response.isSuccessful()) {
                                 Log.i("InteractionsBuffer", "Bulk success (supported): HTTP " + response.code());
                                 notifyBulkSuccess(supported);
+                                return;
                             }
+
+                            // Not successful -> examine status
+                            int code = response.code();
+                            String errBody = null;
+                            try { errBody = response.errorBody() != null ? response.errorBody().string() : null; } catch (Exception ignore) {}
+
+                            Log.e("InteractionsBuffer", "Bulk failed (supported): HTTP " + code + " body=" + errBody);
+
+                            if (code >= 500) {
+                                // server error: transient -> requeue at front for quick retry
+                                requeueWithRetryLimit(supported);
+                                return;
+                            }
+
+                            if (code == 429) {
+                                // too many requests: backing-off strategy
+                                requeueWithBackoff(supported);
+                                return;
+                            }
+
+                            if (code >= 400 && code < 500) {
+                                // Client error: try to parse validation info.
+                                // If we can identify invalid targets, drop them and keep valid ones.
+                                List<BulkOp> toKeep = new ArrayList<>();
+                                List<BulkOp> toDrop = new ArrayList<>();
+
+                                // naive parsing: look for commentId/postId strings mentioned in errBody
+                                // NOTE: make this more precise depending on server error schema
+                                for (BulkOp op : supported) {
+                                    boolean looksInvalid = false;
+                                    if (errBody != null) {
+                                        if (op.commentId != null && errBody.contains(op.commentId)) looksInvalid = true;
+                                        if (op.postId != null && errBody.contains(op.postId)) looksInvalid = true;
+                                        // also detect parent clientId validation (UUID showing up)
+                                        if ("create_comment".equals(op.op) && op.parentComment != null && errBody.contains(op.parentComment)) looksInvalid = true;
+                                    }
+                                    if (looksInvalid) toDrop.add(op);
+                                    else toKeep.add(op);
+                                }
+
+                                if (!toKeep.isEmpty()) {
+                                    // requeue valid ones for retry
+                                    requeueWithRetryLimit(toKeep);
+                                }
+
+                                // For dropped ops: either persist to dead-letter store or attempt fix if possible
+                                for (BulkOp bad : toDrop) {
+                                    Log.w("InteractionsBuffer", "Dropping invalid op after bulk 4xx: " + bad.op + " postId=" + bad.postId + " commentId=" + bad.commentId);
+                                    // move to dead-letter to allow developer inspection
+                                    try { pendingStore.saveDeadLetter(bad); } catch (Exception ignore) {}
+                                }
+
+                                // If nothing kept and nothing dropped we still requeue supported (conservative)
+                                if (toKeep.isEmpty() && toDrop.isEmpty()) {
+                                    requeueWithRetryLimit(supported);
+                                }
+                                return;
+                            }
+
+                            // default fallback: requeue everything
+                            requeueWithRetryLimit(supported);
                         } catch (Exception e) {
                             buffer.addAll(0, supported);
                             Log.e("InteractionsBuffer", "onResponse exception for supported bulk", e);
@@ -273,7 +328,7 @@ public class InteractionsBuffer {
 
                     @Override
                     public void onFailure(Call<ResponseBody> call, Throwable t) {
-                        buffer.addAll(0, supported);
+                        requeueWithRetryLimit(supported);
                         Log.e("InteractionsBuffer", "Bulk failed (supported) network: " + t.getMessage(), t);
                     }
                 });
@@ -281,13 +336,65 @@ public class InteractionsBuffer {
 
             // 2) create_comment individually (preserve order)
             if (!createComments.isEmpty()) {
+
                 Log.d("InteractionsBuffer", "Processing create_comment ops: count=" + createComments.size());
+                // Build map of confirmed clientId->serverId for this post (from PendingStore confirmed-created records)
+                java.util.Map<String, String> clientToServer = new java.util.HashMap<>();
+                try {
+                    // We may have confirmed created stubs across posts; parse confirmed list per post as needed.
+                    for (BulkOp create : createComments) {
+                        if (create == null || create.postId == null) continue;
+                        List<String> confirmed = pendingStore.loadConfirmedCreatedComments(create.postId);
+                        if (confirmed == null) continue;
+                        com.google.gson.Gson gson = new com.google.gson.Gson();
+                        for (String j : confirmed) {
+                            if (j == null) continue;
+                            try {
+                                java.util.Map map = gson.fromJson(j, java.util.Map.class);
+                                String clientId = map.get("clientId") == null ? null : String.valueOf(map.get("clientId"));
+                                String serverId = map.get("id") == null ? null : String.valueOf(map.get("id"));
+                                if (clientId != null && serverId != null && !clientToServer.containsKey(clientId)) {
+                                    clientToServer.put(clientId, serverId);
+                                }
+                            } catch (Exception ignore) {}
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e("InteractionsBuffer", "error building client->server map", e);
+                }
                 for (BulkOp create : createComments) {
-                    AddCommentBody body = new AddCommentBody(create.content, create.parentComment);
+                    if (create == null) continue;
+
+                    // Helper: check if a string is probably a server id (24 hex)
+                    java.util.function.Predicate<String> looksLikeServerId = s -> {
+                        if (s == null) return false;
+                        if (s.length() != 24) return false;
+                        return s.matches("^[0-9a-fA-F]{24}$");
+                    };
+
+                    // Decide parent to send
+                    String parentToSend = create.parentComment;
+
+                    if (parentToSend != null && !parentToSend.isEmpty() && !looksLikeServerId.test(parentToSend)) {
+                        // parent looks like a clientId (uuid) — try mapping
+                        String mapped = clientToServer.get(parentToSend);
+                        if (mapped != null) {
+                            parentToSend = mapped;
+                        } else {
+                            // Parent not confirmed yet -> requeue this create for later (do not call API now)
+                            Log.d("InteractionsBuffer", "Deferring create_comment because parent not confirmed yet: clientParent=" + parentToSend + " clientId=" + create.clientId);
+                            // requeue at end of buffer so it will be retried in next flush
+                            buffer.add(create);
+                            continue;
+                        }
+                    }
+
+                    AddCommentBody body = new AddCommentBody(create.content, parentToSend);
                     SharedPreferences prefs = appCtx.getSharedPreferences("UserPrefs", MODE_PRIVATE);
                     String accessToken = prefs.getString("accessToken", null);
                     String authHeader = accessToken != null ? "Bearer " + accessToken : null;
 
+                    String finalParentToSend = parentToSend;
                     api.addComment(authHeader, create.postId, body).enqueue(new Callback<GenericResp<CommentResp>>() {
                         @Override
                         public void onResponse(Call<GenericResp<CommentResp>> call, Response<GenericResp<CommentResp>> res) {
@@ -297,7 +404,7 @@ public class InteractionsBuffer {
                                     created = res.body().data != null ? res.body().data.comment : null;
                                 } catch (Exception ignore) {}
 
-                                notifyCreateCommentSuccess(create.postId, create.clientId, created);
+                                notifyCreateCommentSuccess(create.postId, create.clientId, finalParentToSend, created);
                                 Log.i("InteractionsBuffer", "create_comment confirmed clientId=" + create.clientId);
                             } else {
                                 // requeue this create op
@@ -328,8 +435,35 @@ public class InteractionsBuffer {
 
     private List<String> computeAffectedPostIds(List<BulkOp> batch) {
         java.util.Set<String> set = new java.util.HashSet<>();
+        if (batch == null) return new ArrayList<>(set);
+
+        // Load persisted pending list once for possible lookups
+        List<BulkOp> persisted = null;
+        try { persisted = pendingStore.loadAll(); } catch (Exception ignore) {}
+
         for (BulkOp op : batch) {
-            if (op.postId != null) set.add(op.postId);
+            if (op == null) continue;
+
+            if (op.postId != null && !op.postId.isEmpty()) {
+                set.add(op.postId);
+                continue;
+            }
+
+            // If op has commentId but no postId, try to find a persisted op that links commentId->postId
+            if (op.commentId != null && persisted != null) {
+                for (BulkOp p : persisted) {
+                    if (p == null) continue;
+                    if ("comment_reaction".equals(p.op) && op.commentId.equals(p.commentId) && p.postId != null) {
+                        set.add(p.postId);
+                        break;
+                    }
+                    // also check create_comment entries (in case you saved mapping there)
+                    if ("create_comment".equals(p.op) && p.clientId != null && p.clientId.equals(op.commentId) && p.postId != null) {
+                        set.add(p.postId);
+                        break;
+                    }
+                }
+            }
         }
         return new ArrayList<>(set);
     }
@@ -355,6 +489,8 @@ public class InteractionsBuffer {
                         if (p == null) continue;
                         if (sameTarget(p, op) && p.op != null && p.op.equals(op.op)) {
                             persisted.remove(i);
+                            // Update local storage with confirmed server state
+                            updateLocalStorageAfterBulkSuccess(op);
                         }
                     }
                 }
@@ -376,7 +512,7 @@ public class InteractionsBuffer {
      * This is the key method: save a small "confirmed created" JSON and notify the UI listener
      * with the server-created CommentItem so the fragment can replace the optimistic entry immediately.
      */
-    private void notifyCreateCommentSuccess(String postId, String clientId, CommentItem createdItem) {
+    private void notifyCreateCommentSuccess(String postId, String clientId, String resolvedParent, CommentItem createdItem) {
         // save a confirmed stub (so loadComments can reattach it if server list hasn't returned it yet)
         if (pendingStore != null && createdItem != null && clientId != null) {
             com.google.gson.Gson g = new com.google.gson.Gson();
@@ -389,6 +525,8 @@ public class InteractionsBuffer {
             m.put("dislikes", createdItem.dislikes);
             // the server returned parent id for the created comment (may be null)
             m.put("parent", createdItem.parentCommentId != null ? createdItem.parentCommentId : null);
+            m.put("resolvedParent", resolvedParent != null ? resolvedParent : null);
+
             String createdJson = g.toJson(m);
             pendingStore.saveConfirmedCreatedComment(postId, clientId, createdJson);
         }
@@ -684,5 +822,70 @@ public class InteractionsBuffer {
         }
         return null;
     }
+    private void updateLocalStorageAfterBulkSuccess(BulkOp op) {
+        SharedPreferences prefs = appCtx.getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
 
+        if ("post_reaction".equals(op.op)) {
+            String key = "post_" + op.postId;
+            if ("like".equals(op.type)) {
+                editor.putBoolean(key + "_liked", true);
+                editor.putBoolean(key + "_disliked", false);
+            } else if ("dislike".equals(op.type)) {
+                editor.putBoolean(key + "_liked", false);
+                editor.putBoolean(key + "_disliked", true);
+            }
+        } else if ("comment_reaction".equals(op.op)) {
+            String key = "comment_" + op.commentId;
+            if ("like".equals(op.type)) {
+                editor.putBoolean(key + "_liked", true);
+                editor.putBoolean(key + "_disliked", false);
+            } else if ("dislike".equals(op.type)) {
+                editor.putBoolean(key + "_liked", false);
+                editor.putBoolean(key + "_disliked", true);
+            }
+        }
+        editor.apply();
+    }
+    // helper: requeue but enforce retry limit and dead-letter
+    private void requeueWithRetryLimit(List<BulkOp> ops) {
+        try {
+            List<BulkOp> persisted = pendingStore.loadAll();
+            if (persisted == null) persisted = new ArrayList<>();
+
+            for (BulkOp op : ops) {
+                if (op == null) continue;
+                op.retryCount = op.retryCount + 1;
+                if (op.retryCount > 5) {
+                    // move to dead-letter
+                    try { pendingStore.saveDeadLetter(op); } catch (Exception ignore) {}
+                    Log.e("InteractionsBuffer", "Moving op to dead-letter after retries: " + op.op + " id:" + (op.postId!=null?op.postId:op.commentId));
+                    // also remove matching persisted copies (if any)
+                    for (int i = persisted.size()-1; i>=0; --i) {
+                        if (sameTarget(persisted.get(i), op) && persisted.get(i).op.equals(op.op)) persisted.remove(i);
+                    }
+                } else {
+                    // ensure persisted list has this op (replace existing)
+                    for (int i = persisted.size()-1; i>=0; --i) {
+                        BulkOp p = persisted.get(i);
+                        if (sameTarget(p, op) && p.op.equals(op.op)) { persisted.remove(i); break; }
+                    }
+                    persisted.add(0, op); // add near front so it's retried early
+                    // add to in-memory buffer front for immediate retry attempts
+                    buffer.add(0, op);
+                }
+            }
+            pendingStore.saveAll(persisted);
+        } catch (Exception e) {
+            // last resort: put ops back in-memory
+            buffer.addAll(0, ops);
+            Log.e("InteractionsBuffer", "requeueWithRetryLimit failed, re-added to buffer", e);
+        }
+    }
+
+    private void requeueWithBackoff(List<BulkOp> ops) {
+        // Simple approach: re-add to buffer and let scheduler handle next flush.
+        // For more robust backoff you can track nextAttemptTs per op.
+        buffer.addAll(ops);
+    }
 }

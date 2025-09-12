@@ -10,6 +10,8 @@ public class BulkOp {
     public String content;       // comment text
     public String parentComment; // optional parentCommentId for replies
     // new - create comment
+    public int retryCount = 0; // default 0
+
     public static BulkOp createComment(String postId, String content, String parentComment, String clientId) {
         BulkOp b = new BulkOp();
         b.op = "create_comment";
@@ -23,10 +25,15 @@ public class BulkOp {
         BulkOp b = new BulkOp();
         b.op = "post_reaction"; b.postId = postId; b.type = type; return b;
     }
-    public static BulkOp commentReaction(String commentId, String type) {
+    public static BulkOp commentReaction(String postId, String commentId, String type) {
         BulkOp b = new BulkOp();
-        b.op = "comment_reaction"; b.commentId = commentId; b.type = type; return b;
+        b.op = "comment_reaction";
+        b.postId = postId;
+        b.commentId = commentId;
+        b.type = type;
+        return b;
     }
+
     public static BulkOp postShare(String postId) {
         BulkOp b = new BulkOp();
         b.op = "post_share"; b.postId = postId; return b;

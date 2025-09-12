@@ -63,101 +63,99 @@
                     android:textColor="#999999"
                     android:textSize="12dp" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_5sdp"
-                    android:orientation="horizontal">
-
-
-                    <!--  <LinearLayout
-                          android:layout_width="wrap_content"
-                          android:layout_height="wrap_content"
-                          android:layout_marginStart="@dimen/_10sdp"
-                          android:orientation="horizontal">
-
-                          <ImageView
-                              android:layout_width="@dimen/_10sdp"
-                              android:layout_height="@dimen/_10sdp"
-                              android:layout_gravity="center_vertical"
-                              android:src="@drawable/ic_notifications"
-                              android:tint="@color/gradient_end" />
-
-                          <TextView
-                              android:id="@+id/follow"
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:layout_marginStart="5dp"
-                              android:text="Follow"
-                              android:fontFamily="@font/titilliumweb_raguler"
-                              android:textColor="@color/gradient_end"
-                              android:textSize="10dp" />
-
-                      </LinearLayout>-->
-                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="center_vertical"
-                android:gravity="center_vertical"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
                 android:orientation="vertical">
 
-                <RelativeLayout
-                    android:id="@+id/followLayout"
+                <LinearLayout
+                    android:id="@+id/FJlayout"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/followText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginStart="@dimen/_15sdp"
-                        android:background="@drawable/button_round_background_curve"
-                        android:paddingHorizontal="@dimen/_10sdp"
-                        android:paddingVertical="@dimen/_3sdp"
-                        android:text="Follow"
-                        android:textSize="@dimen/_8sdp" />
+                    <RelativeLayout
+                        android:id="@+id/followLayout"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
 
-                    <ImageView
-                        android:layout_width="@dimen/_25sdp"
-                        android:layout_height="@dimen/_25sdp"
-                        android:layout_marginTop="-5dp"
-                        android:src="@drawable/click" />
+                        <TextView
+                            android:id="@+id/followText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:background="@drawable/button_round_background_curve"
+                            android:paddingHorizontal="@dimen/_10sdp"
+                            android:paddingVertical="@dimen/_3sdp"
+                            android:text="Follow"
+                            android:textSize="@dimen/_8sdp" />
 
-                </RelativeLayout>
+                        <ImageView
+                            android:layout_width="@dimen/_25sdp"
+                            android:layout_height="@dimen/_25sdp"
+                            android:visibility="gone"
+                            android:layout_marginTop="-5dp"
+                            android:src="@drawable/click" />
 
-                <RelativeLayout
-                    android:id="@+id/joinLayout"
-                    android:layout_width="@dimen/_60sdp"
-                    android:layout_height="wrap_content">
+                    </RelativeLayout>
 
-                    <TextView
-                        android:id="@+id/joinText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginEnd="@dimen/_15sdp"
-                        android:background="@drawable/button_round_background_curve"
-                        android:paddingHorizontal="@dimen/_10sdp"
-                        android:paddingVertical="@dimen/_3sdp"
-                        android:text="  Join  "
-                        android:textSize="@dimen/_8sdp" />
+                    <RelativeLayout
+                        android:id="@+id/joinLayout"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/_5sdp"
+                        android:layout_height="wrap_content">
 
-                    <ImageView
-                        android:layout_width="@dimen/_25sdp"
-                        android:layout_height="@dimen/_25sdp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginTop="-5dp"
-                        android:scaleX="-1"
-                        android:src="@drawable/click" />
+                        <TextView
+                            android:id="@+id/joinText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:background="@drawable/button_round_background_curve"
+                            android:paddingHorizontal="@dimen/_10sdp"
+                            android:paddingVertical="@dimen/_3sdp"
+                            android:text="  Join  "
+                            android:textSize="@dimen/_8sdp" />
 
-                </RelativeLayout>
+                        <ImageView
+                            android:layout_width="@dimen/_25sdp"
+                            android:layout_height="@dimen/_25sdp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_marginTop="-5dp"
+                            android:visibility="gone"
+                            android:scaleX="-1"
+                            android:src="@drawable/click" />
+
+                    </RelativeLayout>
+
+
+
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/shareSlug"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:background="@drawable/button_round_background_curve"
+                    android:paddingHorizontal="@dimen/_10sdp"
+                    android:paddingVertical="@dimen/_3sdp"
+                    android:layout_marginTop="@dimen/_5sdp"
+                    android:text="Share Slug"
+                    android:textSize="@dimen/_8sdp" />
 
             </LinearLayout>
-
 
         </LinearLayout>
 

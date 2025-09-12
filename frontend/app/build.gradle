@@ -118,4 +118,7 @@ dependencies {
     // (Optional) Tink for E2E later
     implementation 'com.google.crypto.tink:tink-android:1.7.0'
 
+    //slugify
+    implementation 'com.github.slugify:slugify:3.0.7' // or 2.4 if you prefer older
+
 }

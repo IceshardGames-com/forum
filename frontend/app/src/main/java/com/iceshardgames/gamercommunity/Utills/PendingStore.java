@@ -132,4 +132,46 @@ public class PendingStore {
     private void saveStringList(String key, List<String> list) {
         prefs.edit().putString(key, gson.toJson(list)).apply();
     }
+    /**
+     * Append a BulkOp to the "dead letter" store for debugging/inspection.
+     */
+    public synchronized void saveDeadLetter(BulkOp op) {
+        if (op == null) return;
+        try {
+            List<BulkOp> dead = loadDeadLetter();
+            if (dead == null) dead = new java.util.ArrayList<>();
+            dead.add(op);
+            String json = gson.toJson(dead);
+            prefs.edit().putString("dead_letter_ops", json).apply();
+        } catch (Exception e) {
+            android.util.Log.e("PendingStore", "saveDeadLetter failed", e);
+        }
+    }
+
+    /**
+     * Load the list of ops from the dead-letter store (may be empty).
+     */
+    public synchronized List<BulkOp> loadDeadLetter() {
+        try {
+            String json = prefs.getString("dead_letter_ops", null);
+            if (json == null) return new java.util.ArrayList<>();
+            java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<BulkOp>>() {}.getType();
+            return gson.fromJson(json, listType);
+        } catch (Exception e) {
+            android.util.Log.e("PendingStore", "loadDeadLetter failed", e);
+            return new java.util.ArrayList<>();
+        }
+    }
+
+    /**
+     * Clear all dead-letter ops.
+     */
+    public synchronized void clearDeadLetter() {
+        try {
+            prefs.edit().remove("dead_letter_ops").apply();
+        } catch (Exception e) {
+            android.util.Log.e("PendingStore", "clearDeadLetter failed", e);
+        }
+    }
+
 }

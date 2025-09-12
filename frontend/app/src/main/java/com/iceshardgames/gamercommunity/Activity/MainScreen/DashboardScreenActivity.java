@@ -141,6 +141,11 @@ public class DashboardScreenActivity extends AppCompatActivity {
                     SharedPreferences userPrefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
                     userPrefs.edit().clear().apply();
 
+                    SharedPreferences postPrefs = getSharedPreferences("PostReactions", MODE_PRIVATE);
+                    SharedPreferences commentPrefs = getSharedPreferences("CommentReactions", MODE_PRIVATE);
+
+                    postPrefs.edit().clear().apply();
+                    commentPrefs.edit().clear().apply();
                     Intent intent = new Intent(DashboardScreenActivity.this, LoginScreenActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Prevent back press
                     startActivity(intent);

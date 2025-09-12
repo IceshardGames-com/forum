@@ -26,6 +26,7 @@ import com.iceshardgames.gamercommunity.Model.Response.CreateForumResponse;
 import com.iceshardgames.gamercommunity.Model.Response.CreatePostResponse;
 import com.iceshardgames.gamercommunity.Model.Response.DevicesResponse;
 import com.iceshardgames.gamercommunity.Model.Response.FollowResponse;
+import com.iceshardgames.gamercommunity.Model.Response.ForumBySlugResponse;
 import com.iceshardgames.gamercommunity.Model.Response.FriendListResponse;
 import com.iceshardgames.gamercommunity.Model.Response.FriendRequestResponse;
 import com.iceshardgames.gamercommunity.Model.Request.LastSeenRequest;
@@ -200,7 +201,7 @@ public interface ApiService {
                                           @Body CreateForumRequest body);
 
     @GET("/api/forums/slug/{slug}")
-    Call<CreateForumResponse> getForumBySlug(
+    Call<ForumBySlugResponse> getForumBySlug(
             @Header("Authorization") String token,
             @Path("slug") String slug
     );

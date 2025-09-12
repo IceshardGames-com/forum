@@ -54,7 +54,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class PostDetailFragment extends Fragment {
-    private String title, author, content;
+    private String title, author, content, AuthorId;
     private RecyclerView recyclerComments;
     private CommentAdapter commentAdapter;
     private int replies;
@@ -92,7 +92,7 @@ public class PostDetailFragment extends Fragment {
         }
     };
 
-    public static PostDetailFragment newInstance(String postId, String title, String author, int likes, int replies, long createdAtMillis) {
+    public static PostDetailFragment newInstance(String postId, String title, String author, int likes, int replies, long createdAtMillis, int dislikes,String forum_AuthorId) {
         PostDetailFragment fragment = new PostDetailFragment();
         Bundle args = new Bundle();
         args.putString("postId", postId);
@@ -101,9 +101,12 @@ public class PostDetailFragment extends Fragment {
         args.putInt("likes", likes);
         args.putInt("replies", replies);
         args.putLong("createdAt", createdAtMillis);
+        args.putInt("dislikes", dislikes);
+        args.putString("forum_AuthorId", forum_AuthorId);
         fragment.setArguments(args);
         return fragment;
     }
+
     // register in onCreate()
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -124,7 +127,8 @@ public class PostDetailFragment extends Fragment {
 
                 // chosen component (if provided)
                 ComponentName chosen = intent.getParcelableExtra(Intent.EXTRA_CHOSEN_COMPONENT);
-                if (chosen != null) Log.d("PostDetailFragment", "CHOOSEN COMPONENT: " + chosen.flattenToString());
+                if (chosen != null)
+                    Log.d("PostDetailFragment", "CHOOSEN COMPONENT: " + chosen.flattenToString());
 
                 // decide what to enqueue: prefer callback post id, fallback to fragment's postId
                 String effectivePostId = callbackPostId != null ? callbackPostId : PostDetailFragment.this.postId;
@@ -143,6 +147,16 @@ public class PostDetailFragment extends Fragment {
         // register receiver on Activity context
         ContextCompat.registerReceiver(requireActivity(), shareChosenReceiver, new IntentFilter(ACTION_SHARE_CHOSEN), ContextCompat.RECEIVER_NOT_EXPORTED);
     }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // Load saved reaction states
+        loadPostReactionState();
+    }
+
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -153,9 +167,11 @@ public class PostDetailFragment extends Fragment {
             postId = getArguments().getString("postId");
             title = getArguments().getString("title");
             author = getArguments().getString("author");
+            AuthorId = getArguments().getString("forum_AuthorId");
             content = getArguments().getString("content");
             replies = getArguments().getInt("replies");
             postLikes = getArguments().getInt("likes", 0);            // <- added
+            postDislikes = getArguments().getInt("dislikes", 0);            // <- added
             createdAtMillis = getArguments().getLong("createdAt", 0L);
         }
         api = ApiClient.getRetrofit().create(ApiService.class);
@@ -164,6 +180,10 @@ public class PostDetailFragment extends Fragment {
         accessToken = prefs.getString("accessToken", null);
         Log.e("==lag", "postId: " + postId);
         Log.e("==lag", "accessToken: " + accessToken);
+        Log.e("==lag", "postLikes: " + postLikes);
+        Log.e("==lag", "postDislikes: " + postDislikes);
+        Log.e("==lag", "title: " + title);
+
 
         TextView tvTitle = view.findViewById(R.id.tvPostTitle);
         TextView tvAuthor = view.findViewById(R.id.tvPostAuthor);
@@ -190,6 +210,8 @@ public class PostDetailFragment extends Fragment {
         layoutLike = view.findViewById(R.id.layoutPostLike);
         layoutDislike = view.findViewById(R.id.layoutPostDislike);
         layoutShare = view.findViewById(R.id.layoutPostShare);
+
+
         Utills.GradientText(tvAuthor);
         Utills.GradientText(comtext);
 // enable internal scrolling for the TextView
@@ -240,6 +262,8 @@ public class PostDetailFragment extends Fragment {
 
             // ALWAYS call buffer so it can toggle/replace/remove as needed
             buffer.likePost(postId);
+            // Save the new state
+            savePostReactionState();
         });
 
 // --- DISLIKE ---
@@ -265,6 +289,8 @@ public class PostDetailFragment extends Fragment {
 
             // ALWAYS call buffer so it can toggle/replace/remove as needed
             buffer.dislikePost(postId);
+            // Save the new state
+            savePostReactionState();
         });
 
 
@@ -326,7 +352,13 @@ public class PostDetailFragment extends Fragment {
         commentAdapter = new CommentAdapter(commentList, getContext(), buffer, api, postId);
         recyclerComments.setAdapter(commentAdapter);
 
+        Log.e("==lag", "author: "+author );
+        Log.e("==lag", "AuthorId: "+AuthorId );
+
+
+
         loadComments(/*parent*/null);
+        updatePostReactionUI();
 
         // Add comment box
         EditText etAddComment = view.findViewById(R.id.etAddComment);
@@ -349,7 +381,8 @@ public class PostDetailFragment extends Fragment {
 // update comment count after optimistic add (top-level only)
             try {
                 commentCount.setText(String.valueOf(computeTopLevelComments(commentList)));
-            } catch (Exception ignore) {}
+            } catch (Exception ignore) {
+            }
 
             // enqueue as bulk op (create_comment)
             buffer.enqueueCreateComment(postId, commentText, /* parentComment */ null, clientId);
@@ -401,12 +434,16 @@ public class PostDetailFragment extends Fragment {
                             if (commentCount != null) {
                                 commentCount.setText(String.valueOf(computeTopLevelComments(commentList)));
                             }
-                        } catch (Exception ignore) {}
+                        } catch (Exception ignore) {
+                        }
 
                     } catch (Exception e) {
                         Log.e("PostDetailFragment", "onCreateCommentConfirmed error", e);
                         // Fallback: reload comments to keep UI consistent
-                        try { loadComments(null); } catch (Exception ignore) {}
+                        try {
+                            loadComments(null);
+                        } catch (Exception ignore) {
+                        }
                     }
                 });
             }
@@ -485,9 +522,10 @@ public class PostDetailFragment extends Fragment {
         Log.d("InteractionsBuffer", "Pending ops size=" + pending.size());
         int totalPending = pending != null ? pending.size() : 0;
 
-        for (BulkOp p : pending) {
+//        for (BulkOp p : pending) {
 //            Log.d("InteractionsBuffer", "op=" + p.op + " type=" + p.type + " postId=" + p.postId + " commentId=" + p.commentId + " clientId=" + p.clientId);
-        }
+//        }
+
         // filter to current postId
         List<BulkOp> pendingForThisPost = new ArrayList<>();
         if (pending != null && postId != null) {
@@ -502,6 +540,9 @@ public class PostDetailFragment extends Fragment {
             Log.d("InteractionsBuffer", "PENDING[post=" + p.postId + " op=" + p.op + " type=" + p.type +
                     " commentId=" + p.commentId + " parent=" + p.parentComment + " clientId=" + p.clientId + "]");
         }
+        Log.e("==lag", "token: "+"Bearer " + accessToken );
+        Log.e("==lag", "postId" + postId );
+        Log.e("==lag", "parentId" + parentId );
 
         api.listComments("Bearer " + accessToken, postId, parentId, 1, 50).enqueue(new Callback<GenericResp<CommentsPage>>() {
             @Override
@@ -518,6 +559,10 @@ public class PostDetailFragment extends Fragment {
                     c.setLikeCount(it.likes);
                     c.setDislikeCount(it.dislikes);
                     c.setServerId(it.id);
+
+                    // Load saved reaction state for this comment
+                    loadCommentReactionState(c);
+
                     byServerId.put(it.id, c);
                 }
 
@@ -534,7 +579,8 @@ public class PostDetailFragment extends Fragment {
                             f.setAccessible(true);
                             Object val = f.get(it);
                             if (val != null) serverParentId = String.valueOf(val);
-                        } catch (Exception ignored) {}
+                        } catch (Exception ignored) {
+                        }
                     }
                     if (serverParentId != null && !serverParentId.isEmpty()) {
                         Comment parent = byServerId.get(serverParentId);
@@ -565,12 +611,19 @@ public class PostDetailFragment extends Fragment {
                         boolean exists = false;
                         if (op.clientId != null) {
                             for (Comment c : commentList) {
-                                if (op.clientId.equals(c.getClientId())) { exists = true; break; }
+                                if (op.clientId.equals(c.getClientId())) {
+                                    exists = true;
+                                    break;
+                                }
                             }
                         }
                         if (!exists) {
                             Comment opt = new Comment(getDisplayName(getContext()), op.content, "Now");
                             opt.setClientId(op.clientId);
+
+                            // Load saved reaction state for optimistic comment
+                            loadCommentReactionState(opt);
+
                             commentList.add(0, opt);
                             if (op.clientId != null) byClientId.put(op.clientId, opt);
                         }
@@ -588,7 +641,10 @@ public class PostDetailFragment extends Fragment {
                     if (op.clientId != null) {
                         for (Comment parentCheck : commentList) {
                             for (Comment r : parentCheck.getReplies()) {
-                                if (op.clientId.equals(r.getClientId())) { alreadyAttached = true; break; }
+                                if (op.clientId.equals(r.getClientId())) {
+                                    alreadyAttached = true;
+                                    break;
+                                }
                             }
                             if (alreadyAttached) break;
                         }
@@ -603,17 +659,29 @@ public class PostDetailFragment extends Fragment {
                         Comment optReply = new Comment(getDisplayName(getContext()), op.content, "Now");
                         optReply.setClientId(op.clientId);
                         optReply.setParentServerId(op.parentComment);
+
+                        // Load saved reaction state for optimistic reply
+                        loadCommentReactionState(optReply);
+
                         parent.addReply(optReply);
                     } else {
                         // create a placeholder parent (parentComment was likely a clientId we don't have)
                         Comment placeholderParent = new Comment(getDisplayName(getContext()), "[reply]", "Now");
                         placeholderParent.setClientId(op.parentComment); // store the clientId so it can be matched later
+
+                        // Load saved reaction state for placeholder
+                        loadCommentReactionState(placeholderParent);
+
                         commentList.add(0, placeholderParent);
                         byClientId.put(placeholderParent.getClientId(), placeholderParent);
 
                         Comment optReply = new Comment(getDisplayName(getContext()), op.content, "Now");
                         optReply.setClientId(op.clientId);
                         optReply.setParentServerId(op.parentComment);
+
+                        // Load saved reaction state for optimistic reply
+                        loadCommentReactionState(optReply);
+
                         placeholderParent.addReply(optReply);
                     }
                 }
@@ -632,6 +700,8 @@ public class PostDetailFragment extends Fragment {
                                 String content = map.get("content") == null ? "" : String.valueOf(map.get("content"));
                                 String createdAt = map.get("createdAt") == null ? null : String.valueOf(map.get("createdAt"));
                                 String parent = map.get("parent") == null ? null : String.valueOf(map.get("parent"));
+                                String resolvedParent = map.get("resolvedParent") == null ? null : String.valueOf(map.get("resolvedParent"));
+
                                 int likes = map.get("likes") == null ? 0 : ((Number) map.get("likes")).intValue();
                                 int dislikes = map.get("dislikes") == null ? 0 : ((Number) map.get("dislikes")).intValue();
 
@@ -639,15 +709,29 @@ public class PostDetailFragment extends Fragment {
                                 boolean alreadyPresent = false;
                                 if (serverId != null) {
                                     for (Comment c : commentList) {
-                                        if (serverId.equals(c.getServerId())) { alreadyPresent = true; break; }
-                                        for (Comment r : c.getReplies()) if (serverId.equals(r.getServerId())) { alreadyPresent = true; break; }
+                                        if (serverId.equals(c.getServerId())) {
+                                            alreadyPresent = true;
+                                            break;
+                                        }
+                                        for (Comment r : c.getReplies())
+                                            if (serverId.equals(r.getServerId())) {
+                                                alreadyPresent = true;
+                                                break;
+                                            }
                                         if (alreadyPresent) break;
                                     }
                                 }
                                 if (!alreadyPresent && clientId != null) {
                                     for (Comment c : commentList) {
-                                        if (clientId.equals(c.getClientId())) { alreadyPresent = true; break; }
-                                        for (Comment r : c.getReplies()) if (clientId.equals(r.getClientId())) { alreadyPresent = true; break; }
+                                        if (clientId.equals(c.getClientId())) {
+                                            alreadyPresent = true;
+                                            break;
+                                        }
+                                        for (Comment r : c.getReplies())
+                                            if (clientId.equals(r.getClientId())) {
+                                                alreadyPresent = true;
+                                                break;
+                                            }
                                         if (alreadyPresent) break;
                                     }
                                 }
@@ -657,18 +741,26 @@ public class PostDetailFragment extends Fragment {
                                     for (Comment c : commentList) {
                                         if (clientId != null && clientId.equals(c.getClientId())) {
                                             c.setServerId(serverId);
-                                            if (createdAt != null) c.setTime(Utills.getTimeAgo(Utills.parseIso8601ToMillis(createdAt)));
+                                            if (createdAt != null)
+                                                c.setTime(Utills.getTimeAgo(Utills.parseIso8601ToMillis(createdAt)));
                                             c.setLikeCount(likes);
                                             c.setDislikeCount(dislikes);
                                             c.setClientId(null);
+
+                                            // Update saved reaction state
+                                            saveCommentReactionState(serverId, c.isLiked(), c.isDisliked(), c.getLikeCount(), c.getDislikeCount());
                                         }
                                         for (Comment r : c.getReplies()) {
                                             if (clientId != null && clientId.equals(r.getClientId())) {
                                                 r.setServerId(serverId);
-                                                if (createdAt != null) r.setTime(Utills.getTimeAgo(Utills.parseIso8601ToMillis(createdAt)));
+                                                if (createdAt != null)
+                                                    r.setTime(Utills.getTimeAgo(Utills.parseIso8601ToMillis(createdAt)));
                                                 r.setLikeCount(likes);
                                                 r.setDislikeCount(dislikes);
                                                 r.setClientId(null);
+
+                                                // Update saved reaction state
+                                                saveCommentReactionState(serverId, r.isLiked(), r.isDisliked(), r.getLikeCount(), r.getDislikeCount());
                                             }
                                         }
                                     }
@@ -684,6 +776,13 @@ public class PostDetailFragment extends Fragment {
                                 confirmedComment.setLikeCount(likes);
                                 confirmedComment.setDislikeCount(dislikes);
                                 confirmedComment.setParentServerId(parent);
+                                // prefer server parent, fallback to resolvedParent (what we actually sent)
+                                String parentToUse = (parent != null && !parent.isEmpty())
+                                        ? parent
+                                        : (resolvedParent != null && !resolvedParent.isEmpty() ? resolvedParent : null);
+                                confirmedComment.setParentServerId(parentToUse);
+                                // Load saved reaction state for confirmed comment
+                                loadCommentReactionState(confirmedComment);
 
                                 if (parent == null || parent.isEmpty()) {
                                     // top-level
@@ -698,20 +797,24 @@ public class PostDetailFragment extends Fragment {
                                         commentList.add(0, confirmedComment);
                                     }
                                 }
-                            } catch (Exception ignore) {}
+                            } catch (Exception ignore) {
+                            }
                         }
                     }
-                } catch (Exception ignore) {}
+                } catch (Exception ignore) {
+                }
 
                 // --- Apply pending reaction ops (likes/dislikes) ---
                 applyPendingToComments(commentList);
 
-                // --- Update post UI counters/icons (fragment fields) ---
-                if (tvLikeCount != null) tvLikeCount.setText(String.valueOf(postLikes));
-                if (tvDislikeCount != null) tvDislikeCount.setText(String.valueOf(postDislikes));
-                if (imgLike != null) imgLike.setImageResource(postLiked ? R.drawable.ic_like_filled : R.drawable.ic_like_outline);
-                if (imgDislike != null) imgDislike.setImageResource(postDisliked ? R.drawable.ic_dislike_filled : R.drawable.ic_dislike_outline);
-// update comments counter: top-level only
+                // WITH:
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> updatePostReactionUI());
+                } else {
+                    updatePostReactionUI();
+                }
+
+                // update comments counter: top-level only
                 try {
                     final int total = computeTopLevelComments(commentList);
                     if (isAdded()) {
@@ -719,7 +822,8 @@ public class PostDetailFragment extends Fragment {
                     } else {
                         commentCount.setText(String.valueOf(total));
                     }
-                } catch (Exception ignore) {}
+                } catch (Exception ignore) {
+                }
 
                 // --- Notify adapter (adapter renders comment.getReplies()) ---
                 commentAdapter.notifyDataSetChanged();
@@ -728,14 +832,52 @@ public class PostDetailFragment extends Fragment {
             @Override
             public void onFailure(Call<GenericResp<CommentsPage>> call, Throwable t) {
                 // optionally show load error / fallback
+                Log.e("PostDetailFragment", "Failed to load comments: " + t.getMessage());
             }
         });
+    }
+
+    // Helper method to load comment reaction state from SharedPreferences
+    private void loadCommentReactionState(Comment comment) {
+        String commentId = comment.getServerId() != null ? comment.getServerId() : comment.getClientId();
+        if (commentId == null) return;
+
+        SharedPreferences prefs = requireContext().getSharedPreferences("CommentReactions", MODE_PRIVATE);
+        String key = "comment_" + commentId;
+
+        comment.setLiked(prefs.getBoolean(key + "_liked", false));
+        comment.setDisliked(prefs.getBoolean(key + "_disliked", false));
+
+        // Only update counts if we have saved state (don't override server counts unnecessarily)
+        if (prefs.contains(key + "_likes")) {
+            comment.setLikeCount(prefs.getInt(key + "_likes", comment.getLikeCount()));
+        }
+        if (prefs.contains(key + "_dislikes")) {
+            comment.setDislikeCount(prefs.getInt(key + "_dislikes", comment.getDislikeCount()));
+        }
+    }
+
+    // Helper method to save comment reaction state to SharedPreferences
+    private void saveCommentReactionState(String commentId, boolean liked, boolean disliked, int likeCount, int dislikeCount) {
+        if (commentId == null) return;
+
+        SharedPreferences prefs = requireContext().getSharedPreferences("CommentReactions", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        String key = "comment_" + commentId;
+
+        editor.putBoolean(key + "_liked", liked);
+        editor.putBoolean(key + "_disliked", disliked);
+        editor.putInt(key + "_likes", likeCount);
+        editor.putInt(key + "_dislikes", dislikeCount);
+        editor.apply();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        timeHandler.post(timeTicker); // start refresh
+        timeHandler.post(timeTicker); // start refresh.
+        updatePostReactionUI();
+
     }
 
     @Override
@@ -748,7 +890,10 @@ public class PostDetailFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView(); /* optional: InteractionsBuffer.get(...).flush(); */
         if (shareChosenReceiver != null) {
-            try { requireActivity().unregisterReceiver(shareChosenReceiver); } catch (Exception ignore) {}
+            try {
+                requireActivity().unregisterReceiver(shareChosenReceiver);
+            } catch (Exception ignore) {
+            }
             shareChosenReceiver = null;
         }
         if (buffer != null) buffer.clearOnBulkSuccessListener();
@@ -851,5 +996,117 @@ public class PostDetailFragment extends Fragment {
     private int computeTopLevelComments(List<Comment> list) {
         return list == null ? 0 : list.size();
     }
+
+    private void loadPostReactionState() {
+        SharedPreferences prefs = requireContext().getSharedPreferences("PostReactions", MODE_PRIVATE);
+        String key = "post_" + postId;
+
+        postLiked = prefs.getBoolean(key + "_liked", false);
+        postDisliked = prefs.getBoolean(key + "_disliked", false);
+        postLikes = prefs.getInt(key + "_likes", postLikes);
+        postDislikes = prefs.getInt(key + "_dislikes", postDislikes);
+
+        updatePostReactionUI();
+    }
+
+    private void savePostReactionState() {
+        SharedPreferences prefs = requireContext().getSharedPreferences("PostReactions", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        String key = "post_" + postId;
+
+        editor.putBoolean(key + "_liked", postLiked);
+        editor.putBoolean(key + "_disliked", postDisliked);
+        editor.putInt(key + "_likes", postLikes);
+        editor.putInt(key + "_dislikes", postDislikes);
+        editor.apply();
+    }
+
+    private void updatePostReactionUI() {
+        // Diagnostic
+        Log.d("PostDetailFragment", "updatePostReactionUI() called. postId=" + postId +
+                " postLikes=" + postLikes + " postDislikes=" + postDislikes +
+                " postLiked=" + postLiked + " postDisliked=" + postDisliked +
+                " imgLike=" + (imgLike != null) + " imgDislike=" + (imgDislike != null) +
+                " tvLikeCount=" + (tvLikeCount != null) + " tvDislikeCount=" + (tvDislikeCount != null));
+
+        // Update counts text
+        if (tvLikeCount != null) tvLikeCount.setText(String.valueOf(postLikes));
+        if (tvDislikeCount != null) tvDislikeCount.setText(String.valueOf(postDislikes));
+
+        // Read saved user reaction values (if present)
+        boolean savedLiked = false;
+        boolean savedDisliked = false;
+        boolean hasSavedKeys = false;
+        try {
+            SharedPreferences prefs = requireActivity().getSharedPreferences("PostReactions", MODE_PRIVATE);
+            String key = "post_" + postId;
+            hasSavedKeys = prefs.contains(key + "_liked") || prefs.contains(key + "_disliked");
+            // read explicit saved booleans (default false)
+            savedLiked = prefs.getBoolean(key + "_liked", false);
+            savedDisliked = prefs.getBoolean(key + "_disliked", false);
+        } catch (Exception e) {
+            Log.w("PostDetailFragment", "error reading saved state", e);
+        }
+
+        // Decide whether to show filled icons.
+        // Priority:
+        // 1) If we have an explicit saved reaction (savedLiked==true or savedDisliked==true) -> respect it.
+        // 2) Otherwise (no saved explicit reaction), fall back to using counts so server data is visible.
+        boolean showLikeFilled;
+        boolean showDislikeFilled;
+
+        if (savedLiked) {
+            showLikeFilled = true;
+            showDislikeFilled = false;
+        } else if (savedDisliked) {
+            showLikeFilled = false;
+            showDislikeFilled = true;
+        } else {
+            // No explicit saved reaction (either no saved keys, or saved keys present but both false)
+            // Use in-memory booleans if they indicate a local reaction
+            if (postLiked || postDisliked) {
+                showLikeFilled = postLiked;
+                showDislikeFilled = postDisliked;
+            } else {
+                // fallback to counts: non-zero -> filled
+                showLikeFilled = postLikes > 0;
+                showDislikeFilled = postDislikes > 0;
+            }
+        }
+
+        final boolean likeFillFinal = showLikeFilled;
+        final boolean dislikeFillFinal = showDislikeFilled;
+
+        // Update ImageViews on UI thread using ContextCompat (robust for vectors)
+        Runnable uiUpdate = () -> {
+            try {
+                if (imgLike != null) {
+                    int resLike = likeFillFinal ? R.drawable.ic_like_filled : R.drawable.ic_like_outline;
+                    imgLike.setImageDrawable(ContextCompat.getDrawable(requireContext(), resLike));
+                    imgLike.invalidate();
+                    imgLike.post(() -> imgLike.refreshDrawableState());
+                } else {
+                    Log.w("PostDetailFragment", "imgLike is null when updating icon");
+                }
+                if (imgDislike != null) {
+                    int resDislike = dislikeFillFinal ? R.drawable.ic_dislike_filled : R.drawable.ic_dislike_outline;
+                    imgDislike.setImageDrawable(ContextCompat.getDrawable(requireContext(), resDislike));
+                    imgDislike.invalidate();
+                    imgDislike.post(() -> imgDislike.refreshDrawableState());
+                } else {
+                    Log.w("PostDetailFragment", "imgDislike is null when updating icon");
+                }
+                Log.d("PostDetailFragment", "Icons updated: likeFilled=" + likeFillFinal + " dislikeFilled=" + dislikeFillFinal);
+            } catch (Exception e) {
+                Log.e("PostDetailFragment", "Failed to update icons", e);
+            }
+        };
+
+        if (getActivity() != null) getActivity().runOnUiThread(uiUpdate);
+        else uiUpdate.run();
+    }
+
+
+
 
 }

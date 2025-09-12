@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dialog_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/_10sdp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_gradient_discussion"
+        android:orientation="vertical"
+        android:padding="@dimen/_10sdp">
+    <!-- Title -->
+    <TextView
+        android:id="@+id/dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Forum"
+        android:textAllCaps="false"
+        android:textSize="20sp"
+        android:fontFamily="@font/titilliumweb_bold"
+        android:textColor="@color/white"
+        android:gravity="center" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="12dp" />
+
+    <!-- Option: Create new forum -->
+    <LinearLayout
+        android:id="@+id/option_create"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:id="@+id/icon_create"
+            android:layout_width="30dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/create_forum"
+            android:contentDescription="Create icon"
+            android:tint="@color/gradient_end" />
+
+        <LinearLayout
+            android:layout_marginStart="12dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/text_create_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Create new forum"
+                android:textSize="17sp"
+                android:fontFamily="@font/titilliumweb_bold"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:id="@+id/text_create_sub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start a new community for your game"
+                android:textSize="10sp"
+                android:fontFamily="@font/titilliumweb_raguler"
+                android:textColor="@color/light_gray" />
+        </LinearLayout>
+
+        <!-- Arrow or chevron -->
+        <ImageView
+            android:id="@+id/arrow_create"
+            android:layout_width="24dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_chevron_right"
+            android:tint="@color/gradient_end" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="8dp" />
+
+    <!-- Option: Join forum -->
+    <LinearLayout
+        android:id="@+id/option_join"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:id="@+id/icon_join"
+            android:layout_width="30dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/join_forum"
+            android:contentDescription="Join icon"
+            android:tint="@color/gradient_end" />
+
+        <LinearLayout
+            android:layout_marginStart="12dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/text_join_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Join forum"
+                android:textSize="17sp"
+                android:fontFamily="@font/titilliumweb_bold"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:id="@+id/text_join_sub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Enter a slug or invite to join an existing forum"
+                android:textSize="10sp"
+                android:fontFamily="@font/titilliumweb_raguler"
+                android:textColor="@color/light_gray" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/arrow_join"
+            android:layout_width="24dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_chevron_right"
+            android:tint="@color/gradient_end"  />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="6dp" />
+
+    <!-- Cancel button at bottom -->
+    <TextView
+        android:id="@+id/dialog_cancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        android:textSize="15sp"
+        android:gravity="center"
+        android:padding="10dp"
+        android:background="@drawable/category_button_selected"
+        android:textColor="@color/white"
+        android:fontFamily="@font/titilliumweb_bold" />
+    </LinearLayout>
+</LinearLayout>
