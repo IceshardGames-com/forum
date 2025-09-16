@@ -144,6 +144,11 @@ public class ForumDetailFragment extends Fragment {
             Log.e("==lag", "postPermission: " + postPermission);
 
             if(!myUserId.equals(forum_owner)) {
+                if(postPermission.equals("admin_only"))
+                {
+                    Toast.makeText(getContext(), "Only admin can post", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 if (postPermission.equals("followers") && !isFollowing) {
                     Toast.makeText(getContext(), "You must follow this forum to post", Toast.LENGTH_SHORT).show();
                     return;
@@ -318,6 +323,7 @@ public class ForumDetailFragment extends Fragment {
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_post, null);
         builder.setView(dialogView);
 
+        EditText inputName = dialogView.findViewById(R.id.inputName);   // ✅ added
         EditText inputTitle = dialogView.findViewById(R.id.inputPostTitle);
         EditText inputContent = dialogView.findViewById(R.id.inputPostContent);
         TextView btnPost = dialogView.findViewById(R.id.btnPost);
@@ -350,6 +356,7 @@ public class ForumDetailFragment extends Fragment {
 //            }
 //        });
         btnPost.setOnClickListener(view1 -> {
+            String name = inputName.getText().toString().trim();   // ✅ get name
             String title = inputTitle.getText().toString().trim();
             String content = inputContent.getText().toString().trim();
 
@@ -372,6 +379,25 @@ public class ForumDetailFragment extends Fragment {
                                 // assuming your API model has: newPost.getId(), getCreatedAt() ISO string
                                 long createdAtMillis = Utills.parseServerTimeToMillis(newPost.getCreatedAt());
                                 if (createdAtMillis == 0L) createdAtMillis = System.currentTimeMillis();
+
+                                // Save the input name locally keyed by post id so it persists
+                                if (newPost.getId() != null && !name.isEmpty()) {
+                                    SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                                    prefs.edit().putString("local_author_" + newPost.getId(), name).apply();
+                                }
+                                // choose author to show: prefer local (what user typed), else server author, else Unknown
+                                String authorToShow;
+                                if (newPost.getId() != null) {
+                                    SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                                    String local = prefs.getString("local_author_" + newPost.getId(), null);
+                                    authorToShow = (local != null && !local.isEmpty()) ? local :
+                                            ((newPost.getAuthor() != null && !newPost.getAuthor().isEmpty()) ? newPost.getAuthor() : "Unknown");
+                                } else {
+                                    // fallback if server didn't return id (unlikely): use typed name
+                                    authorToShow = (!name.isEmpty()) ? name : ((newPost.getAuthor() != null) ? newPost.getAuthor() : "Unknown");
+                                }
+
+
                                 PostModel postModel = new PostModel(
                                         newPost.getId(),
                                         newPost.getTitle(),
@@ -382,7 +408,8 @@ public class ForumDetailFragment extends Fragment {
                                         false,
                                         createdAtMillis,
                                         newPost.getLikes(),
-                                        newPost.getAuthor()
+                                        newPost.getAuthor(),
+                                        authorToShow   // <-- store name here
                                 );
 
                                 allPosts.add(0, postModel);
@@ -552,6 +579,8 @@ public class ForumDetailFragment extends Fragment {
 */
 
     private void loadPostsFromApi() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+
         ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
         Log.e("==lag", "forum_id: " + forum_id);
         Log.e("==lag", "accessToken: " + accessToken);
@@ -564,10 +593,25 @@ public class ForumDetailFragment extends Fragment {
                             allPosts.clear();
                             for (CreatePostResponse.Post post : response.body().getData().getPosts()) {
                                 long createdAtMillis = Utills.parseServerTimeToMillis(post.getCreatedAt());
+
+                                // try local saved name first
+                                String localName = null;
+                                if (post.getId() != null) {
+                                    localName = prefs.getString("local_author_" + post.getId(), null);
+                                }
+
+                                // If server now provides canonical author and we had a local override,
+                                // you can choose to keep local override or remove it. Here we prefer local override.
+                                String authorToShow = (localName != null && !localName.isEmpty())
+                                        ? localName
+                                        : ((post.getAuthor() != null && !post.getAuthor().isEmpty()) ? post.getAuthor() : "Unknown");
+
+
                                 if (createdAtMillis == 0L) {
                                     // as a last resort, do NOT set to now; leave 0 or some safe default
                                     // but better to keep server time correct
                                 }
+
                                 allPosts.add(new PostModel(
                                         post.getId(),
                                         post.getTitle(),
@@ -578,7 +622,8 @@ public class ForumDetailFragment extends Fragment {
                                         false,
                                         createdAtMillis,
                                         post.getLikes(),
-                                        post.getAuthor()
+                                        post.getAuthor(),
+                                        authorToShow
                                 ));
                             }
                             filteredPosts.clear();

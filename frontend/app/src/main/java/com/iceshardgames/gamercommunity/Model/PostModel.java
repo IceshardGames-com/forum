@@ -1,14 +1,14 @@
 package com.iceshardgames.gamercommunity.Model;
 
 public class PostModel {
-    private String title, author,AuthorId;
+    private String title, author,AuthorId,name;
     private String postId;   // <-- add
 
     private int replies, likes, dislikes;
     private boolean isRecent, isPinned;
     private long createdAt; // store in millis
 
-    public PostModel(String postId,String title, String author, int replies, int likes, boolean isRecent, boolean isPinned, long createdAt, int dislikes,String AuthorId) {
+    public PostModel(String postId,String title, String author, int replies, int likes, boolean isRecent, boolean isPinned, long createdAt, int dislikes,String AuthorId,String name) {
         this.postId = postId;        // <-- set
         this.title = title;
         this.author = author;
@@ -19,9 +19,11 @@ public class PostModel {
         this.createdAt = createdAt; // <-- do NOT set to System.currentTimeMillis() here
         this.dislikes = dislikes;
         this.AuthorId = AuthorId;
+        this.name = name;
 
     }
     public String getPostId() { return postId; }   // <-- getter
+    public String getName() { return name; }   // <-- getter
 
     public long getCreatedAt() {
         return createdAt;

@@ -20,7 +20,7 @@
             android:padding="12dp"
             android:textSize="12dp"
             android:fontFamily="@font/titilliumweb_semibold"
-            android:hint="Post Title" />
+            android:hint="User Name" />
 
         <EditText
             android:id="@+id/inputPostTitle"

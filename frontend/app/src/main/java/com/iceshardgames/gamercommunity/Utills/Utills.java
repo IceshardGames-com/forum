@@ -220,4 +220,18 @@ public class Utills {
             }
         }
     }
+
+
+    // Save local author name for a specific post id
+    public static void saveLocalAuthorForPost(String postId, String name,Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        prefs.edit().putString("local_author_" + postId, name).apply();
+    }
+
+    // Get local author name for a specific post id, or null if not present
+    public static String getLocalAuthorForPost(String postId,Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        return prefs.getString("local_author_" + postId, null);
+    }
+
 }

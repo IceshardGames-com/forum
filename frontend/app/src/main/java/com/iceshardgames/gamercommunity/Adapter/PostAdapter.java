@@ -42,8 +42,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         PostModel post = posts.get(position);
-        holder.title.setText(post.getAuthor());
-        holder.meta.setText("by " + post.getTitle());
+        holder.title.setText(post.getTitle());     // Post Title
+        holder.meta.setText("by " + post.getName());  // ✅ show name from inputName
+
         holder.replies.setText(post.getReplies() + " replies");
         holder.likes.setText(post.getLikes() + " likes");
         // ✅ set post time
@@ -58,7 +59,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                     post.getReplies(),
                     post.getCreatedAt() ,
                     post.getLikes(),// <-- pass millis
-                    post.getAuthorId()// <-- pass millis
+                    post.getAuthorId()// <-- pass millis,
             );
 
             ((AppCompatActivity) activity).getSupportFragmentManager()
