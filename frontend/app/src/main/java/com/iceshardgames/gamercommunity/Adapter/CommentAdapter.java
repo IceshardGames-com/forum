@@ -90,7 +90,15 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     @Override
     public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
         Comment comment = commentList.get(position);
-// Load saved reaction state
+        // Load saved reaction state
+        // Ensure the comment model itself is merged with any saved local state
+        // so getters like getLikeCount() are already up-to-date.
+        try {
+            loadCommentReactionState(comment);
+        } catch (Exception e) {
+            Log.w("CommentAdapter", "loadCommentReactionState failed during bind", e);
+        }
+
         // stable key for prefs: prefer serverId then clientId then position fallback
         final String key = comment.getServerId() != null ? comment.getServerId()
                 : (comment.getClientId() != null ? comment.getClientId() : "pos:" + position);
@@ -100,88 +108,59 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         holder.tvTime.setText("· " + comment.getTime());
         holder.tvText.setText(comment.getText());
 
-        // We'll compute displayed counts from server-model unless prefs explicitly contain counts
-        int displayLikes = comment.getLikeCount();
-        int displayDislikes = comment.getDislikeCount();
+        // Display counts from model (these are server counts merged with local saved counts)
+        int displayLikes = Math.max(0, comment.getLikeCount());
+        int displayDislikes = Math.max(0, comment.getDislikeCount());
 
-        // Read persisted comment reaction (safely) into local vars (do not overwrite comment model)
-        boolean savedLiked = false;
-        boolean savedDisliked = false;
-        boolean hasSavedKeys = false;
-        try {
-            SharedPreferences prefs = context.getSharedPreferences("CommentReactions", MODE_PRIVATE);
-            String prefKey = "comment_" + key;
-            hasSavedKeys = prefs.contains(prefKey + "_liked") || prefs.contains(prefKey + "_disliked");
-            savedLiked = prefs.getBoolean(prefKey + "_liked", false);
-            savedDisliked = prefs.getBoolean(prefKey + "_disliked", false);
-
-            // only override displayed counts if prefs explicitly saved counts
-            if (prefs.contains(prefKey + "_likes")) {
-                displayLikes = prefs.getInt(prefKey + "_likes", displayLikes);
-            }
-            if (prefs.contains(prefKey + "_dislikes")) {
-                displayDislikes = prefs.getInt(prefKey + "_dislikes", displayDislikes);
-            }
-        } catch (Exception e) {
-            Log.w("CommentAdapter", "error reading saved comment reaction", e);
-        }
-
-        // Set counts on UI (use display values)
-        holder.tvLikeCount.setText(String.valueOf(Math.max(0, displayLikes)));
-        holder.tvDislikeCount.setText(String.valueOf(Math.max(0, displayDislikes)));
-
-        // Decide user-level flags (priority: in-memory optimistic flags -> persisted booleans)
+        // Decide user-level flags
         boolean userLiked = comment.isLiked();
         boolean userDisliked = comment.isDisliked();
-        if (!userLiked && !userDisliked && hasSavedKeys) {
-            userLiked = savedLiked;
-            userDisliked = savedDisliked;
-        }
 
-        // HYBRID rule (independent):
-        // show like filled if userLiked OR (server/display likes > 0)
+        // Final UI rule: fill icon if user reacted OR any user reacted (display count > 0)
         boolean likeFill = userLiked || displayLikes > 0;
         boolean dislikeFill = userDisliked || displayDislikes > 0;
 
-      /*  // If both would be filled because counts>0 but user reacted one-way, prefer user reaction
-        if (userLiked && !userDisliked) dislikeFill = false;
-        if (userDisliked && !userLiked) likeFill = false;*/
+        // Set numeric UI
+        holder.tvLikeCount.setText(String.valueOf(displayLikes));
+        holder.tvDislikeCount.setText(String.valueOf(displayDislikes));
 
-        // Apply drawables robustly
+        // Debug logging (watch these in logcat)
+        Log.d("CommentAdapter", "bind pos=" + position + " key=" + key +
+                " likes=" + displayLikes + " dislikes=" + displayDislikes +
+                " userLiked=" + userLiked + " userDisliked=" + userDisliked +
+                " likeFill=" + likeFill + " dislikeFill=" + dislikeFill);
+        // Apply drawables
         try {
             int likeRes = likeFill ? R.drawable.ic_like_filled : R.drawable.ic_like_outline;
             int dislikeRes = dislikeFill ? R.drawable.ic_dislike_filled : R.drawable.ic_dislike_outline;
             holder.imgLike.setImageDrawable(androidx.core.content.ContextCompat.getDrawable(context, likeRes));
-            holder.imgLike.invalidate();
-            holder.imgLike.post(() -> holder.imgLike.refreshDrawableState());
-
             holder.imgDislike.setImageDrawable(androidx.core.content.ContextCompat.getDrawable(context, dislikeRes));
-            holder.imgDislike.invalidate();
-            holder.imgDislike.post(() -> holder.imgDislike.refreshDrawableState());
         } catch (Exception e) {
-            Log.w("CommentAdapter", "failed to set comment icons", e);
+            Log.w("CommentAdapter","failed to set icons", e);
         }
 
         // --- click handlers: update model optimistically, persist, enqueue, then rebind via notifyItemChanged ---
 
+        // in holder.layoutLike.setOnClickListener
         holder.layoutLike.setOnClickListener(v -> {
             int pos = holder.getBindingAdapterPosition();
             if (pos == RecyclerView.NO_POSITION) return;
 
-            // Optimistic model update (mutate model so future logic sees correct in-memory flags)
-            if (comment.isLiked()) {
+            boolean prevLiked = comment.isLiked();
+            boolean prevDisliked = comment.isDisliked();
+
+            if (prevLiked) {
                 comment.setLiked(false);
                 comment.setLikeCount(Math.max(0, comment.getLikeCount() - 1));
             } else {
                 comment.setLiked(true);
                 comment.setLikeCount(comment.getLikeCount() + 1);
-                if (comment.isDisliked()) {
+                if (prevDisliked) {
                     comment.setDisliked(false);
                     comment.setDislikeCount(Math.max(0, comment.getDislikeCount() - 1));
                 }
             }
 
-            // Persist & enqueue
             String target = comment.getServerId() != null ? comment.getServerId() : comment.getClientId();
             if (target != null) {
                 saveCommentReactionState(target, comment.isLiked(), comment.isDisliked(),
@@ -191,21 +170,24 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
                 Log.d("InteractionsBuffer", "likeComment: no target id for optimistic comment");
             }
 
-            // Let the authoritative onBind recompute icon/counter
             notifyItemChanged(pos);
         });
 
+// in holder.layoutDislike.setOnClickListener
         holder.layoutDislike.setOnClickListener(v -> {
             int pos = holder.getBindingAdapterPosition();
             if (pos == RecyclerView.NO_POSITION) return;
 
-            if (comment.isDisliked()) {
+            boolean prevLiked = comment.isLiked();
+            boolean prevDisliked = comment.isDisliked();
+
+            if (prevDisliked) {
                 comment.setDisliked(false);
                 comment.setDislikeCount(Math.max(0, comment.getDislikeCount() - 1));
             } else {
                 comment.setDisliked(true);
                 comment.setDislikeCount(comment.getDislikeCount() + 1);
-                if (comment.isLiked()) {
+                if (prevLiked) {
                     comment.setLiked(false);
                     comment.setLikeCount(Math.max(0, comment.getLikeCount() - 1));
                 }
@@ -222,6 +204,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
 
             notifyItemChanged(pos);
         });
+
 
         // ===== replies container handling =====
         // Clear and populate repliesContainer but keep it hidden unless expandedKeys contains this key
@@ -477,9 +460,20 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         editor.putBoolean(key + "_liked", liked);
         editor.putBoolean(key + "_disliked", disliked);
 
-        // Save counts only when safe: prefer not to store spurious zeros that may be stale
-        if (likeCount >= 0) editor.putInt(key + "_likes", likeCount);
-        if (dislikeCount >= 0) editor.putInt(key + "_dislikes", dislikeCount);
+        // Do NOT persist spurious zeros. Persist numeric counts only when:
+        //  - the user currently has an explicit reaction (liked || disliked), OR
+        //  - the server/combined count is > 0 (other users' reactions matter).
+        if (liked || disliked || likeCount > 0) {
+            editor.putInt(key + "_likes", likeCount);
+        } else {
+            // Remove saved likes if we don't want to persist zero (prevents overriding server)
+            editor.remove(key + "_likes");
+        }
+        if (liked || disliked || dislikeCount > 0) {
+            editor.putInt(key + "_dislikes", dislikeCount);
+        } else {
+            editor.remove(key + "_dislikes");
+        }
 
         editor.apply();
     }
@@ -493,16 +487,23 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         SharedPreferences prefs = context.getSharedPreferences("CommentReactions", MODE_PRIVATE);
         String key = "comment_" + commentId;
 
-        // load booleans (defaults to false if absent)
-        comment.setLiked(prefs.getBoolean(key + "_liked", false));
-        comment.setDisliked(prefs.getBoolean(key + "_disliked", false));
+        boolean savedLiked = prefs.getBoolean( key + "_liked", false);
+        boolean savedDisliked = prefs.getBoolean(key + "_disliked", false);
+        boolean hasSavedLikes = prefs.contains(key + "_likes");
+        boolean hasSavedDislikes = prefs.contains(key + "_dislikes");
 
-        // Only override counts if they were explicitly saved (avoid clobbering server values)
-        if (prefs.contains(key + "_likes")) {
-            comment.setLikeCount(prefs.getInt(key + "_likes", comment.getLikeCount()));
+        // Keep in-memory flags consistent: OR so we don't clear a newer in-memory flag
+        comment.setLiked(comment.isLiked() || savedLiked);
+        comment.setDisliked(comment.isDisliked() || savedDisliked);
+
+        // Merge counts defensively: never lower the server-provided count
+        if (hasSavedLikes) {
+            int savedLikes = prefs.getInt(key + "_likes", comment.getLikeCount());
+            comment.setLikeCount(Math.max(comment.getLikeCount(), savedLikes));
         }
-        if (prefs.contains(key + "_dislikes")) {
-            comment.setDislikeCount(prefs.getInt(key + "_dislikes", comment.getDislikeCount()));
+        if (hasSavedDislikes) {
+            int savedDislikes = prefs.getInt(key + "_dislikes", comment.getDislikeCount());
+            comment.setDislikeCount(Math.max(comment.getDislikeCount(), savedDislikes));
         }
     }
 
@@ -554,13 +555,29 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
                     long createdMillis = 0;
                     try { createdMillis = Utills.parseIso8601ToMillis(it.createdAt); } catch (Exception ignore) {}
                     Comment r = new Comment(getDisplayNameFromPrefs(), it.content, Utills.getTimeAgo(createdMillis));
-                    r.setLikeCount(it.likes);
-                    r.setDislikeCount(it.dislikes);
-                    r.setServerId(it.id);
+                    r.setLikeCount(it.likes != null ? it.likes : 0);
+                    if (it.dislikes != null) r.setDislikeCount(it.dislikes);
+                    else r.setDislikeCount(0);
+
+                    String serverId = null;
+                    try { if (it.id != null && !it.id.isEmpty()) serverId = it.id; } catch (Throwable ignore) {}
+                    try {
+                        java.lang.reflect.Field f = null;
+                        try { f = it.getClass().getDeclaredField("_id"); } catch (NoSuchFieldException ignore) { f = null; }
+                        if ((serverId == null || serverId.isEmpty()) && f != null) {
+                            f.setAccessible(true);
+                            Object val = f.get(it);
+                            if (val != null) serverId = String.valueOf(val);
+                        }
+                    } catch (Exception ignore) {}
+
+                    r.setServerId(serverId);
                     // load saved comment reaction state (from SharedPreferences)
                     loadCommentReactionState(r);
                     comment.addReply(r);
+                    Log.d("CommentAdapter", "fetched reply serverId=" + serverId + " likes=" + r.getLikeCount());
                 }
+
 
                 // ensure expanded so UI shows replies
                 expandedKeys.add(key);

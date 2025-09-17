@@ -239,35 +239,41 @@ public class PostDetailFragment extends Fragment {
 
         // --- LIKE --- optimistic UI + enqueue to bulk ---
         // --- LIKE ---
+        // --- LIKE ---
         layoutLike.setOnClickListener(v -> {
             if (postId == null) return;
-            // defensive debounce (optional)
             if (System.currentTimeMillis() - mLastClickTime < 300) return;
             mLastClickTime = System.currentTimeMillis();
 
-            // optimistic UI toggle
-            if (postLiked) {
+            // remember previous user flags
+            boolean prevLiked = postLiked;
+            boolean prevDisliked = postDisliked;
+
+            if (prevLiked) {
+                // user is removing their like
                 postLikes = Math.max(0, postLikes - 1);
                 postLiked = false;
-                imgLike.setImageResource(R.drawable.ic_like_outline);
             } else {
+                // user is adding a like
                 postLikes = postLikes + 1;
                 postLiked = true;
-                imgLike.setImageResource(R.drawable.ic_like_filled);
-                if (postDisliked) {
-                    postDisliked = false;
+
+                // if user previously had a dislike, remove only that user's dislike
+                if (prevDisliked) {
                     postDislikes = Math.max(0, postDislikes - 1);
-                    imgDislike.setImageResource(R.drawable.ic_dislike_outline);
+                    postDisliked = false;
                 }
             }
+
+            // update counters
             if (tvLikeCount != null) tvLikeCount.setText(String.valueOf(postLikes));
             if (tvDislikeCount != null) tvDislikeCount.setText(String.valueOf(postDislikes));
 
-            // ALWAYS call buffer so it can toggle/replace/remove as needed
+            // enqueue and persist
             buffer.likePost(postId);
-            // Save the new state
             savePostReactionState();
-            // Recompute final UI (the single source of truth for drawables)
+
+            // refresh UI drawables (this reads postLikes/postDislikes + flags)
             updatePostReactionUI();
         });
 
@@ -276,28 +282,32 @@ public class PostDetailFragment extends Fragment {
             if (postId == null) return;
             if (System.currentTimeMillis() - mLastClickTime < 300) return;
             mLastClickTime = System.currentTimeMillis();
-            if (postDisliked) {
+
+            // remember previous user flags
+            boolean prevLiked = postLiked;
+            boolean prevDisliked = postDisliked;
+
+            if (prevDisliked) {
+                // remove user's dislike
                 postDislikes = Math.max(0, postDislikes - 1);
                 postDisliked = false;
-                imgDislike.setImageResource(R.drawable.ic_dislike_outline);
             } else {
+                // add a dislike
                 postDislikes = postDislikes + 1;
                 postDisliked = true;
-                imgDislike.setImageResource(R.drawable.ic_dislike_filled);
-                if (postLiked) {
-                    postLiked = false;
+
+                // if user previously had a like, remove only that user's like
+                if (prevLiked) {
                     postLikes = Math.max(0, postLikes - 1);
-                    imgLike.setImageResource(R.drawable.ic_like_outline);
+                    postLiked = false;
                 }
             }
+
             if (tvLikeCount != null) tvLikeCount.setText(String.valueOf(postLikes));
             if (tvDislikeCount != null) tvDislikeCount.setText(String.valueOf(postDislikes));
 
-            // ALWAYS call buffer so it can toggle/replace/remove as needed
             buffer.dislikePost(postId);
-            // Save the new state
             savePostReactionState();
-            // Recompute UI
             updatePostReactionUI();
         });
 
@@ -558,21 +568,56 @@ public class PostDetailFragment extends Fragment {
                 if (!res.isSuccessful() || res.body() == null || !res.body().success) return;
 
                 // --- Build server model and maps ---
+                // inside PostDetailFragment.loadComments(...), replace the building loop with:
+
+// Build server model and maps
                 java.util.Map<String, Comment> byServerId = new java.util.HashMap<>();
                 List<CommentItem> serverItems = res.body().data.comments != null ? res.body().data.comments : new ArrayList<>();
 
                 for (CommentItem it : serverItems) {
-                    long createdMillis = Utills.parseIso8601ToMillis(it.createdAt);
-                    Comment c = new Comment(getDisplayName(getContext()), it.content, Utills.getTimeAgo(createdMillis));
-                    c.setLikeCount(it.likes);
-                    c.setDislikeCount(it.dislikes);
-                    c.setServerId(it.id);
+                    long createdMillis = 0;
+                    try { createdMillis = Utills.parseIso8601ToMillis(it.createdAt); } catch (Exception ignore) {}
 
-                    // Load saved reaction state for this comment
+                    Comment c = new Comment(
+                            /* user */ (it.author != null ? String.valueOf(it.author) : getDisplayName(getContext())),
+                            /* text */ (it.content != null ? it.content : ""),
+                            /* time */ Utills.getTimeAgo(createdMillis)
+                    );
+
+                    // defensive counts (server may return null)
+                    c.setLikeCount(it.likes != null ? it.likes : 0);
+                    c.setDislikeCount(it.dislikes != null ? it.dislikes : 0);
+
+                    // determine server id: prefer it.id, fallback to _id reflection
+                    String serverId = null;
+                    try { if (it.id != null && !it.id.isEmpty()) serverId = it.id; } catch (Throwable ignore) {}
+                    if (serverId == null || serverId.isEmpty()) {
+                        try {
+                            java.lang.reflect.Field f = it.getClass().getDeclaredField("_id");
+                            f.setAccessible(true);
+                            Object val = f.get(it);
+                            if (val != null) serverId = String.valueOf(val);
+                        } catch (Exception ignore) {}
+                    }
+                    c.setServerId(serverId);
+
+                    // merge persisted state safely (this uses the improved method above)
                     loadCommentReactionState(c);
 
-                    byServerId.put(it.id, c);
+                    // Put into map keyed by the authoritative server id (if available) else fallback
+                    if (serverId != null && !serverId.isEmpty()) {
+                        byServerId.put(serverId, c);
+                    } else {
+                        // fallback key but we should avoid hitting this in normal server responses
+                        String fallbackKey = "pos:" + byServerId.size();
+                        byServerId.put(fallbackKey, c);
+                    }
                 }
+
+// Logging helpful for debugging
+                Log.d("PostDetailFragment","Loaded comments: serverItems=" + serverItems.size() + " mapped=" + byServerId.size());
+
+
 
                 // Attach server replies to their server parents
                 List<Comment> topLevel = new ArrayList<>();
@@ -846,6 +891,8 @@ public class PostDetailFragment extends Fragment {
     }
 
     // Helper method to load comment reaction state from SharedPreferences
+    // PostDetailFragment.java
+// Replace the existing method with this
     private void loadCommentReactionState(Comment comment) {
         String commentId = comment.getServerId() != null ? comment.getServerId() : comment.getClientId();
         if (commentId == null) return;
@@ -853,17 +900,26 @@ public class PostDetailFragment extends Fragment {
         SharedPreferences prefs = requireContext().getSharedPreferences("CommentReactions", MODE_PRIVATE);
         String key = "comment_" + commentId;
 
-        comment.setLiked(prefs.getBoolean(key + "_liked", false));
-        comment.setDisliked(prefs.getBoolean(key + "_disliked", false));
+        boolean savedLiked = prefs.getBoolean(key + "_liked", false);
+        boolean savedDisliked = prefs.getBoolean(key + "_disliked", false);
+        boolean hasSavedLikes = prefs.contains(key + "_likes");
+        boolean hasSavedDislikes = prefs.contains(key + "_dislikes");
 
-        // Only update counts if we have saved state (don't override server counts unnecessarily)
-        if (prefs.contains(key + "_likes")) {
-            comment.setLikeCount(prefs.getInt(key + "_likes", comment.getLikeCount()));
+        // Keep in-memory flags consistent: OR so we don't clear a newer in-memory flag
+        comment.setLiked(comment.isLiked() || savedLiked);
+        comment.setDisliked(comment.isDisliked() || savedDisliked);
+
+        // Merge counts defensively: NEVER lower the server-provided count.
+        if (hasSavedLikes) {
+            int savedLikes = prefs.getInt(key + "_likes", comment.getLikeCount());
+            comment.setLikeCount(Math.max(comment.getLikeCount(), savedLikes));
         }
-        if (prefs.contains(key + "_dislikes")) {
-            comment.setDislikeCount(prefs.getInt(key + "_dislikes", comment.getDislikeCount()));
+        if (hasSavedDislikes) {
+            int savedDislikes = prefs.getInt(key + "_dislikes", comment.getDislikeCount());
+            comment.setDislikeCount(Math.max(comment.getDislikeCount(), savedDislikes));
         }
     }
+
 
     // Helper method to save comment reaction state to SharedPreferences
     private void saveCommentReactionState(String commentId, boolean liked, boolean disliked, int likeCount, int dislikeCount) {
@@ -973,16 +1029,22 @@ public class PostDetailFragment extends Fragment {
         // Apply comment-level reactions using the lastCommentReaction map
         if (!lastCommentReaction.isEmpty()) {
             for (Comment c : comments) {
-                String last = lastCommentReaction.get(c.getServerId());
-                if (last == null) continue;
-                if ("like".equals(last)) {
-                    // ensure idempotency: only apply if model doesn't already reflect it
+                // find the most relevant pending reaction for this comment: check serverId then clientId
+                String pendingType = null;
+                if (c.getServerId() != null && lastCommentReaction.containsKey(c.getServerId())) {
+                    pendingType = lastCommentReaction.get(c.getServerId());
+                } else if (c.getClientId() != null && lastCommentReaction.containsKey(c.getClientId())) {
+                    pendingType = lastCommentReaction.get(c.getClientId());
+                }
+                if (pendingType == null) continue;
+                if ("like".equals(pendingType)) {
+                    // Only increment if the model (server+prefs) doesn't already reflect it.
                     if (!c.isLiked()) {
                         c.setLikeCount(c.getLikeCount() + 1);
                     }
                     c.setLiked(true);
                     c.setDisliked(false);
-                } else if ("dislike".equals(last)) {
+                } else if ("dislike".equals(pendingType)) {
                     if (!c.isDisliked()) {
                         c.setDislikeCount(c.getDislikeCount() + 1);
                     }
@@ -1006,20 +1068,46 @@ public class PostDetailFragment extends Fragment {
     }
 
     private void loadPostReactionState() {
+        if (postId == null) return;
         SharedPreferences prefs = requireContext().getSharedPreferences("PostReactions", MODE_PRIVATE);
         String key = "post_" + postId;
 
-        postLiked = prefs.getBoolean(key + "_liked", false);
-        postDisliked = prefs.getBoolean(key + "_disliked", false);
-        // read counts only if they were explicitly saved (don't clobber server-supplied counts otherwise)
-        if (prefs.contains(key + "_likes")) {
-            postLikes = prefs.getInt(key + "_likes", postLikes);
+        boolean savedLiked = prefs.getBoolean(key + "_liked", false);
+        boolean savedDisliked = prefs.getBoolean(key + "_disliked", false);
+        boolean hasSavedLikes = prefs.contains(key + "_likes");
+        boolean hasSavedDislikes = prefs.contains(key + "_dislikes");
+
+        // Log for debugging
+        Log.d("PostDetailFragment", "loadPostReactionState() read prefs: savedLiked=" + savedLiked +
+                " savedDisliked=" + savedDisliked + " hasSavedLikes=" + hasSavedLikes + " hasSavedDislikes=" + hasSavedDislikes +
+                " serverLikes=" + postLikes + " serverDislikes=" + postDislikes);
+
+        // Keep in-memory flags consistent with persisted booleans if prefs exist.
+        // Prefer in-memory (most recent) but if none present use saved flags.
+        if (prefs.contains(key + "_liked") || prefs.contains(key + "_disliked")) {
+            // Use OR to avoid accidentally clearing an in-memory flag that's newer.
+            postLiked = postLiked || savedLiked;
+            postDisliked = postDisliked || savedDisliked;
         }
-        if (prefs.contains(key + "_dislikes")) {
-            postDislikes = prefs.getInt(key + "_dislikes", postDislikes);
+
+        // IMPORTANT: when merging counts, never lower the server's counts.
+        // Use the maximum so stale saved zeros won't erase other users' likes.
+        if (hasSavedLikes) {
+            int savedLikes = prefs.getInt(key + "_likes", postLikes);
+            postLikes = Math.max(postLikes, savedLikes);
         }
+        if (hasSavedDislikes) {
+            int savedDislikes = prefs.getInt(key + "_dislikes", postDislikes);
+            postDislikes = Math.max(postDislikes, savedDislikes);
+        }
+
+        Log.d("PostDetailFragment", "loadPostReactionState() after merge: postLikes=" + postLikes +
+                " postDislikes=" + postDislikes + " postLiked=" + postLiked + " postDisliked=" + postDisliked);
+
         updatePostReactionUI();
     }
+
+
 
     private void savePostReactionState() {
         if (postId == null) return;
@@ -1031,82 +1119,103 @@ public class PostDetailFragment extends Fragment {
         editor.putBoolean(key + "_liked", postLiked);
         editor.putBoolean(key + "_disliked", postDisliked);
 
-        // Save counts only when they are non-negative and meaningful:
-        // (optional: only save counts when user has an explicit reaction OR when counts > 0)
-        if (postLikes >= 0) editor.putInt(key + "_likes", postLikes);
-        if (postDislikes >= 0) editor.putInt(key + "_dislikes", postDislikes);
+
+        // Persist counts only when meaningful (user has explicit reaction OR counts > 0).
+        if (postLiked || postDisliked || postLikes > 0) {
+            editor.putInt(key + "_likes", postLikes);
+        } else {
+            editor.remove(key + "_likes");
+        }
+
+        if (postLiked || postDisliked || postDislikes > 0) {
+            editor.putInt(key + "_dislikes", postDislikes);
+        } else {
+            editor.remove(key + "_dislikes");
+        }
 
         editor.apply();
     }
 
 
     private void updatePostReactionUI() {
-        Log.d("PostDetailFragment", "updatePostReactionUI() called. postId=" + postId +
-                " postLikes=" + postLikes + " postDislikes=" + postDislikes +
-                " postLiked=" + postLiked + " postDisliked=" + postDisliked);
-
-        // Update numeric counters
-        if (tvLikeCount != null) tvLikeCount.setText(String.valueOf(Math.max(0, postLikes)));
-        if (tvDislikeCount != null) tvDislikeCount.setText(String.valueOf(Math.max(0, postDislikes)));
-
-        // Read persisted user reaction flags (fallback)
-        boolean savedLiked = false;
-        boolean savedDisliked = false;
-        boolean hasSavedKeys = false;
         try {
-            SharedPreferences prefs = requireActivity().getSharedPreferences("PostReactions", MODE_PRIVATE);
-            String key = "post_" + postId;
-            hasSavedKeys = prefs.contains(key + "_liked") || prefs.contains(key + "_disliked");
-            savedLiked = prefs.getBoolean(key + "_liked", false);
-            savedDisliked = prefs.getBoolean(key + "_disliked", false);
-        } catch (Exception e) {
-            Log.w("PostDetailFragment", "error reading saved state", e);
-        }
+            Log.d("PostDetailFragment", "updatePostReactionUI() ENTER postId=" + postId +
+                    " postLikes=" + postLikes + " postDislikes=" + postDislikes +
+                    " postLiked=" + postLiked + " postDisliked=" + postDisliked);
 
-        // Determine user-level flags (priority: in-memory -> persisted)
-        boolean userLiked = postLiked;
-        boolean userDisliked = postDisliked;
-        if (!userLiked && !userDisliked && hasSavedKeys) {
-            userLiked = savedLiked;
-            userDisliked = savedDisliked;
-        }
-
-        // NEW: Independent/hybrid rule
-        // Fill Like icon if: user liked OR global likes > 0
-        // Fill Dislike icon if: user disliked OR global dislikes > 0
-        // This intentionally allows both icons to be filled (counts-based), even if user disliked.
-        boolean likeFillFinal = userLiked || postLikes > 0;
-        boolean dislikeFillFinal = userDisliked || postDislikes > 0;
-
-        // If you *do* want a tiny visual precedence (for example: if userLiked true, still show dislike filled if postDislikes>0),
-        // keep as-is. This implementation keeps both independent.
-
-        final boolean likeFinal = likeFillFinal;
-        final boolean dislikeFinal = dislikeFillFinal;
-
-        Runnable uiUpdate = () -> {
+            // Defensive read of the numeric TextViews in case fragment fields got out-of-sync
+            int tvLikesNum = -1;
+            int tvDislikesNum = -1;
             try {
-                if (imgLike != null) {
-                    int resLike = likeFinal ? R.drawable.ic_like_filled : R.drawable.ic_like_outline;
-                    imgLike.setImageDrawable(ContextCompat.getDrawable(requireContext(), resLike));
-                    imgLike.invalidate();
-                    imgLike.post(() -> imgLike.refreshDrawableState());
-                }
-                if (imgDislike != null) {
-                    int resDislike = dislikeFinal ? R.drawable.ic_dislike_filled : R.drawable.ic_dislike_outline;
-                    imgDislike.setImageDrawable(ContextCompat.getDrawable(requireContext(), resDislike));
-                    imgDislike.invalidate();
-                    imgDislike.post(() -> imgDislike.refreshDrawableState());
-                }
-                Log.d("PostDetailFragment", "Icons updated: likeFilled=" + likeFinal + " dislikeFilled=" + dislikeFinal);
-            } catch (Exception e) {
-                Log.e("PostDetailFragment", "Failed to update icons", e);
-            }
-        };
+                if (tvLikeCount != null) tvLikesNum = Integer.parseInt(tvLikeCount.getText().toString());
+            } catch (Exception ignore) {}
+            try {
+                if (tvDislikeCount != null) tvDislikesNum = Integer.parseInt(tvDislikeCount.getText().toString());
+            } catch (Exception ignore) {}
 
-        if (getActivity() != null) getActivity().runOnUiThread(uiUpdate);
-        else uiUpdate.run();
+            // Prefer authoritative fragment fields; if they look invalid use textview fallback
+            int effectiveLikes = postLikes >= 0 ? postLikes : (tvLikesNum >= 0 ? tvLikesNum : 0);
+            int effectiveDislikes = postDislikes >= 0 ? postDislikes : (tvDislikesNum >= 0 ? tvDislikesNum : 0);
+
+            // Read persisted user reaction flags (fallback) - unchanged behaviour
+            boolean savedLiked = false;
+            boolean savedDisliked = false;
+            boolean hasSavedKeys = false;
+            try {
+                SharedPreferences prefs = requireActivity().getSharedPreferences("PostReactions", MODE_PRIVATE);
+                String key = "post_" + postId;
+                hasSavedKeys = prefs.contains(key + "_liked") || prefs.contains(key + "_disliked");
+                savedLiked = prefs.getBoolean(key + "_liked", false);
+                savedDisliked = prefs.getBoolean(key + "_disliked", false);
+            } catch (Exception e) {
+                Log.w("PostDetailFragment", "error reading saved state", e);
+            }
+
+            boolean userLiked = postLiked || (hasSavedKeys && savedLiked);
+            boolean userDisliked = postDisliked || (hasSavedKeys && savedDisliked);
+
+            // Final rule:
+            // - Fill Like icon if userLiked OR effectiveLikes > 0
+            // - Fill Dislike icon if userDisliked OR effectiveDislikes > 0
+            // This allows both to be filled.
+            boolean likeFillFinal = userLiked || effectiveLikes > 0;
+            boolean dislikeFillFinal = userDisliked || effectiveDislikes > 0;
+
+            Log.d("PostDetailFragment", "Computed UI state: effectiveLikes=" + effectiveLikes +
+                    " effectiveDislikes=" + effectiveDislikes +
+                    " userLiked=" + userLiked + " userDisliked=" + userDisliked +
+                    " likeFillFinal=" + likeFillFinal + " dislikeFillFinal=" + dislikeFillFinal);
+
+            Runnable uiUpdate = () -> {
+                try {
+                    // Update numeric counters (ensure they display final effective counts)
+                    if (tvLikeCount != null) tvLikeCount.setText(String.valueOf(Math.max(0, effectiveLikes)));
+                    if (tvDislikeCount != null) tvDislikeCount.setText(String.valueOf(Math.max(0, effectiveDislikes)));
+
+                    if (imgLike != null) {
+                        int resLike = likeFillFinal ? R.drawable.ic_like_filled : R.drawable.ic_like_outline;
+                        imgLike.setImageDrawable(ContextCompat.getDrawable(requireContext(), resLike));
+                        imgLike.invalidate();
+                        imgLike.post(() -> imgLike.refreshDrawableState());
+                    }
+                    if (imgDislike != null) {
+                        int resDislike = dislikeFillFinal ? R.drawable.ic_dislike_filled : R.drawable.ic_dislike_outline;
+                        imgDislike.setImageDrawable(ContextCompat.getDrawable(requireContext(), resDislike));
+                        imgDislike.invalidate();
+                        imgDislike.post(() -> imgDislike.refreshDrawableState());
+                    }
+                } catch (Exception e) {
+                    Log.e("PostDetailFragment", "UI update failed", e);
+                }
+            };
+
+            if (getActivity() != null) getActivity().runOnUiThread(uiUpdate);
+            else uiUpdate.run();
+        } catch (Exception ex) {
+            Log.e("PostDetailFragment", "updatePostReactionUI top-level error", ex);
+        }
     }
+
 
 
 
