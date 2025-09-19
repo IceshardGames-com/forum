@@ -111,11 +111,15 @@ export const forumService = {
     if (!allowed) throw new Error('Not allowed to post in this forum');
     const title = sanitizeText(data.title);
     const content = sanitizeText(data.content);
-    return ForumPost.create({ forum: forumId, author: userId, title, content });
+    const created = await ForumPost.create({ forum: forumId, author: userId, title, content });
+    const populated = await ForumPost.findById(created._id)
+      .populate({ path: 'author', select: 'username displayName avatar' });
+    return populated as unknown as IForumPost;
   },
 
   async listPosts(forumId: string, { page = 1, limit = 20 }: Pagination): Promise<IForumPost[]> {
     return ForumPost.find({ forum: forumId })
+      .populate({ path: 'author', select: 'username displayName avatar' })
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Math.min(limit, 50));
