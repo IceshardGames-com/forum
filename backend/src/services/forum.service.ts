@@ -207,6 +207,7 @@ export const forumService = {
       query.parentComment = parentCommentId ? ensureObjectId(parentCommentId) : null;
     }
     return ForumComment.find(query)
+      .populate({ path: 'author', select: 'username displayName avatar' })
       .sort({ createdAt: 1 })
       .skip((page - 1) * limit)
       .limit(Math.min(limit, 100));
