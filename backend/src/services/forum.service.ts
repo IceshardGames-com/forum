@@ -104,7 +104,7 @@ export const forumService = {
     }
   },
 
-  async createPost(userId: string, forumId: string, data: { title: string; content: string }): Promise<IForumPost> {
+  async createPost(userId: string, forumId: string, data: { title: string; content: string }): Promise<IForumPost | any> {
     const forum = await Forum.findById(forumId);
     if (!forum) throw new Error('Forum not found');
     const allowed = await canUserPost(forum, userId);
@@ -114,15 +114,29 @@ export const forumService = {
     const created = await ForumPost.create({ forum: forumId, author: userId, title, content });
     const populated = await ForumPost.findById(created._id)
       .populate({ path: 'author', select: 'username displayName avatar' });
-    return populated as unknown as IForumPost;
+    // Keep backward compatibility: author stays a string (id), expose populated data under authorDetails
+    const out: any = populated && (populated as any).toObject ? (populated as any).toObject() : populated;
+    const authorObj: any = out?.author;
+    const authorId = authorObj && typeof authorObj === 'object' ? String(authorObj._id) : String(authorObj);
+    out.authorDetails = authorObj && typeof authorObj === 'object' ? authorObj : undefined;
+    out.author = authorId;
+    return out;
   },
 
-  async listPosts(forumId: string, { page = 1, limit = 20 }: Pagination): Promise<IForumPost[]> {
-    return ForumPost.find({ forum: forumId })
+  async listPosts(forumId: string, { page = 1, limit = 20 }: Pagination): Promise<(IForumPost | any)[]> {
+    const docs = await ForumPost.find({ forum: forumId })
       .populate({ path: 'author', select: 'username displayName avatar' })
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Math.min(limit, 50));
+    return docs.map((d: any) => {
+      const o: any = d && d.toObject ? d.toObject() : d;
+      const a: any = o?.author;
+      const id = a && typeof a === 'object' ? String(a._id) : String(a);
+      o.authorDetails = a && typeof a === 'object' ? a : undefined;
+      o.author = id;
+      return o;
+    });
   },
 
   async togglePostReaction(userId: string, postId: string, type: 'like' | 'dislike'): Promise<void> {
