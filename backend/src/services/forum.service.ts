@@ -196,7 +196,10 @@ export const forumService = {
       content: sanitized,
       parentComment: parentRef,
     });
-    return comment;
+    // Return with author populated for consistency with listComments
+    const populated = await ForumComment.findById(comment._id)
+      .populate({ path: 'author', select: 'username displayName avatar' });
+    return populated as unknown as IForumComment;
   },
 
   async listComments(postId: string, { page = 1, limit = 50 }: Pagination, parentCommentId?: string | null): Promise<IForumComment[]> {
