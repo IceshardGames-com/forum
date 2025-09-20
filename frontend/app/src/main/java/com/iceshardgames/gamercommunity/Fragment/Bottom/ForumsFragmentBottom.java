@@ -256,13 +256,20 @@ public class ForumsFragmentBottom extends Fragment {
 
         if (json != null) {
             Gson gson = new Gson();
-            Type type = new TypeToken<List<ForumModel>>() {
-            }.getType();
+            Type type = new TypeToken<List<ForumModel>>() {}.getType();
             allForums = gson.fromJson(json, type);
+
+            // 🔑 Clear localNew flag if the forum is older than 24h
+            for (ForumModel fm : allForums) {
+                if (!fm.isNew()) {
+                    fm.setLocalNew(false);
+                }
+            }
         } else {
             allForums = new ArrayList<>();
         }
     }
+
 
     private void performLiveSearch(String query) {
         List<ForumModel> filtered = new ArrayList<>();
@@ -274,6 +281,9 @@ public class ForumsFragmentBottom extends Fragment {
         }
 
         ForumAdapter adapter = new ForumAdapter(getActivity(), filtered);
+        if (forumRecycler.getLayoutManager() == null) {
+            forumRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
+        }
         forumRecycler.setAdapter(adapter);
     }
 
@@ -426,7 +436,6 @@ public class ForumsFragmentBottom extends Fragment {
 
         // Create Forum button
         createBtn.setOnClickListener(v -> {
-            Utills.showLoadingDialog(getActivity());
             String title = titleInput.getText().toString().trim();
             String description = descInput.getText().toString().trim();
             String category = categorySpinner.getSelectedItem().toString();
@@ -436,6 +445,7 @@ public class ForumsFragmentBottom extends Fragment {
                 Toast.makeText(getActivity(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
+            Utills.showLoadingDialog(getActivity());
 
             String accessToken = prefs.getString("accessToken", null);
             Log.e("==lag", "token : " + accessToken);
@@ -517,9 +527,22 @@ public class ForumsFragmentBottom extends Fragment {
                     Log.e("==lag", "token: " + resp.getData().getForum().getId());
 
                     CreateForumResponse.Forum f = resp.getData().getForum();
+// DEBUG / instrumentation
+                    Log.e("ForumsFragment", ">>> CREATE SUCCESS - server forum object:");
+                    Log.e("ForumsFragment", " id         = " + f.getId());
+                    Log.e("ForumsFragment", " name       = " + f.getName());
+                    Log.e("ForumsFragment", " slug(server)= " + f.getSlug());
+                    Log.e("ForumsFragment", " createdAt  = '" + f.getCreatedAt() + "'");
+                    Log.e("ForumsFragment", " category(var)= " + category);
+                    Log.e("ForumsFragment", " currentFilter= " + currentFilter);
 
+// if createdAt null -> show
+                    if (f.getCreatedAt() == null) {
+                        Log.w("ForumsFragment", " server createdAt IS NULL");
+                    }
                     // Map server forum -> UI model
                     String meta = f.getFollowersCount() + " followers • " + f.getMembersCount() + " members";
+
                     ForumModel uiModel = new ForumModel(
                             f.getId(),
                             f.getName(),
@@ -530,9 +553,11 @@ public class ForumsFragmentBottom extends Fragment {
                             R.drawable.forum1,
                             permission, // ✅ save it here
                             f.getOwner(),
-                            slug
+                            slug,
+                            f.getCreatedAt()
                     );
-
+// Mark newly-created local forum so UI shows "New" immediately
+                    uiModel.setLocalNew(true);
                     addForumToList(uiModel);
                     Utills.hideLoadingDialog();
                     Toast.makeText(getActivity(), "Forum created", Toast.LENGTH_SHORT).show();
@@ -558,9 +583,31 @@ public class ForumsFragmentBottom extends Fragment {
     }
 
     private void addForumToList(ForumModel newForum) {
-        allForums.add(0, newForum); // Add to top of allForums list
-        saveForums(); // persist
-        performLiveSearch(searchBar.getText().toString()); // Refresh with current search text
+        // Add to top of allForums list
+        allForums.add(0, newForum);
+
+        // persist
+        saveForums();
+
+        // Re-filter using current search text to produce filtered list & adapter
+        String currentQuery = (searchBar != null) ? searchBar.getText().toString() : "";
+        performLiveSearch(currentQuery);
+
+        // Ensure layout manager exists and scroll to top
+        if (forumRecycler.getLayoutManager() == null) {
+            forumRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
+        }
+        forumRecycler.scrollToPosition(0);
+
+        // If adapter exists, notify item inserted (faster than full notify)
+        RecyclerView.Adapter adapter = forumRecycler.getAdapter();
+        if (adapter != null) {
+            try {
+                adapter.notifyItemInserted(0);
+            } catch (Exception e) {
+                adapter.notifyDataSetChanged();
+            }
+        }
     }
 
     private void retryCreateForum(String title, String description, String category, boolean verified, String newSlug, int attempt, AlertDialog dialog) {
@@ -569,8 +616,13 @@ public class ForumsFragmentBottom extends Fragment {
                 requireActivity().runOnUiThread(() -> {
                     Utills.hideLoadingDialog();
                     Toast.makeText(getActivity(), "Failed to create forum after multiple attempts", Toast.LENGTH_LONG).show();
+                    if (dialog != null && dialog.isShowing()) dialog.dismiss();
                 });
+            } else {
+                Utills.hideLoadingDialog();
+                if (dialog != null && dialog.isShowing()) dialog.dismiss();
             }
+            Log.e("==slug", "Exceeded max retry attempts for slug: " + newSlug);
             return;
         }
         String accessToken = prefs.getString("accessToken", null);
@@ -588,41 +640,48 @@ public class ForumsFragmentBottom extends Fragment {
         apiService.createForum("Bearer " + accessToken, body).enqueue(new Callback<CreateForumResponse>() {
             @Override
             public void onResponse(Call<CreateForumResponse> call, Response<CreateForumResponse> response) {
+                Utills.hideLoadingDialog();
                 if (!response.isSuccessful()) {
                     try {
-                        String errorBody = response.errorBody().string();
-                        JSONObject obj = new JSONObject(errorBody);
+                        String errorBody = response.errorBody() != null ? response.errorBody().string() : "";
+                        if (!errorBody.isEmpty()) {
+                            JSONObject obj = new JSONObject(errorBody);
+                            if (obj.has("error")) {
+                                JSONObject error = obj.getJSONObject("error");
+                                String code = error.optString("code", "");
+                                // Duplicate slug -> retry with new suffix
+                                if ("DUPLICATE_ERROR".equals(code) &&
+                                        error.getJSONObject("details").optString("field", "").equals("slug")) {
 
-                        if (obj.has("error")) {
-                            JSONObject error = obj.getJSONObject("error");
-                            if ("DUPLICATE_ERROR".equals(error.getString("code")) &&
-                                    error.getJSONObject("details").getString("field").equals("slug")) {
+                                    String duplicateSlug = error.getJSONObject("details").optString("value", newSlug);
+                                    // Extract base (strip trailing -suffix if present)
+                                    String base = duplicateSlug.replaceAll("-[a-z0-9]{1,}$", "");
+                                    String freshShort = UUID.randomUUID().toString()
+                                            .replaceAll("[^a-zA-Z0-9]", "")
+                                            .toLowerCase();
+                                    if (freshShort.length() > 12) freshShort = freshShort.substring(0, 12);
 
-                                String duplicateSlug = error.getJSONObject("details").getString("value");
-                                // Generate fresh short suffix (randomized) and form new slug using base part of duplicateSlug
-                                // Extract base part (remove trailing -suffix if present)
-                                String base = duplicateSlug.replaceAll("-[a-z0-9]{1,}$", "");
-                                String freshShort = UUID.randomUUID().toString()
-                                        .replaceAll("[^a-zA-Z0-9]", "")
-                                        .toLowerCase();
-                                if (freshShort.length() > 12)
-                                    freshShort = freshShort.substring(0, 12);
-
-                                String newSlug = Slugs.uniqueSlug(base, freshShort);
-                                Log.e("==slug", "Retrying with newSlug: " + newSlug);
-
-                                // Retry with increment
-                                retryCreateForum(title, description, category, verified, newSlug, attempt + 1, dialog);
-                                return;
+                                    String nextSlug = Slugs.uniqueSlug(base, freshShort);
+                                    Log.e("==slug", "Duplicate detected. Retrying with newSlug: " + nextSlug);
+                                    // Recursive retry with incremented attempt
+                                    retryCreateForum(title, description, category, verified, nextSlug, attempt + 1, dialog);
+                                    return;
+                                }
                             }
                         }
                     } catch (Exception e) {
-                        dialog.dismiss();
-                        e.printStackTrace();
+                        Log.e("==slug", "Error parsing error body: " + e.getMessage());
                     }
-                    dialog.dismiss();
-                    Utills.hideLoadingDialog();
-                    Toast.makeText(getActivity(), "Failed: " + response.code(), Toast.LENGTH_LONG).show();
+
+                    // Non-retryable failure: show message and dismiss
+                    if (isAdded()) {
+                        requireActivity().runOnUiThread(() -> {
+                            Toast.makeText(getActivity(), "Failed to create forum: " + response.code(), Toast.LENGTH_LONG).show();
+                            if (dialog != null && dialog.isShowing()) dialog.dismiss();
+                        });
+                    } else {
+                        if (dialog != null && dialog.isShowing()) dialog.dismiss();
+                    }
                     return;
                 }
                 // ✅ Success
@@ -630,42 +689,87 @@ public class ForumsFragmentBottom extends Fragment {
                 if (resp == null || !resp.isSuccess() || resp.getData() == null || resp.getData().getForum() == null) {
                     if (isAdded()) {
                         requireActivity().runOnUiThread(() -> {
-                            Utills.hideLoadingDialog();
+                            if (dialog != null && dialog.isShowing()) dialog.dismiss();
                             Toast.makeText(getActivity(), "Unexpected response from server", Toast.LENGTH_LONG).show();
                         });
+                    }else {
+                        if (dialog != null && dialog.isShowing()) dialog.dismiss();
                     }
                     return;
                 }
                 Log.e("==lag", "token: " + resp.getData().getForum().getId());
 
                 CreateForumResponse.Forum f = resp.getData().getForum();
+                // DEBUG / instrumentation
+                Log.e("ForumsFragment", ">>> CREATE SUCCESS - server forum object:");
+                Log.e("ForumsFragment", " id         = " + f.getId());
+                Log.e("ForumsFragment", " name       = " + f.getName());
+                Log.e("ForumsFragment", " slug(server)= " + f.getSlug());
+                Log.e("ForumsFragment", " createdAt  = '" + f.getCreatedAt() + "'");
+                Log.e("ForumsFragment", " category(var)= " + category);
+                Log.e("ForumsFragment", " currentFilter= " + currentFilter);
+
+// if createdAt null -> show
+                if (f.getCreatedAt() == null) {
+                    Log.w("ForumsFragment", " server createdAt IS NULL");
+                }
                 String meta = f.getFollowersCount() + " followers • " + f.getMembersCount() + " members";
 
-                ForumModel uiModel = new ForumModel(f.getId(), f.getName(), meta, "Just now",
-                        f.isVerified() ? "Verified" : "New", category, R.drawable.forum1, permission,f.getOwner(),newSlug);
+                // Build UI model using returned data (use server slug if available)
+                String serverSlug = (f.getSlug() != null && !f.getSlug().isEmpty()) ? f.getSlug() : newSlug;
 
-                addForumToList(uiModel);
-                Utills.hideLoadingDialog();
-                // Update UI / local storage on main thread
+                ForumModel uiModel = new ForumModel(
+                        f.getId(),
+                        f.getName(),
+                        meta,
+                        "Just now",
+                        f.isVerified() ? "Verified" : "New",
+                        category,
+                        R.drawable.forum1,
+                        f.getPostPermission(),
+                        f.getOwner(),
+                        serverSlug,
+                        f.getCreatedAt()
+                );
+                // Mark newly-created local forum so UI shows "New" immediately
+                uiModel.setLocalNew(true);
+                // Add to list & update UI — but ensure we only add if not already present
                 if (isAdded()) {
                     requireActivity().runOnUiThread(() -> {
-                        addForumToList(uiModel);
+                        if (!forumExists(uiModel)) {
+                            addForumToList(uiModel); // add exactly once on main thread
+                            Toast.makeText(getActivity(), "Forum created", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Log.w("ForumsFragmentBottom", "Forum already exists locally, skipping add: " + uiModel.getId());
+                        }
                         Utills.hideLoadingDialog();
-                        Toast.makeText(getActivity(), "Forum created", Toast.LENGTH_SHORT).show();
                         if (dialog != null && dialog.isShowing()) dialog.dismiss();
                     });
+                } else {
+                    // Fragment not attached — still persist but avoid UI operations
+                    if (!forumExists(uiModel)) {
+                        addForumToList(uiModel);
+                        Log.i("ForumsFragmentBottom", "Forum persisted while fragment detached: " + uiModel.getId());
+                    } else {
+                        Log.w("ForumsFragmentBottom", "Forum already exists while detached: " + uiModel.getId());
+                    }
+                    Utills.hideLoadingDialog();
+                    if (dialog != null && dialog.isShowing()) dialog.dismiss();
                 }
                 dialog.dismiss();
             }
 
             @Override
             public void onFailure(Call<CreateForumResponse> call, Throwable t) {
+                Utills.hideLoadingDialog();
+                Log.e("==lag", "Retry create forum failed: " + t.getMessage());
                 if (isAdded()) {
                     requireActivity().runOnUiThread(() -> {
-                        Utills.hideLoadingDialog();
-                        dialog.dismiss();
-                        Toast.makeText(getActivity(), "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(), "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                        if (dialog != null && dialog.isShowing()) dialog.dismiss();
                     });
+                } else {
+                    if (dialog != null && dialog.isShowing()) dialog.dismiss();
                 }
             }
         });
@@ -725,7 +829,18 @@ public class ForumsFragmentBottom extends Fragment {
             return slug + "1";
         }
     }*/
-
+  private boolean forumExists(ForumModel candidate) {
+      if (candidate == null) return false;
+      String candId = candidate.getId() == null ? "" : candidate.getId().toLowerCase(Locale.ROOT);
+      String candSlug = candidate.getSlug() == null ? "" : candidate.getSlug().toLowerCase(Locale.ROOT);
+      for (ForumModel fm : allForums) {
+          String existingId = fm.getId() == null ? "" : fm.getId().toLowerCase(Locale.ROOT);
+          String existingSlug = fm.getSlug() == null ? "" : fm.getSlug().toLowerCase(Locale.ROOT);
+          if (!existingId.isEmpty() && !candId.isEmpty() && existingId.equals(candId)) return true;
+          if (!existingSlug.isEmpty() && !candSlug.isEmpty() && existingSlug.equals(candSlug)) return true;
+      }
+      return false;
+  }
     public static final class Slugs {
         // Build base slug matching backend rules
         public static String makeSlug(String raw) {
@@ -800,13 +915,13 @@ public class ForumsFragmentBottom extends Fragment {
         });
 
         joinBtn.setOnClickListener(v -> {
-            Utills.showLoadingDialog(getActivity());
             String slug = inputSlug.getText().toString().trim();
             if (slug.isEmpty()) {
                 errorText.setText("Please enter a forum slug or invite code.");
                 errorText.setVisibility(View.VISIBLE);
                 return;
             }
+            Utills.showLoadingDialog(getActivity());
 
             // ---------- DUPLICATE CHECK (before calling API) ----------
             // Normalize input for comparison
@@ -896,9 +1011,11 @@ public class ForumsFragmentBottom extends Fragment {
                             f.getSlug(),              // using slug as category fallback
                             R.drawable.forum1,        // placeholder icon
                             f.getPostPermission(),
-                            f.getOwner(),f.getSlug()
+                            f.getOwner(),f.getSlug(),
+                            f.getCreatedAt()
                     );
-
+// Mark newly-created local forum so UI shows "New" immediately
+                    uiModel.setLocalNew(true);
                     // Add to local list + persist
                     addForumToList(uiModel);
 

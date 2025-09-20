@@ -38,4 +38,15 @@ public class SharedPrefManager {
     public String getUsername() {
         return sharedPreferences.getString(KEY_USERNAME, null);
     }
+
+    // ✅ Save username with _id as key
+    public void saveUsernameById(String userId, String username) {
+        editor.putString("username_" + userId, username);
+        editor.apply();
+    }
+
+    // ✅ Retrieve username by userId
+    public String getUsernameById(String userId) {
+        return sharedPreferences.getString("username_" + userId, null);
+    }
 }

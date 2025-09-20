@@ -395,6 +395,7 @@ public class InteractionsBuffer {
                     String authHeader = accessToken != null ? "Bearer " + accessToken : null;
 
                     String finalParentToSend = parentToSend;
+                    Log.e("InteractionsBuffer", "flush: "+authHeader +" - "+create.postId+" - "+create.content+" - "+parentToSend);
                     api.addComment(authHeader, create.postId, body).enqueue(new Callback<GenericResp<CommentResp>>() {
                         @Override
                         public void onResponse(Call<GenericResp<CommentResp>> call, Response<GenericResp<CommentResp>> res) {

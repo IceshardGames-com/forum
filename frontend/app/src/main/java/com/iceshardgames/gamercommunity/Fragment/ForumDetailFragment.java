@@ -107,25 +107,41 @@ public class ForumDetailFragment extends Fragment {
         postRecyclerView = view.findViewById(R.id.forumPostRecycler);
         ImageView fabAddPost = view.findViewById(R.id.fabAddPost);
 
-        allPosts = new ArrayList<>();
-        filteredPosts = new ArrayList<>();
-        postAdapter = new PostAdapter(getActivity(),filteredPosts);
-        postRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        postRecyclerView.setAdapter(postAdapter);
-
-        loadPostsFromApi(); // ✅ real API call
-
         // ---- Session
         String myUserId = prefs.getString("userId", ""); // ensure set at login
 
         Log.e("==lag", "myUserId: "+myUserId );
         Log.e("==lag", "forum_owner: "+forum_owner );
         Log.e("==lag", "forum_slug: "+forum_slug );
+
         if(myUserId.equals(forum_owner)){
             FJlayout.setVisibility(View.GONE);
         }else {
             FJlayout.setVisibility(View.VISIBLE);
         }
+        isFollowing = loadFollowState();
+        followText.setText(isFollowing ? "Unfollow" : "Follow");
+
+        isJoined = loadJoinState();
+        joinText.setText(isJoined ? "Leave" : "Join");
+
+        allPosts = new ArrayList<>();
+        filteredPosts = new ArrayList<>();
+        postAdapter = new PostAdapter(
+                getActivity(),
+                filteredPosts,
+                myUserId,
+                forum_owner,
+                postPermission,
+                isFollowing,
+                isJoined,
+                forum_id
+        );
+        postRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        postRecyclerView.setAdapter(postAdapter);
+
+        loadPostsFromApi(); // ✅ real API call
+
 
         TextView shareBtn = view.findViewById(R.id.shareSlug); // or your actual share icon
         shareBtn.setOnClickListener(v -> {
@@ -141,7 +157,7 @@ public class ForumDetailFragment extends Fragment {
 
         fabAddPost.setOnClickListener(v -> {
 
-            Log.e("==lag", "postPermission: " + postPermission);
+            Log.e("==postPermission", "forum: " + postPermission + " - " + isFollowing);
 
             if(!myUserId.equals(forum_owner)) {
                 if(postPermission.equals("admin_only"))
@@ -153,7 +169,6 @@ public class ForumDetailFragment extends Fragment {
                     Toast.makeText(getContext(), "You must follow this forum to post", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
                 if (postPermission.equals("members") && !isJoined) {
                     Toast.makeText(getContext(), "You must join this forum to post", Toast.LENGTH_SHORT).show();
                     return;
@@ -175,11 +190,7 @@ public class ForumDetailFragment extends Fragment {
         });
 
 
-        isFollowing = loadFollowState();
-        followText.setText(isFollowing ? "Unfollow" : "Follow");
 
-        isJoined = loadJoinState();
-        joinText.setText(isJoined ? "Leave" : "Join");
 
         followLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -211,6 +222,10 @@ public class ForumDetailFragment extends Fragment {
                                 isJoined = true;
                                 joinText.setText("Leave");
                                 saveJoinState(true);  // ✅ Save state
+                                // <-- Add this to sync adapter state:
+                                if (postAdapter != null) {
+                                    postAdapter.updateFollowJoinState(isFollowing, isJoined);
+                                }
                                 Toast.makeText(getContext(), "Joined forum", Toast.LENGTH_SHORT).show();
                             } else {
                                 Toast.makeText(getContext(), "Failed to join", Toast.LENGTH_SHORT).show();
@@ -239,6 +254,10 @@ public class ForumDetailFragment extends Fragment {
                                 isJoined = false;
                                 joinText.setText("Join");
                                 saveJoinState(false); // ✅ Save state
+                                // <-- Add this
+                                if (postAdapter != null) {
+                                    postAdapter.updateFollowJoinState(isFollowing, isJoined);
+                                }
                                 Toast.makeText(getContext(), "Left forum", Toast.LENGTH_SHORT).show();
                             } else {
                                 Toast.makeText(getContext(), "Failed to leave", Toast.LENGTH_SHORT).show();
@@ -272,6 +291,10 @@ public class ForumDetailFragment extends Fragment {
                         isFollowing = true;
                         followText.setText("Unfollow");
                         saveFollowState(true);  // ✅ Save state
+                        // <-- Add this to sync adapter state:
+                        if (postAdapter != null) {
+                            postAdapter.updateFollowJoinState(isFollowing, isJoined);
+                        }
                         Toast.makeText(getContext(), "Followed forum", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getContext(), "Failed to follow", Toast.LENGTH_SHORT).show();
@@ -298,6 +321,10 @@ public class ForumDetailFragment extends Fragment {
                         isFollowing = false;
                         followText.setText("Follow");
                         saveFollowState(false); // ✅ Save state
+                        // <-- Add this
+                        if (postAdapter != null) {
+                            postAdapter.updateFollowJoinState(isFollowing, isJoined);
+                        }
                         Toast.makeText(getContext(), "Unfollowed forum", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getContext(), "Failed to unfollow", Toast.LENGTH_SHORT).show();
@@ -380,7 +407,7 @@ public class ForumDetailFragment extends Fragment {
                                 long createdAtMillis = Utills.parseServerTimeToMillis(newPost.getCreatedAt());
                                 if (createdAtMillis == 0L) createdAtMillis = System.currentTimeMillis();
 
-                                // Save the input name locally keyed by post id so it persists
+                                /*// Save the input name locally keyed by post id so it persists
                                 if (newPost.getId() != null && !name.isEmpty()) {
                                     SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", MODE_PRIVATE);
                                     prefs.edit().putString("local_author_" + newPost.getId(), name).apply();
@@ -395,7 +422,7 @@ public class ForumDetailFragment extends Fragment {
                                 } else {
                                     // fallback if server didn't return id (unlikely): use typed name
                                     authorToShow = (!name.isEmpty()) ? name : ((newPost.getAuthor() != null) ? newPost.getAuthor() : "Unknown");
-                                }
+                                }*/
 
 
                                 PostModel postModel = new PostModel(
@@ -408,14 +435,17 @@ public class ForumDetailFragment extends Fragment {
                                         false,
                                         createdAtMillis,
                                         newPost.getLikes(),
-                                        newPost.getAuthor(),
-                                        authorToShow   // <-- store name here
+                                        newPost.getAuthorId(),
+                                        newPost.getAuthorName()   // <-- store name here
                                 );
 
                                 allPosts.add(0, postModel);
                                 filteredPosts.clear();
                                 filteredPosts.addAll(allPosts);
-                                postAdapter.notifyDataSetChanged();
+                                if (postAdapter != null) {
+                                    postAdapter.updateFollowJoinState(isFollowing, isJoined); // <-- keep adapter state in sync
+                                    postAdapter.notifyDataSetChanged();
+                                }
                                 dialog.dismiss();
                                 loadPostsFromApi(); // ✅ real API call
                                 Toast.makeText(getContext(), "Post created", Toast.LENGTH_SHORT).show();
@@ -430,7 +460,7 @@ public class ForumDetailFragment extends Fragment {
                                 requireActivity().runOnUiThread(() -> {
                                     Utills.hideLoadingDialog();
                                     Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                                });
+                                    Log.e("==lag", "onFailure: "+t.getMessage());                                });
                             }
                         }
                     });
@@ -594,7 +624,7 @@ public class ForumDetailFragment extends Fragment {
                             for (CreatePostResponse.Post post : response.body().getData().getPosts()) {
                                 long createdAtMillis = Utills.parseServerTimeToMillis(post.getCreatedAt());
 
-                                // try local saved name first
+                             /*   // try local saved name first
                                 String localName = null;
                                 if (post.getId() != null) {
                                     localName = prefs.getString("local_author_" + post.getId(), null);
@@ -605,7 +635,7 @@ public class ForumDetailFragment extends Fragment {
                                 String authorToShow = (localName != null && !localName.isEmpty())
                                         ? localName
                                         : ((post.getAuthor() != null && !post.getAuthor().isEmpty()) ? post.getAuthor() : "Unknown");
-
+*/
 
                                 if (createdAtMillis == 0L) {
                                     // as a last resort, do NOT set to now; leave 0 or some safe default
@@ -622,10 +652,11 @@ public class ForumDetailFragment extends Fragment {
                                         false,
                                         createdAtMillis,
                                         post.getLikes(),
-                                        post.getAuthor(),
-                                        authorToShow
+                                        post.getAuthorId(),
+                                        post.getAuthorName()
                                 ));
                             }
+
                             filteredPosts.clear();
                             filteredPosts.addAll(allPosts);
                             postAdapter.notifyDataSetChanged();
@@ -649,6 +680,7 @@ public class ForumDetailFragment extends Fragment {
                     public void onFailure(Call<GetPostsResponse> call, Throwable t) {
                         if (isAdded()) {
                             requireActivity().runOnUiThread(() -> {
+                                Log.e("==lag", "onFailure: "+t.getMessage());
                                 Toast.makeText(requireActivity(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                                 tvNoPosts.setVisibility(View.VISIBLE);
                                 postRecyclerView.setVisibility(View.GONE);

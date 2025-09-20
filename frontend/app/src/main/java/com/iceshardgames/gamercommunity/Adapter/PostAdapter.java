@@ -1,12 +1,16 @@
 package com.iceshardgames.gamercommunity.Adapter;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,10 +30,43 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
 
     List<PostModel> posts;
     Activity activity;
-
-    public PostAdapter(FragmentActivity activity, List<PostModel> posts) {
+    // new fields for validation
+    private String myUserId;
+    private String forumOwner;
+    private String postPermission;
+    private boolean isFollowing;
+    private boolean isJoined;
+    private String forumId;
+    public PostAdapter(FragmentActivity activity, List<PostModel> posts,
+                       String myUserId,
+                       String forumOwner,
+                       String postPermission,
+                       boolean isFollowing,
+                       boolean isJoined,
+                       String forumId)
+    {
         this.activity = activity;
         this.posts = posts;
+        this.myUserId = myUserId;
+        this.forumOwner = forumOwner;
+        this.postPermission = postPermission;
+        this.isFollowing = isFollowing;
+        this.isJoined = isJoined;
+        this.forumId = forumId;
+    }
+
+    public void updateFollowJoinState(boolean isFollowing, boolean isJoined) {
+        this.isFollowing = isFollowing;
+        this.isJoined = isJoined;
+        notifyDataSetChanged(); // optional, but safe if UI depends on it
+    }
+
+    // helper to update permission or owner if needed
+    public void updateForumMeta(String myUserId, String forumOwner, String postPermission, String forumId) {
+        this.myUserId = myUserId;
+        this.forumOwner = forumOwner;
+        this.postPermission = postPermission;
+        this.forumId = forumId;
     }
 
     @NonNull
@@ -51,6 +88,35 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         holder.postTime.setText(Utills.getTimeAgo(post.getCreatedAt()));
 
         holder.itemView.setOnClickListener(v -> {
+            Log.e("==postPermission", "post: "+postPermission + " - " + isFollowing );
+            // replicate validation logic from fragment before navigation
+            if (!myUserId.equals(forumOwner)) {
+                if(postPermission.equals("admin_only"))
+                {
+                    Toast.makeText(activity, "Only admin can see the post", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (postPermission.equals("followers") && !isFollowing) {
+                    Toast.makeText(activity, "You must follow this forum to see the post", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (postPermission.equals("members") && !isJoined) {
+                    Toast.makeText(activity, "You must join this forum to see the post", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (postPermission.equals("members")) {
+                    // Check paid membership
+                    SharedPreferences prefs = activity.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+
+                    boolean isPaid = prefs.getBoolean("isPaidMember_" + forumId, false); // you need to set this when verifying payment
+                    if (!isPaid) {
+                        Toast.makeText(activity, "Only paid members can see the post", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+            }
             PostDetailFragment fragment = PostDetailFragment.newInstance(
                     post.getPostId(),
                     post.getTitle(),
@@ -74,8 +140,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         } else {
             holder.pinIcon.setVisibility(View.GONE);
         }
-
-
     }
 
     @Override

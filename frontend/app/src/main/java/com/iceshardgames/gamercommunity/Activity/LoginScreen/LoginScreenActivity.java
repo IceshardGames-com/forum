@@ -212,6 +212,12 @@ LoginScreenActivity extends AppCompatActivity {
 
                         SharedPrefManager preferenceManager = new SharedPrefManager(LoginScreenActivity.this);
                         preferenceManager.saveUser(loginResponse.getData().getUser().getUsername());
+
+                        String userId = loginResponse.getData().getUser().getId();
+                        String username = loginResponse.getData().getUser().getUsername();
+                        preferenceManager.saveUsernameById(userId, username);
+                        Log.d("==saveUser", "Saved username=" + username + " for userId=" + userId);
+
                         Log.e("==pass", "token: "+loginResponse.getData().getTokens().getAccessToken() );
                         Log.e("==pass", "id: "+loginResponse.getData().getUser().getId() );
 

@@ -16,7 +16,7 @@ public class Comment {
     private boolean disliked;
     private List<Comment> replies;
     private String parentServerId; // new: if this comment is a reply, parent comment server id
-
+    private String authorId;
 
 
     // server/client ids
@@ -35,6 +35,10 @@ public class Comment {
         this.serverId = null;
         this.clientId = null;
     }
+
+    public String getAuthorId() { return authorId; }
+    public void setAuthorId(String authorId) { this.authorId = authorId; }
+
     public String getParentServerId() { return parentServerId; }
     public void setParentServerId(String parentServerId) { this.parentServerId = parentServerId; }
     // -- getters / setters --

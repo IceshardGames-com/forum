@@ -7,7 +7,8 @@ public class PostModel {
     private int replies, likes, dislikes;
     private boolean isRecent, isPinned;
     private long createdAt; // store in millis
-
+    private boolean requiresFollow;
+    private boolean requiresJoin;
     public PostModel(String postId,String title, String author, int replies, int likes, boolean isRecent, boolean isPinned, long createdAt, int dislikes,String AuthorId,String name) {
         this.postId = postId;        // <-- set
         this.title = title;
@@ -40,4 +41,13 @@ public class PostModel {
     public int getDisLikes() { return dislikes; }
     public boolean isRecent() { return isRecent; }
     public boolean isPinned() { return isPinned; }
+    public boolean requiresFollow() { return requiresFollow; }
+    public boolean requiresJoin() { return requiresJoin; }
+
+    public void setRequiresFollow(boolean requiresFollow) {
+        this.requiresFollow = requiresFollow;
+    }
+    public void setRequiresJoin(boolean requiresJoin) {
+        this.requiresJoin = requiresJoin;
+    }
 }

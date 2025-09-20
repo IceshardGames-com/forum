@@ -1,5 +1,8 @@
 package com.iceshardgames.gamercommunity.Model.Response;
 
+import com.iceshardgames.gamercommunity.Author;
+import com.iceshardgames.gamercommunity.AuthorRef;
+
 public class CreatePostResponse {
     private boolean success;
     private Data data;
@@ -28,7 +31,8 @@ public class CreatePostResponse {
     public static class Post {
         private String _id;
         private String forum;
-        private String author;
+        public AuthorRef authorDetails;   // <- changed
+
         private String title;
         private String content;
         private int likes;
@@ -46,8 +50,14 @@ public class CreatePostResponse {
             return forum;
         }
 
-        public String getAuthor() {
-            return author;
+        // convenience getters
+        public String getAuthorId() {
+            if (authorDetails == null) return null;
+            return authorDetails.getId();
+        }
+        public String getAuthorName() {
+            if (authorDetails == null) return null;
+            return authorDetails.getName();
         }
 
         public String getTitle() {

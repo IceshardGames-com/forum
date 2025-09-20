@@ -44,6 +44,8 @@ import com.iceshardgames.gamercommunity.Model.Comment;
 import com.iceshardgames.gamercommunity.Model.Response.PostLikeResponse;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.PendingStore;
+import com.iceshardgames.gamercommunity.Utills.SessionManager;
+import com.iceshardgames.gamercommunity.Utills.SharedPrefManager;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 
 import java.util.ArrayList;
@@ -92,7 +94,7 @@ public class PostDetailFragment extends Fragment {
         }
     };
 
-    public static PostDetailFragment newInstance(String postId, String title, String author, int likes, int replies, long createdAtMillis, int dislikes,String forum_AuthorId) {
+    public static PostDetailFragment newInstance(String postId, String title, String author, int likes, int replies, long createdAtMillis, int dislikes, String forum_AuthorId) {
         PostDetailFragment fragment = new PostDetailFragment();
         Bundle args = new Bundle();
         args.putString("postId", postId);
@@ -370,9 +372,8 @@ public class PostDetailFragment extends Fragment {
         commentAdapter = new CommentAdapter(commentList, getContext(), buffer, api, postId);
         recyclerComments.setAdapter(commentAdapter);
 
-        Log.e("==lag", "author: "+author );
-        Log.e("==lag", "AuthorId: "+AuthorId );
-
+        Log.e("==lag", "author: " + author);
+        Log.e("==lag", "AuthorId: " + AuthorId);
 
 
         loadComments(/*parent*/null);
@@ -390,6 +391,7 @@ public class PostDetailFragment extends Fragment {
             String clientId = java.util.UUID.randomUUID().toString();
 
             // optimistic UI: show the comment and mark it with clientId
+
             Comment newComment = new Comment(getDisplayName(getContext()), commentText, "Now");
             newComment.setClientId(clientId);     // add this helper to your Comment model
             commentList.add(0, newComment);
@@ -558,9 +560,9 @@ public class PostDetailFragment extends Fragment {
             Log.d("InteractionsBuffer", "PENDING[post=" + p.postId + " op=" + p.op + " type=" + p.type +
                     " commentId=" + p.commentId + " parent=" + p.parentComment + " clientId=" + p.clientId + "]");
         }
-        Log.e("==lag", "token: "+"Bearer " + accessToken );
-        Log.e("==lag", "postId" + postId );
-        Log.e("==lag", "parentId" + parentId );
+        Log.e("==lag", "token: " + "Bearer " + accessToken);
+        Log.e("==lag", "postId" + postId);
+        Log.e("==lag", "parentId" + parentId);
 
         api.listComments("Bearer " + accessToken, postId, parentId, 1, 50).enqueue(new Callback<GenericResp<CommentsPage>>() {
             @Override
@@ -575,48 +577,105 @@ public class PostDetailFragment extends Fragment {
                 List<CommentItem> serverItems = res.body().data.comments != null ? res.body().data.comments : new ArrayList<>();
 
                 for (CommentItem it : serverItems) {
+                    // read current user id from prefs
+                    SharedPreferences prefs = requireContext().getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                    String myUserId = prefs.getString("userId", null);
+
+// AuthorId is already a fragment field: AuthorId (forum_AuthorId passed into newInstance)
+                    String postOwnerId = AuthorId; // may be null
+
+
                     long createdMillis = 0;
-                    try { createdMillis = Utills.parseIso8601ToMillis(it.createdAt); } catch (Exception ignore) {}
+                    try {
+                        createdMillis = Utills.parseIso8601ToMillis(it.createdAt);
+                    } catch (Exception ignore) {
+                    }
 
-                    Comment c = new Comment(
-                            /* user */ (it.author != null ? String.valueOf(it.author) : getDisplayName(getContext())),
-                            /* text */ (it.content != null ? it.content : ""),
-                            /* time */ Utills.getTimeAgo(createdMillis)
-                    );
+//                    if (it.author.equals(myUserId)) {
+                        String authorDisplay = resolveAuthorDisplayNameFromItem(it, myUserId);
+                        Comment c = new Comment(authorDisplay, (it.content != null ? it.content : ""),
+                                Utills.getTimeAgo(createdMillis));
 
-                    // defensive counts (server may return null)
-                    c.setLikeCount(it.likes != null ? it.likes : 0);
-                    c.setDislikeCount(it.dislikes != null ? it.dislikes : 0);
+                        // defensive counts (server may return null)
+                        c.setLikeCount(it.likes != null ? it.likes : 0);
+                        c.setDislikeCount(it.dislikes != null ? it.dislikes : 0);
 
-                    // determine server id: prefer it.id, fallback to _id reflection
-                    String serverId = null;
-                    try { if (it.id != null && !it.id.isEmpty()) serverId = it.id; } catch (Throwable ignore) {}
-                    if (serverId == null || serverId.isEmpty()) {
+                        // determine server id: prefer it.id, fallback to _id reflection
+                        String serverId = null;
                         try {
-                            java.lang.reflect.Field f = it.getClass().getDeclaredField("_id");
-                            f.setAccessible(true);
-                            Object val = f.get(it);
-                            if (val != null) serverId = String.valueOf(val);
-                        } catch (Exception ignore) {}
-                    }
-                    c.setServerId(serverId);
+                            if (it.id != null && !it.id.isEmpty()) serverId = it.id;
+                        } catch (Throwable ignore) {
+                        }
+                        if (serverId == null || serverId.isEmpty()) {
+                            try {
+                                java.lang.reflect.Field f = it.getClass().getDeclaredField("_id");
+                                f.setAccessible(true);
+                                Object val = f.get(it);
+                                if (val != null) serverId = String.valueOf(val);
+                            } catch (Exception ignore) {
+                            }
+                        }
+                        c.setServerId(serverId);
 
-                    // merge persisted state safely (this uses the improved method above)
-                    loadCommentReactionState(c);
+                        // merge persisted state safely (this uses the improved method above)
+                        loadCommentReactionState(c);
 
-                    // Put into map keyed by the authoritative server id (if available) else fallback
-                    if (serverId != null && !serverId.isEmpty()) {
-                        byServerId.put(serverId, c);
-                    } else {
-                        // fallback key but we should avoid hitting this in normal server responses
-                        String fallbackKey = "pos:" + byServerId.size();
-                        byServerId.put(fallbackKey, c);
-                    }
+                        // Put into map keyed by the authoritative server id (if available) else fallback
+                        if (serverId != null && !serverId.isEmpty()) {
+                            byServerId.put(serverId, c);
+                        } else {
+                            // fallback key but we should avoid hitting this in normal server responses
+                            String fallbackKey = "pos:" + byServerId.size();
+                            byServerId.put(fallbackKey, c);
+                        }
+                  /*  } else {
+                        Comment c = new Comment(
+                                *//* user *//* getDisplayName(getContext()),
+                                *//* text *//* (it.content != null ? it.content : ""),
+                                *//* time *//* Utills.getTimeAgo(createdMillis)
+                        );
+                        // defensive counts (server may return null)
+                        c.setLikeCount(it.likes != null ? it.likes : 0);
+                        c.setDislikeCount(it.dislikes != null ? it.dislikes : 0);
+
+                        // determine server id: prefer it.id, fallback to _id reflection
+                        String serverId = null;
+                        try {
+                            if (it.id != null && !it.id.isEmpty()) serverId = it.id;
+                        } catch (Throwable ignore) {
+                        }
+                        if (serverId == null || serverId.isEmpty()) {
+                            try {
+                                java.lang.reflect.Field f = it.getClass().getDeclaredField("_id");
+                                f.setAccessible(true);
+                                Object val = f.get(it);
+                                if (val != null) serverId = String.valueOf(val);
+                            } catch (Exception ignore) {
+                            }
+                        }
+                        c.setServerId(serverId);
+
+                        // merge persisted state safely (this uses the improved method above)
+                        loadCommentReactionState(c);
+
+                        // Put into map keyed by the authoritative server id (if available) else fallback
+                        if (serverId != null && !serverId.isEmpty()) {
+                            byServerId.put(serverId, c);
+                        } else {
+                            // fallback key but we should avoid hitting this in normal server responses
+                            String fallbackKey = "pos:" + byServerId.size();
+                            byServerId.put(fallbackKey, c);
+                        }
+                    }*/
+
+                    Log.e("==lag", "author: "+it.author );
+                    Log.e("==lag", "display: "+myUserId );
+
+
                 }
 
 // Logging helpful for debugging
-                Log.d("PostDetailFragment","Loaded comments: serverItems=" + serverItems.size() + " mapped=" + byServerId.size());
-
+                Log.d("PostDetailFragment", "Loaded comments: serverItems=" + serverItems.size() + " mapped=" + byServerId.size());
 
 
                 // Attach server replies to their server parents
@@ -1094,11 +1153,15 @@ public class PostDetailFragment extends Fragment {
         // Use the maximum so stale saved zeros won't erase other users' likes.
         if (hasSavedLikes) {
             int savedLikes = prefs.getInt(key + "_likes", postLikes);
-            postLikes = Math.max(postLikes, savedLikes);
+            if (savedLiked || postLiked) {
+                postLikes = Math.max(postLikes, savedLikes);
+            }
         }
         if (hasSavedDislikes) {
             int savedDislikes = prefs.getInt(key + "_dislikes", postDislikes);
-            postDislikes = Math.max(postDislikes, savedDislikes);
+            if (savedDisliked || postDisliked) {
+                postDislikes = Math.max(postDislikes, savedDislikes);
+            }
         }
 
         Log.d("PostDetailFragment", "loadPostReactionState() after merge: postLikes=" + postLikes +
@@ -1108,30 +1171,30 @@ public class PostDetailFragment extends Fragment {
     }
 
 
-
     private void savePostReactionState() {
         if (postId == null) return;
         SharedPreferences prefs = requireContext().getSharedPreferences("PostReactions", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         String key = "post_" + postId;
 
-        // save explicit user booleans
-        editor.putBoolean(key + "_liked", postLiked);
-        editor.putBoolean(key + "_disliked", postDisliked);
+
+// persist booleans only if true, otherwise remove
+        if (postLiked) editor.putBoolean(key + "_liked", true);
+        else editor.remove(key + "_liked");
+        if (postDisliked) editor.putBoolean(key + "_disliked", true);
+        else editor.remove(key + "_disliked");
 
 
-        // Persist counts only when meaningful (user has explicit reaction OR counts > 0).
-        if (postLiked || postDisliked || postLikes > 0) {
+// Persist counts only when user has explicit reaction (we want counts to reflect others but not to make icon fill)
+        if (postLiked || postDisliked) {
             editor.putInt(key + "_likes", postLikes);
-        } else {
-            editor.remove(key + "_likes");
-        }
-
-        if (postLiked || postDisliked || postDislikes > 0) {
             editor.putInt(key + "_dislikes", postDislikes);
         } else {
+// remove counts - avoids storing stale counts that could confuse later merges
+            editor.remove(key + "_likes");
             editor.remove(key + "_dislikes");
         }
+
 
         editor.apply();
     }
@@ -1139,25 +1202,25 @@ public class PostDetailFragment extends Fragment {
 
     private void updatePostReactionUI() {
         try {
-            Log.d("PostDetailFragment", "updatePostReactionUI() ENTER postId=" + postId +
-                    " postLikes=" + postLikes + " postDislikes=" + postDislikes +
-                    " postLiked=" + postLiked + " postDisliked=" + postDisliked);
-
-            // Defensive read of the numeric TextViews in case fragment fields got out-of-sync
             int tvLikesNum = -1;
             int tvDislikesNum = -1;
             try {
-                if (tvLikeCount != null) tvLikesNum = Integer.parseInt(tvLikeCount.getText().toString());
-            } catch (Exception ignore) {}
+                if (tvLikeCount != null)
+                    tvLikesNum = Integer.parseInt(tvLikeCount.getText().toString());
+            } catch (Exception ignore) {
+            }
             try {
-                if (tvDislikeCount != null) tvDislikesNum = Integer.parseInt(tvDislikeCount.getText().toString());
-            } catch (Exception ignore) {}
+                if (tvDislikeCount != null)
+                    tvDislikesNum = Integer.parseInt(tvDislikeCount.getText().toString());
+            } catch (Exception ignore) {
+            }
 
-            // Prefer authoritative fragment fields; if they look invalid use textview fallback
+
             int effectiveLikes = postLikes >= 0 ? postLikes : (tvLikesNum >= 0 ? tvLikesNum : 0);
             int effectiveDislikes = postDislikes >= 0 ? postDislikes : (tvDislikesNum >= 0 ? tvDislikesNum : 0);
 
-            // Read persisted user reaction flags (fallback) - unchanged behaviour
+
+// Read persisted user reaction flags as fallback
             boolean savedLiked = false;
             boolean savedDisliked = false;
             boolean hasSavedKeys = false;
@@ -1168,56 +1231,94 @@ public class PostDetailFragment extends Fragment {
                 savedLiked = prefs.getBoolean(key + "_liked", false);
                 savedDisliked = prefs.getBoolean(key + "_disliked", false);
             } catch (Exception e) {
-                Log.w("PostDetailFragment", "error reading saved state", e);
+// ignore
             }
 
+
+// Determine if current user explicitly liked/disliked (prefer in-memory flags, fallback to saved)
             boolean userLiked = postLiked || (hasSavedKeys && savedLiked);
             boolean userDisliked = postDisliked || (hasSavedKeys && savedDisliked);
 
-            // Final rule:
-            // - Fill Like icon if userLiked OR effectiveLikes > 0
-            // - Fill Dislike icon if userDisliked OR effectiveDislikes > 0
-            // This allows both to be filled.
+
+// CRITICAL CHANGE: icons are filled ONLY when the current user has the reaction.
+            // *** FIX: Fill icons if the current user reacted OR if there are any reactions ***
             boolean likeFillFinal = userLiked || effectiveLikes > 0;
             boolean dislikeFillFinal = userDisliked || effectiveDislikes > 0;
+            // Fill icons ONLY when the current user reacted
+            /*boolean likeFillFinal = userLiked;
+            boolean dislikeFillFinal = userDisliked;*/
 
-            Log.d("PostDetailFragment", "Computed UI state: effectiveLikes=" + effectiveLikes +
-                    " effectiveDislikes=" + effectiveDislikes +
-                    " userLiked=" + userLiked + " userDisliked=" + userDisliked +
-                    " likeFillFinal=" + likeFillFinal + " dislikeFillFinal=" + dislikeFillFinal);
+            final int finalLikes = Math.max(0, effectiveLikes);
+            final int finalDislikes = Math.max(0, effectiveDislikes);
 
             Runnable uiUpdate = () -> {
                 try {
-                    // Update numeric counters (ensure they display final effective counts)
-                    if (tvLikeCount != null) tvLikeCount.setText(String.valueOf(Math.max(0, effectiveLikes)));
-                    if (tvDislikeCount != null) tvDislikeCount.setText(String.valueOf(Math.max(0, effectiveDislikes)));
-
+                    if (tvLikeCount != null) tvLikeCount.setText(String.valueOf(finalLikes));
+                    if (tvDislikeCount != null)
+                        tvDislikeCount.setText(String.valueOf(finalDislikes));
                     if (imgLike != null) {
                         int resLike = likeFillFinal ? R.drawable.ic_like_filled : R.drawable.ic_like_outline;
                         imgLike.setImageDrawable(ContextCompat.getDrawable(requireContext(), resLike));
-                        imgLike.invalidate();
-                        imgLike.post(() -> imgLike.refreshDrawableState());
                     }
                     if (imgDislike != null) {
                         int resDislike = dislikeFillFinal ? R.drawable.ic_dislike_filled : R.drawable.ic_dislike_outline;
                         imgDislike.setImageDrawable(ContextCompat.getDrawable(requireContext(), resDislike));
-                        imgDislike.invalidate();
-                        imgDislike.post(() -> imgDislike.refreshDrawableState());
                     }
                 } catch (Exception e) {
+// log if needed
                     Log.e("PostDetailFragment", "UI update failed", e);
                 }
             };
 
+
             if (getActivity() != null) getActivity().runOnUiThread(uiUpdate);
             else uiUpdate.run();
         } catch (Exception ex) {
+// log
             Log.e("PostDetailFragment", "updatePostReactionUI top-level error", ex);
         }
     }
 
+    // inside PostDetailFragment class
+    private String resolveAuthorDisplayNameFromItem(CommentItem it, String myUserId) {
+        if (it == null) return "Unknown";
 
+        // if server provides a display/name field, prefer it
+        try {
+            // try common field names that servers often use
+            java.lang.reflect.Field f;
+            String[] candidates = new String[] {
+                    "authorDisplayName", "authorName", "displayName", "name", "username", "author_username"
+            };
+            for (String cand : candidates) {
+                try {
+                    f = it.getClass().getDeclaredField(cand);
+                    f.setAccessible(true);
+                    Object val = f.get(it);
+                    if (val != null) {
+                        String s = String.valueOf(val).trim();
+                        if (!s.isEmpty()) {
+                            // if it's the current user's id disguised as name, treat specially later
+                            return s;
+                        }
+                    }
+                } catch (NoSuchFieldException ignore) { /* try next */ }
+            }
+        } catch (Exception ignore) { }
 
+        // fallback: if the item.author equals current user id, show "You"
+        try {
+            if (it.author != null && it.author.equals(myUserId)) return "You";
+        } catch (Exception ignore) { }
 
+        // final fallback: use the raw author id (so other users see the real author id)
+        // final fallback to raw author id
+        try {
+
+            if (it.author != null && !it.author.username.isEmpty()) return it.author.username;
+        } catch (Exception ignore) { }
+
+        return "Unknown";
+    }
 
 }

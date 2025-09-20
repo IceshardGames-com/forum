@@ -45,6 +45,25 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumViewHol
         holder.lastActive.setText(forum.getLastActive());
         holder.status.setText(forum.getStatus());
         holder.image.setImageResource(forum.getImageResId());
+        Log.e("ForumAdapter", "Binding forum " + forum.getTitle() + " isNew=" + forum.isNew() + " createdAt=" + forum.getCreatedAt());
+
+        boolean showNew = forum.isNew() || forum.isLocalNew();
+        Log.e("ForumAdapter", "Binding forum '" + forum.getTitle() + "' isNew=" + forum.isNew()
+                + " localNew=" + forum.isLocalNew() + " createdAt='" + forum.getCreatedAt() + "'");
+
+        if (showNew) {
+            holder.status.setVisibility(View.VISIBLE);
+            holder.status.setText("New");
+        } else {
+            holder.status.setVisibility(View.GONE);
+        }
+        /*
+        if (forum.isNew()) {
+            holder.status.setVisibility(View.VISIBLE);
+            holder.status.setText("New");
+        } else {
+            holder.status.setVisibility(View.GONE); // hide after 24h
+        }*/
 
         holder.itemView.setOnClickListener(v -> {
             FragmentManager fragmentManager = ((AppCompatActivity) context).getSupportFragmentManager();
@@ -58,6 +77,8 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumViewHol
             bundle.putString("forum_permission", forumList.get(position).getPostPermission());
             bundle.putString("forum_owner", forumList.get(position).getOwner());
             bundle.putString("forum_slug", forumList.get(position).getSlug()); // or getId() if slug == id
+            bundle.putString("forum_created_at", forum.getCreatedAt()); // pass if you need it in detail
+
             detailFragment.setArguments(bundle);
 
             fragmentManager.beginTransaction()

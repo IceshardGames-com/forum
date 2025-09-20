@@ -29,6 +29,7 @@ import com.iceshardgames.gamercommunity.InteractionsBuffer;
 import com.iceshardgames.gamercommunity.Model.Comment;
 import com.iceshardgames.gamercommunity.R;
 import com.iceshardgames.gamercommunity.Utills.PendingStore;
+import com.iceshardgames.gamercommunity.Utills.SharedPrefManager;
 import com.iceshardgames.gamercommunity.Utills.Utills;
 
 import java.util.ArrayList;
@@ -45,9 +46,9 @@ import retrofit2.Response;
 
 /**
  * CommentAdapter that:
- *  - keeps replies hidden by default
- *  - shows replies only when user toggles them (or when we add a reply)
- *  - checks PendingStore off the UI thread for persisted optimistic replies
+ * - keeps replies hidden by default
+ * - shows replies only when user toggles them (or when we add a reply)
+ * - checks PendingStore off the UI thread for persisted optimistic replies
  */
 public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentViewHolder> {
     private List<Comment> commentList;
@@ -103,8 +104,12 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         final String key = comment.getServerId() != null ? comment.getServerId()
                 : (comment.getClientId() != null ? comment.getClientId() : "pos:" + position);
 
-        // Basic bind using model (server counts are preferred)
+        Log.e("==lag", "author --: "+comment.getUser() );
+        Log.e("==lag", "display --: "+getDisplayNameFromPrefs() );
+
+
         holder.tvUser.setText(comment.getUser());
+        // Basic bind using model (server counts are preferred)
         holder.tvTime.setText("· " + comment.getTime());
         holder.tvText.setText(comment.getText());
 
@@ -116,9 +121,13 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         boolean userLiked = comment.isLiked();
         boolean userDisliked = comment.isDisliked();
 
-        // Final UI rule: fill icon if user reacted OR any user reacted (display count > 0)
-        boolean likeFill = userLiked || displayLikes > 0;
-        boolean dislikeFill = userDisliked || displayDislikes > 0;
+        // CRITICAL CHANGE: only fill if current user reacted
+        boolean likeFill = userLiked || comment.getLikeCount() > 0;
+        boolean dislikeFill = userDisliked || comment.getDislikeCount() > 0;
+        // Fill icons ONLY when the current user reacted
+        /*boolean likeFill = userLiked;
+        boolean dislikeFill = userDisliked;*/
+
 
         // Set numeric UI
         holder.tvLikeCount.setText(String.valueOf(displayLikes));
@@ -136,7 +145,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             holder.imgLike.setImageDrawable(androidx.core.content.ContextCompat.getDrawable(context, likeRes));
             holder.imgDislike.setImageDrawable(androidx.core.content.ContextCompat.getDrawable(context, dislikeRes));
         } catch (Exception e) {
-            Log.w("CommentAdapter","failed to set icons", e);
+            Log.w("CommentAdapter", "failed to set icons", e);
         }
 
         // --- click handlers: update model optimistically, persist, enqueue, then rebind via notifyItemChanged ---
@@ -383,8 +392,10 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
 
             Intent callbackIntent = new Intent("com.iceshardgames.gamercommunity.SHARE_CHOSEN");
             callbackIntent.putExtra("share_post_id", postId);
-            if (comment.getServerId() != null) callbackIntent.putExtra("share_comment_id", comment.getServerId());
-            else if (comment.getClientId() != null) callbackIntent.putExtra("share_comment_id", comment.getClientId());
+            if (comment.getServerId() != null)
+                callbackIntent.putExtra("share_comment_id", comment.getServerId());
+            else if (comment.getClientId() != null)
+                callbackIntent.putExtra("share_comment_id", comment.getClientId());
             callbackIntent.putExtra("share_text_preview", snippet);
             callbackIntent.setPackage(context.getPackageName());
 
@@ -487,7 +498,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         SharedPreferences prefs = context.getSharedPreferences("CommentReactions", MODE_PRIVATE);
         String key = "comment_" + commentId;
 
-        boolean savedLiked = prefs.getBoolean( key + "_liked", false);
+        boolean savedLiked = prefs.getBoolean(key + "_liked", false);
         boolean savedDisliked = prefs.getBoolean(key + "_disliked", false);
         boolean hasSavedLikes = prefs.contains(key + "_likes");
         boolean hasSavedDislikes = prefs.contains(key + "_dislikes");
@@ -499,14 +510,17 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         // Merge counts defensively: never lower the server-provided count
         if (hasSavedLikes) {
             int savedLikes = prefs.getInt(key + "_likes", comment.getLikeCount());
-            comment.setLikeCount(Math.max(comment.getLikeCount(), savedLikes));
+            if (savedLiked || comment.isLiked()) {
+                comment.setLikeCount(Math.max(comment.getLikeCount(), savedLikes));
+            }
         }
         if (hasSavedDislikes) {
             int savedDislikes = prefs.getInt(key + "_dislikes", comment.getDislikeCount());
-            comment.setDislikeCount(Math.max(comment.getDislikeCount(), savedDislikes));
+            if (savedDisliked || comment.isDisliked()) {
+                comment.setDislikeCount(Math.max(comment.getDislikeCount(), savedDislikes));
+            }
         }
     }
-
 
 
     /**
@@ -549,27 +563,40 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
                 // clear any existing replies (we expect it empty) and add fetched ones
                 try {
                     comment.getReplies().clear();
-                } catch (Exception ignore) { }
+                } catch (Exception ignore) {
+                }
 
                 for (CommentItem it : serverReplies) {
                     long createdMillis = 0;
-                    try { createdMillis = Utills.parseIso8601ToMillis(it.createdAt); } catch (Exception ignore) {}
-                    Comment r = new Comment(getDisplayNameFromPrefs(), it.content, Utills.getTimeAgo(createdMillis));
+                    try {
+                        createdMillis = Utills.parseIso8601ToMillis(it.createdAt);
+                    } catch (Exception ignore) {
+                    }
+                    Comment r = new Comment(resolveAuthorDisplayNameFromItem(it), it.content, Utills.getTimeAgo(createdMillis));
+
                     r.setLikeCount(it.likes != null ? it.likes : 0);
                     if (it.dislikes != null) r.setDislikeCount(it.dislikes);
                     else r.setDislikeCount(0);
 
                     String serverId = null;
-                    try { if (it.id != null && !it.id.isEmpty()) serverId = it.id; } catch (Throwable ignore) {}
+                    try {
+                        if (it.id != null && !it.id.isEmpty()) serverId = it.id;
+                    } catch (Throwable ignore) {
+                    }
                     try {
                         java.lang.reflect.Field f = null;
-                        try { f = it.getClass().getDeclaredField("_id"); } catch (NoSuchFieldException ignore) { f = null; }
+                        try {
+                            f = it.getClass().getDeclaredField("_id");
+                        } catch (NoSuchFieldException ignore) {
+                            f = null;
+                        }
                         if ((serverId == null || serverId.isEmpty()) && f != null) {
                             f.setAccessible(true);
                             Object val = f.get(it);
                             if (val != null) serverId = String.valueOf(val);
                         }
-                    } catch (Exception ignore) {}
+                    } catch (Exception ignore) {
+                    }
 
                     r.setServerId(serverId);
                     // load saved comment reaction state (from SharedPreferences)
@@ -616,7 +643,40 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             }
         });
     }
+    // inside CommentAdapter class
+    private String resolveAuthorDisplayNameFromItem(CommentItem it) {
+        if (it == null) return "Unknown";
+        // try likely display fields
+        try {
+            java.lang.reflect.Field f;
+            String[] candidates = new String[] {
+                    "authorDisplayName", "authorName", "displayName", "name", "username", "author_username"
+            };
+            for (String cand : candidates) {
+                try {
+                    f = it.getClass().getDeclaredField(cand);
+                    f.setAccessible(true);
+                    Object val = f.get(it);
+                    if (val != null) {
+                        String s = String.valueOf(val).trim();
+                        if (!s.isEmpty()) return s;
+                    }
+                } catch (NoSuchFieldException ignore) { /* next */ }
+            }
+        } catch (Exception ignore) { }
 
+        // fallback: if it.author equals current viewer id, show "You"
+        try {
+            String myUserId = context.getSharedPreferences("UserPrefs", MODE_PRIVATE).getString("userId", null);
+            if (it.author != null && it.author.equals(myUserId)) return "You";
+        } catch (Exception ignore) { }
 
+        // final fallback to raw author id
+        try {
+            if (it.author != null && !it.author.username.isEmpty()) return it.author.username;
+        } catch (Exception ignore) { }
+
+        return "Unknown";
+    }
 
 }
